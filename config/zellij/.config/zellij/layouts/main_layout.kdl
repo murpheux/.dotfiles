@@ -1,0 +1,85 @@
+// main_layout.kdl
+
+layout {
+
+    default_tab_template {
+        pane size=1 borderless=true {
+            plugin location="zellij:tab-bar"
+        }
+        children
+        pane size=2 borderless=true {
+            plugin location="zellij:status-bar"
+        }
+    }
+
+    tab name="main" {
+        pane split_direction="vertical" {
+            pane split_direction="horizontal" {
+                pane size="35%" command="zsh" {
+                  args "-c" "lazydocker; exec zsh"
+                }
+                pane size="30%"     // bpytop, support cli
+                pane size="20%" command="zsh" {
+                  args "-c" "bpytop -b cpu; exec zsh"
+                }
+                pane size="15%"
+            }
+            pane split_direction="horizontal" {
+                pane size="30%" split_direction="horizontal" {
+                    pane split_direction="vertical" {
+                        pane command="zsh" {
+                          args "-c" "cmatrix; exec zsh"
+                        }
+                        pane
+                    }
+                    pane split_direction="vertical" {
+                        pane command="zsh" {
+                          args "-c" "while true; do pfetch | pv -qL 100 ; sleep 300; done; exec zsh"
+                        }
+                        pane command="zsh" {
+                          args "-c" "while true; do sl | lolcat; sleep 5; done; exec zsh"
+                        }
+                        pane
+                    }
+                }
+                pane size="20%"     // bpytop, support cli
+                pane size="20%" command="zsh" {
+                  args "-c" "DOCKER_HOST=tcp://sclet:2375 ctop; exec zsh"
+                }
+                pane size="20%"     // docker containers - ctop
+                pane size="10%"     // pihole block
+            }
+        }
+    }
+
+
+    //tab name="ssh" {
+    //    pane split_direction="vertical" {
+    //        pane
+    //        pane split_direction="horizontal" {
+    //            pane size="60%"
+    //            pane size="40%"
+    //        }
+    //    }
+    //}
+
+
+    //tab name="code" {
+    //    pane size="80%"  // editor, spacevim, neovim
+    //    pane size="20%" split_direction="vertical" {
+    //        pane
+    //        pane
+    //    }
+    //}
+
+    //tab name="notes" {
+    //    pane size="100%" command="zsh" {
+    //      args "-c" "nvim ~/.dotfiles/unix_commands; exec zsh"
+    //    }
+    //}
+
+    tab name="full" {
+        pane size="100%"
+    }
+
+}

@@ -1,0 +1,17 @@
+#!/bin/zsh
+# works in zsh
+# depends on stowrc config
+
+STOW_FOLDERS=(~/.dotfiles/config/*)
+
+echo 'running ...'
+
+for folder in "${STOW_FOLDERS[@]}" 
+do
+    stowpkg=$(basename $folder)
+    stow -R $stowpkg
+    # stow -D $stowpkg
+    #stow $stowpkg
+done
+
+echo 'done!'

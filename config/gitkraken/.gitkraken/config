@@ -1,0 +1,178 @@
+{
+  "lastUpgradeScriptRun": "v11.0.0",
+  "appId": "4a960bcd91c6067a880e5f70cae7406184091816",
+  "lastVersion": "7.6.1",
+  "lastReleaseNotesDisplayed": "11.0.0",
+  "windowSettings": {
+    "x": 0,
+    "y": 2571,
+    "width": 2880,
+    "height": 2549,
+    "fullScreen": false,
+    "maximized": false
+  },
+  "registration": {
+    "email": "dapo.onawole@gmail.com",
+    "name": "Clement Onawole",
+    "status": "activated",
+    "loginType": "github",
+    "date": "2021-06-17T16:13:59.438Z",
+    "EULA": {
+      "version": "8.3.1",
+      "status": "agree_verified"
+    }
+  },
+  "userId": "7530732b-8828-4604-9087-6b975795f387",
+  "licensedFeatures": [],
+  "userFeatures": [
+    {
+      "name": "activityStatus"
+    },
+    {
+      "name": "changePriceEnabled"
+    },
+    {
+      "name": "cli"
+    },
+    {
+      "name": "experimentalAiCommmitMsg"
+    },
+    {
+      "name": "experimentalGitBinary"
+    },
+    {
+      "name": "experimentalGitBinaryDefaultOn971"
+    },
+    {
+      "name": "experimentalGitBinarySpawnServer961"
+    },
+    {
+      "name": "gitBash"
+    },
+    {
+      "name": "gitkraken"
+    },
+    {
+      "name": "gkApi"
+    },
+    {
+      "name": "gkDevConflictPreventionSetting"
+    },
+    {
+      "name": "gkdevEnableAllAutomationProviders"
+    },
+    {
+      "name": "gkDevReferralSystem"
+    },
+    {
+      "name": "gkdOnboardingTutorial_10_5_0"
+    },
+    {
+      "name": "gkDotDevAutomations"
+    },
+    {
+      "name": "gkDotDevCycleTime"
+    },
+    {
+      "name": "gkdReferralProgram_11_0_0"
+    },
+    {
+      "name": "gkdTutorialSkipFirstStep_10_8_0"
+    },
+    {
+      "name": "goldenTicketSpecial"
+    },
+    {
+      "name": "onboardingGuide"
+    },
+    {
+      "name": "privateRepoModalTest_10_5_0"
+    },
+    {
+      "name": "registeredForGST"
+    },
+    {
+      "name": "terminalInsideRepoTab"
+    },
+    {
+      "name": "unregisteredTrials"
+    },
+    {
+      "name": "useNewTrialStartModalTest_10_8_0"
+    },
+    {
+      "name": "velocityInClient_9_0_0"
+    },
+    {
+      "name": "workspacesPRComplexity"
+    }
+  ],
+  "keepGitConfigInSyncWithProfile": false,
+  "fuzzyFinderMetadata": {
+    "itemMetadata": {
+      "OPEN_REPO": {
+        "openRepo-/home/murpheux/Workspace/Projects/bcparks": {
+          "id": "openRepo-/home/murpheux/Workspace/Projects/bcparks",
+          "timestamps": [
+            1623946651470
+          ],
+          "total": 1
+        },
+        "openRepo-/home/murpheux/Workspace/Projects/dgiini": {
+          "id": "openRepo-/home/murpheux/Workspace/Projects/dgiini",
+          "timestamps": [
+            1623946796735,
+            1744125452413
+          ],
+          "total": 2
+        },
+        "openRepo-/Users/murpheux/Workspace/Projects/dgiini": {
+          "id": "openRepo-/Users/murpheux/Workspace/Projects/dgiini",
+          "timestamps": [
+            1744125488011
+          ],
+          "total": 1
+        }
+      }
+    }
+  },
+  "commits": {
+    "maxCommitsInGraph": 2000
+  },
+  "ui": {
+    "shouldShowStartupPromoModal": false
+  },
+  "allowTeamVisibilityByOrgId": {},
+  "postTeamVisibilityOnce": false,
+  "userMilestones": {
+    "firstRepoOpened": true,
+    "firstAppOpen": true,
+    "firstLoginRegister": true,
+    "completedNewUserOnboarding": true,
+    "firstProfileCreated": true,
+    "completedFirstRepoModal": true,
+    "firstTimeCommitSelected": true,
+    "leftPanelToggled": true,
+    "acknowledgedCommitDetailPanel": true,
+    "acknowledgedLeftPanel": true,
+    "installId": "0e1b898d-888b-47a0-8d3d-d69a917f1153",
+    "connectIntegration": true,
+    "introTutorialWelcomeStepSkipped": true,
+    "startATrial": true
+  },
+  "appDateFormat": null,
+  "appDateTimeFormat": null,
+  "appDateWordFormat": null,
+  "appDateVerboseFormat": null,
+  "appLocale": "en-US",
+  "gitBinaryEnabled": true,
+  "onboarding": {},
+  "ai": {
+    "enabled": true
+  },
+  "sslWhitelist": [],
+  "aliases": {
+    "repo": {},
+    "tabs": {}
+  }
+}

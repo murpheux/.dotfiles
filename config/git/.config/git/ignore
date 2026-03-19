@@ -1,0 +1,164 @@
+# -*- mode: gitignore; -*-
+
+# Compiled source #
+###################
+*.com
+*.class
+*.dll
+*.exe
+*.o
+*.so
+
+# Temporary files #
+###################
+*.swp
+*.swo
+*~
+
+# Packages #
+############
+*.7z
+*.dmg
+*.gz
+*.iso
+*.jar
+*.rar
+*.tar
+*.zip
+
+# Logs #
+######################
+*.log
+
+# OS generated files #
+######################
+.DS_Store*
+ehthumbs.db
+Icon?
+Thumbs.db
+
+# Editor files #
+################
+.vscode
+
+# Python
+#################
+**/*.pyc
+**/__pycache__/
+.project
+.pydevproject
+
+#########
+# Emacs #
+#########
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+## Org-mode
+.org-id-locations
+*_archive
+
+## flymake-mode
+*_flymake.*
+
+## eshell files
+/eshell/history
+/eshell/lastdir
+
+## elpa packages
+/elpa/
+
+## reftex files
+*.rel
+
+## AUCTeX auto folder
+/auto/
+
+## cask packages
+.cask/
+dist/
+
+## Flycheck
+flycheck_*.el
+
+## server auth directory
+/server/
+
+## projectiles files
+.projectile
+projectile-bookmarks.eld
+
+## directory configuration
+.dir-locals.el
+
+## saveplace
+places
+
+## url cache
+url/cache/
+
+## cedet
+ede-projects.el
+
+## smex
+smex-items
+
+## company-statistics
+company-statistics-cache.el
+
+## anaconda-mode
+anaconda-mode/
+
+################################
+# Jetbrains IDE configurations #
+################################
+.idea/
+TAGS
+.vscode/
+.projectile
+.auctex-auto
+compile_commands.json
+
+######## 
+# CCLS #
+########
+.ccls-cache
+.ccls-root
+
+##########
+# Global #
+##########
+GPATH
+GRTAGS
+GTAGS
+
+#######
+# Vim #
+#######
+tags
+# local vimrc
+.vimrc
+# swap
+[._]*.s[a-v][a-z]
+[._]*.sw[a-p]
+[._]s[a-v][a-z]
+[._]sw[a-p]
+# session
+Session.vim
+# temporary
+.netrwhist
+*~
+
+
+#########
+# Local #
+#########
+#
+*.local
+.cred

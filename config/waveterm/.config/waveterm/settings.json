@@ -1,0 +1,5 @@
+{
+  "autoupdate:channel": "latest",
+  "window:transparent": true,
+  "window:opacity": 0.65
+}

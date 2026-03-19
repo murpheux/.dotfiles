@@ -1,0 +1,13 @@
+secret:
+  ignored_paths:
+    - "**/sockets/*"
+    - "**/.ssh-agent"
+    - "**/node_modules/**"
+    - "**/*.ttf"
+    - "**/*.exe"
+    - "**/*.png"
+    - "**/*.jpg"
+    - "**/*.sock"
+    - "**/*.zip"
+    - "**/*.otf"
+version: 2

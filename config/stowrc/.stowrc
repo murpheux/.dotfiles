@@ -1,0 +1,5 @@
+#--no-folding
+#-vv
+-v
+--dir=~/.dotfiles/config
+--target=~

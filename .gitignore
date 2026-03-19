@@ -1,0 +1,92 @@
+# Byte-compiled / optimized / DLL files
+config/qtile/.config/qtile/__pycache__/
+*.py[cod]
+
+# Distribution / packaging
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# PyInstaller
+#  Usually these files are written by a python script from a template
+#  before PyInstaller builds the exe, so as to inject date/other infos into it.
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Compiled source #
+###################
+*.com
+*.class
+*.dll
+*.exe
+*.o
+*.so
+
+# Temporary files #
+###################
+*.swp
+*.swo
+*~
+
+# Packages #
+############
+*.7z
+*.dmg
+*.gz
+*.iso
+*.jar
+*.rar
+*.tar
+*.zip
+
+# Logs #
+######################
+*.log
+
+# OS generated files #
+######################
+.DS_Store*
+ehthumbs.db
+Icon?
+Thumbs.db
+
+# Editor files #
+################
+.vscode
+
+# Python
+#################
+**/*.pyc
+**/__pycache__/
+.project
+.pydevproject
+
+# gitkraken
+**/error-log.txt
+**/*.log.*
+**/logs/*
+**/notif/*
+**/profiles/*
+
+# ggshield
+**/.cache_ggshield
+
+# old files
+**/*.old

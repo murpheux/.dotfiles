@@ -1,0 +1,137 @@
+# ~/.zshrc - zsh interactive shell loader (performance-first)
+
+# Top of .zshrc
+DISABLE_AUTO_UPDATE="true"
+DISABLE_MAGIC_FUNCTIONS="true"
+DISABLE_COMPFIX="true"
+
+# Fast exit for non-interactive shells.
+[[ -o interactive ]] || return
+
+# Keep p10k instant prompt near top.
+if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+fi
+
+# Core environment
+export TERM="xterm-256color"
+export ZSH="$HOME/.oh-my-zsh"
+
+# Theme and prompt configuration
+ZSH_THEME="powerlevel10k/powerlevel10k"
+POWERLEVEL10K_SHORTEN_DIR_LENGTH=1
+POWERLEVEL10K_LEFT_PROMPT_ELEMENTS=(dir rbenv vcs)
+POWERLEVEL10K_RIGHT_PROMPT_ELEMENTS=(status root_indicator background_jobs history time)
+POWERLEVEL10K_VCS_MODIFIED_BACKGROUND='red'
+typeset -g POWERLEVEL9K_INSTANT_PROMPT=off
+
+# Plugins (trim this list if startup latency is still high)
+plugins=(
+  git
+  npm
+  zsh-autosuggestions
+  fast-syntax-highlighting
+)
+
+# Load oh-my-zsh framework
+if [[ -f "$ZSH/oh-my-zsh.sh" ]]; then
+  source "$ZSH/oh-my-zsh.sh"
+fi
+
+# Autosuggest settings
+ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE="fg=#663399,standout"
+ZSH_AUTOSUGGEST_BUFFER_MAX_SIZE="20"
+ZSH_AUTOSUGGEST_USE_ASYNC=1
+
+# History behavior
+export HISTFILESIZE=-1
+export HISTSIZE=-1
+export HISTORY_IGNORE="(ls|ll|cat|pwd|clear|which *|dig *|rm *|cls|bup|h|pwd|rm -rf *|paru|paru -Syy|paru -Syu|paru -Syyu|cd *|sz|AWS|SECRET)"
+setopt INC_APPEND_HISTORY
+setopt HIST_FIND_NO_DUPS
+setopt HIST_IGNORE_DUPS
+setopt HIST_IGNORE_ALL_DUPS
+setopt HIST_IGNORE_SPACE
+setopt HIST_SAVE_NO_DUPS
+setopt HIST_EXPIRE_DUPS_FIRST
+setopt SHARE_HISTORY
+setopt HIST_VERIFY
+
+# Completion initialization
+autoload -Uz compinit
+if [ "$(date +'%j')" != "$(stat -f '%Sm' -t '%j' ~/.zcompdump 2>/dev/null)" ]; then
+    compinit
+else
+    compinit -C
+fi
+
+# Bash-style completion bridge only when needed
+if (( $+commands[aws_completer] || $+commands[kubectl] )); then
+  autoload -Uz bashcompinit
+  bashcompinit
+fi
+
+# Prevent bash-only kitty completion from sourced files creating startup noise.
+if (( $+commands[kitty] )); then
+  alias kitty='false'
+fi
+
+# Source user modules (kept separate on purpose)
+[ -f "$HOME/.config/shell/exports.sh" ] && source "$HOME/.config/shell/exports.sh"
+[ -f "$HOME/.config/shell/aliases.sh" ] && source "$HOME/.config/shell/aliases.sh"
+
+unalias kitty 2>/dev/null || true
+
+# Optional prompt/tool integrations
+[[ -f "$HOME/.p10k.zsh" ]] && source "$HOME/.p10k.zsh"
+[[ -f "$HOME/.fzf.zsh" ]] && source "$HOME/.fzf.zsh"
+
+# Path and metadata
+[[ -d "$HOME/.wasmtime/bin" ]] && export PATH="$HOME/.wasmtime/bin:$PATH"
+if [[ -f "/etc/arch-release" && -f "/etc/hostname" ]]; then
+  export TERMINAL_TITLE="$(cat /etc/hostname)"
+else
+  export TERMINAL_TITLE="$(hostname)"
+fi
+
+# External completions
+if (( $+commands[aws_completer] )); then
+  complete -C '/usr/local/bin/aws_completer' aws
+fi
+
+if [[ ${NECESSARY_RUN:-RUN} == "RUN" ]]; then
+  if (( $+commands[kubectl] )); then
+    source <(kubectl completion zsh)
+    complete -F __start_kubectl kb
+  fi
+  NECESSARY_RUN='DONE'
+fi
+
+# Utility function
+random-string() {
+  cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w ${1:-32} | head -n 1
+}
+
+# Keep command line but avoid loading bash script under zsh.
+if [[ -n "$BASH_VERSION" && -f "$HOME/.config/broot/launcher/bash/br" ]]; then
+  source "$HOME/.config/broot/launcher/bash/br"
+fi
+
+# Zellij behavior
+export ZELLIJ_AUTO_ATTACH=true
+export ZELLIJ_AUTO_EXIT=true
+if [[ "$IS_ALACRITTY" == "true" && -z "$ZELLIJ" ]]; then
+  if [[ "$ZELLIJ_AUTO_ATTACH" == "true" ]]; then
+    if (( $+commands[zml] )); then
+      zml
+    elif (( $+commands[zellij] )); then
+      zellij attach --create main
+    fi
+  elif (( $+commands[zellij] )); then
+    zellij
+  fi
+
+  if [[ "$ZELLIJ_AUTO_EXIT" == "true" ]]; then
+    exit
+  fi
+fi

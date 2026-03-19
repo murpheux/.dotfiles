@@ -1,0 +1,33 @@
+[env]
+TERM = "xterm-256color"
+IS_ALACRITTY = "true"
+
+[window]
+# Values: "Windowed", "Maximized", "Fullscreen", "SimpleFullscreen" (macOS only)
+# startup_mode = "Windowed"
+padding.x = 10
+padding.y = 10
+
+# decorations = "Buttonless"
+
+opacity = 0.65
+blur = true
+
+option_as_alt = "Both"
+
+[window.dimensions]
+columns = 300
+lines = 400
+
+
+[font]
+normal.family = "MesloLGS Nerd Font Mono"
+
+size = 24
+
+#[terminal.shell]
+#program = "/bin/zsh"
+#args = ["-c", "cd ~ && /usr/local/bin/zellij --layout main_layout"] # Optional: compact, default
+
+#program = "/usr/local/bin/zellij"
+#args = ["--layout", "main_layout"] # Optional: compact, default
