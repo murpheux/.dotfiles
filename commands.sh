@@ -12,7 +12,12 @@
 #  ln/murpheux fb/murpheux tw/murpheux
 
 
-# Tools: vi, ed, ex, vim, neovim - lazyvim, spacevim
+# Tools  : vi, ed, ex, vim, neovim - lazyvim, spacevim, edit
+# Editor : vscode, sublime, notepad++
+# Term   : warp, kitty, alacritty, wave, iterm, hyper, ghosty, tabby, rio, wezterm
+# AI     : github copilot, gemini, claude, ollama, deepSeek, chatGPT, grok, commet, perflexity
+# Models : claude, oz,
+# Sec Mgr: 1password, Bitwarden, Passwords (macos), lastpass
 
 #:::::::::::::::::::::::::::: unix comms ::::::::::::::::::::::::::::
   ushd
@@ -75,7 +80,7 @@
   https://www.cve.org
   https://github.com/The-Art-of-Hacking/h4cker/tree/master/bug-bounties - bug bounties
   https://websploit.org - websplout lab
-  
+
   curl -sSL https://websploit.org/install.sh | sudo bash
 
   https://hackthissite.org
@@ -112,7 +117,7 @@
   registry.fedoraproject.org
   registry.centos.org
 
-#::::::::::::::::::::::::::::: mac os :::::::::::::::::::::::::::::::
+#:::::::::::::::::::::::::::::: mac os ::::::::::::::::::::::::::::::
   installer -pkg session-manager-plugin.pkg -target /
 
   networksetup -listallhardwareports
@@ -237,7 +242,7 @@
 
   prlctl --version | --help
   prlctl restart softcraftmaxime
-  prlctl stop softcraftmaxime
+  prlctl stop softcraftmaxime [--kill]
 
   prlctl list --running --no-header --format name
   for vm in $(prlctl list --running --no-header --format name); do prlctl stop "$vm"; done
@@ -295,12 +300,26 @@
   launchctl stop com.openssh.sshd
   launchctl start com.openssh.sshd
 
+  # run these commands in the Terminal: 
+  # restart/Reload SSH:
+  launchctl unload /System/Library/LaunchDaemons/ssh.plist
+  launchctl load -w /System/Library/LaunchDaemons/ssh.plist
+
+  # alternative (Force restart):
+  sudo launchctl kickstart -k system/com.openssh.sshd 
+
+  # other Useful Commands:
+  sudo launchctl stop com.openssh.sshd
+  sudo launchctl start com.openssh.sshd
+  sudo systemsetup -setremotelogin
+
 
   # ==> Disable SIP on mac - run in recovery mode
   csrutil disable
 
   # ==> mount iso file
   hdiutil mount <isofile>.iso
+  
   # ==> Convert to dmg
   hdiutil convert linuxmint-18.1-cinnamon-64bit.iso -format UDRW -o linuxmint-18.1-cinnamon-64bit.dmg
 
@@ -425,6 +444,13 @@
 
   #Log bonjour traffic at the packet level:
   killall -USR2 mDNSResponder
+  killall -r "pattern*"
+  killall -I -r "pattern*"
+  pkill -f "pattern"
+  killall -r "test.*"
+  killall -9 -r "^temp"
+  killall -Iiv -r "^chat"
+  killall -9 "Parallels Desktop" "prl_client_app" "prl_vm_app"
 
   #Stop Bonjour:
   launchctl unload -w /System/Library/LaunchDaemons/com.apple.mDNSResponder.plist 
@@ -541,21 +567,27 @@
   #Make an alias for looking at what has a listener open, called ports:
   alias ports='lsof -n -i4TCP | grep LISTEN'
 
+  #==> wip
+  alias pathz='printf "%s\n" $PATH | awk "{ print length(\$0), \$0 }" | sort -n | cut -d" " -f2- | uniq'
+  alias pathz='echo "$PATH" | tr ":" "\n" | xargs -I {} gawk '\''{ print length($0), $0 }'\'' {} | sort -n | cut -d" " -f2- | uniq'
+  alias pathz="echo \$PATH | tr ':' '\n' | awk '{ print length(\$0), \$0 }' | sort -n | cut -d' ' -f2- | uniq"
+
+
+  alias hl="rg --colors 'match:bg:red' --colors 'match:fg:white' --passthru"
+
   #Report back the name of the system:
   hostname
 
-  #Flush the dns cache:
+  # flush the dns cache:
   dscacheutil -flushcache
   killall -HUP mDNSResponder; sleep 2
   dscacheutil -flushcache; sudo killall -HUP mDNSResponder
 
-  #Clear your arp cache:
+  # clear your arp cache:
   arp -ad
+  arp -r|n
 
-  arp -r
-  arp -n 
-
-  #View how the Server app interprets your network settings:
+  # view how the Server app interprets your network settings:
   serveradmin settings network
 
   #Whitelist the ip address 10.10.10.2:
@@ -625,7 +657,83 @@
      --note 'Pleasure doing business with you.'
 
 #:::::::::::::::::::::::::::::: linux :::::::::::::::::::::::::::::::
+  # ==> Tools
+  # AI: *DeepSeek, *ChatGPT, *CoPilot, *GH Copilot, Gemini, Grok
+  # IDE: *V-Studio, *Android Studio, Eclipse, IntelliJ
+  # UI Editor: *vscode, vscodium, Sublime, Atom, Textmate
+  # Editor: ex, *vi/vim/nvim, helix, *nano, emacs, doom emacs, micro, ne
+  # Term: *warp, *alacritty, *iterm2, ghosty, hyper, *kitty, powershell, 
+  #       rio, tabby, *wave, wezterm
+  # Multiplexer: *tmux, *zellij byobu
+  # Shell: sh, *bash, *zsh, fish, tcsh, pwsh, nushell, elvish, dash, rbash, ksh88|93
+
+  # ==> Alt commands
+  # cat ==> bat           ls  ==> eza
+  # cd  ==> z             grep ==> rg
+  # find ==> fd
+
   bash -n ~/.bashrc
+
+  # ==> pair yubikee
+  sc_auth pairing_ui -f
+  ykpamcfg -2 # generate sudo config
+  sc_auth pairing_ui -s enable # enable sc_auth. enabled by default
+  pam_yubico.so # module include in /etc/pam.d/sudo
+
+  # Bash - uses TIMEFORMAT variable
+  bash$ TIMEFORMAT='%R real %U user %S sys'
+
+  # Zsh - uses TIMEFMT variable  
+  zsh$ TIMEFMT='%*E real %U user %S sys'
+
+  # In zsh, if you want the external time command:
+  zsh$ command time ls          # Bypasses the shell reserved word
+  zsh$ /usr/bin/time ls         # Full path to external 
+
+  ZDOTDIR=~/my_zsh_config zsh
+  exec zsh --rcfile ~/.custom_zshrc
+  zsh -f
+  time zsh -i -c exit
+  time zsh -c 'echo $SECONDS'
+  zsh -xv ~/.zshrc
+  zsh -i -c 'echo $SECONDS'
+  source /path/to/your/file.zshrc
+
+  ZSH_HIGHLIGHT_HIGHLIGHTERS=(main brackets)
+
+  # ==> zinit
+  zinit
+  zinit load|update|light|snippet|delete [--all]
+  zinit ice wait; zinit load zsh-users/zsh-autosuggestions #turbo
+  # bash 
+  zinit ice wait
+  zinit load zdharma-continuum/fast-syntax-highlighting zsh-users/zsh-autosuggestions
+
+  # Self update
+  zinit self-update
+
+  # Plugin update
+  zinit update
+
+  # Plugin parallel update
+  zinit update --parallel
+
+  # Increase the number of jobs in a concurrent-set to 40
+  zinit update --parallel 40
+
+  # turbo mode
+  zinit ice wait    # wait is the same as wait"0"
+  zinit load zdharma-continuum/history-search-multi-word
+
+  zinit ice wait"2" # load after 2 seconds
+  zinit load zdharma-continuum/history-search-multi-word
+
+  zinit ice wait    # also be used in `light` and `snippet`
+  zinit snippet https://gist.githubusercontent.com/hightemp/5071909/raw/
+
+  # lucid mode
+  zinit ice wait lucid
+  zinit load zdharma-continuum/history-search-multi-word
 
   cat [-n|-A] <filename>
 
@@ -639,6 +747,7 @@
   echo $?
 
   which zsh
+  whence zsh
   command -v zsh
   echo $0
   echo $SHELL
@@ -654,6 +763,14 @@
   lsblk
 
   netstat
+
+  # ==> indent files
+  sed 's/^/    /' yourfile.txt > tempfile.txt && mv tempfile.txt yourfile.txt
+  expand -t 4 yourfile.txt > tempfile.txt && mv tempfile.txt yourfile.txt
+
+  # ==> config: zoxide
+  eval "$(zoxide init zsh)"
+  eval "$(zoxide init --cmd cd zsh)"
 
   mount.cifs //10.0.0.1/Data /mnt/timecapsule/ -o password='',sec=ntlm,uid=<local user>,vers=1.0
   mount -t nfs -o nfsvers=3 gru:/mnt/volume01 /mnt/volume01
@@ -704,6 +821,10 @@
   grubby --info=0
   grubby savedefault --default=2 --once
 
+  # strip dot from filenames
+  for f in .*; do [ -f "$f" ] && mv -n "$f" "${f#.}"; done
+  rename 's/^\.//' .* # not work macos
+
   seq 21
 
   # cover command with sudo
@@ -721,8 +842,7 @@
   ps -Ao user,uid,comm,pid,pcpu,pmem --sort=-pcpu | head -n 11
   ps -eo pid,ppid,cmd,%mem,%cpu --sort=-%mem | head -n 11
 
-  ps aux
-  ps -aux
+  ps aux|-aux
   ps aux --sort=-%cpu
 
   ps -fu murpheux
@@ -868,6 +988,27 @@
   sed -n '/pattern1/,/pattern2/p' filename
   sed -E 's/(pattern1|pattern2)/replacement/g' filename # ext regular expression
 
+  sed '5r file1.txt' file2.txt > file3.txt
+  sed -i '5r file1.txt' file2.txt
+  sed '/Pointer/r file1.txt' file2.txt > file3.txt
+  sed '/Pointer/{
+        G
+        s/\n\(.*\)\n//
+        h
+      }
+      ' file2.txt # more complex, often requires specific sed syntax or `ed`
+  sed -i -e '/PATTERN/ {r file2.txt' -e 'd}' file1.txt
+  sed -i '' -e '/PATTERN/ {r file2.txt' -e 'd}' file1.txt # mac os
+  printf '%s\n' '/PATTERN/d' '/PATTERN/-1r file2.txt' 'wq' | ed -s file1.txt
+  awk '/PATTERN/{while((getline line<"file2.txt")>0)print line;next}1' file1.txt > tmpfile && mv tmpfile file1.txt
+
+
+  # Replace spaces with underscores
+  rename 's/ /_/g' "$FILE"
+
+  # Replace periods with underscores
+  rename 's/\./_/g' "$FILE"
+
   # ==> linux performance
   top [-u username]
   top -l 1 -n 10 -s 0 -o cpu
@@ -954,14 +1095,16 @@
 
   calc 33 \* 22
 
-  #==> Postgresql / Upgrade
+  # ==> Postgresql / Upgrade
   pg_lsclusters 
   pg_dropcluster 17 main --stop
   pg_upgradecluster 16 main 
   pg_dropcluster 16 main
 
-  #==> clear dns
+  # ==> clear dns
   /etc/init.d/dns-clean start
+
+  alias -s {yml,yaml}=nvim # $ file.yaml
 
   alias hidden='ls -a | grep "^\."'
 
@@ -990,11 +1133,6 @@
   sfdidk -l
   lsblk
   inxi -D
-
-  -> java
-  ls -l /etc/alternatives
-  update-alternatives --config java
-  update-alternatives --install /usr/bin/java java /usr/local/java/jre1.7.0_09/bin/java 1085
 
   service --status-all
   service nginx status
@@ -1117,6 +1255,23 @@
 
   geodb
 
+  # ==> totp
+  totp-cli update
+  totp-cli generate personal github
+  
+  totp-cli instant "YOUR_SECRET_KEY"
+  oathtool --base32 --totp "YOUR_SECRET_KEY"
+
+  totp-cli list
+  totp-cli list personal
+
+  totp-cli add-token
+  totp-cli add-token personal randomaccount
+  totp-cli delete personal.randomaccount
+
+  export TOTP_CLI_CREDENTIAL_FILE="/mnt/mydrive/totp-credentials"
+  TOTP_CLI_CREDENTIAL_FILE=/mnt/mydrive/totp-credentials totp-cli list
+
   get_totp docker murpheux
   get_totp github murpheux
 
@@ -1162,6 +1317,10 @@
   diff <(ssh-keygen -y -f ~/.ssh/id_rsa) ~/.ssh/id_rsa.pub
 
   eval "$(ssh-agent -s)"
+
+  # ==> ssh test github
+  ssh -T git@github.com
+  ssh -T git@gitlab.com
 
   ssh-add -K /Users/you/.ssh/id_rsa
   ssh-add -l
@@ -1258,6 +1417,14 @@
   find /path/to/dir -name "search-pattern" 2>&1 | grep -v "Permission denied"
 
   find / -type f -name "*log*" | xargs ls -lSh | more
+
+  # ==> find exclude dir
+  find . -path ./dir_to_exclude -prune -o -print
+  find . -not -path "./dir_to_exclude/*"
+  find . -path "./dir1" -prune -o -path "./dir5" -prune -o -print
+  find . \\( -path "./dir1" -o -path "./dir5" \\) -prune -o -print
+  find . -not -path "./dir1/*" -not -path "./dir5/*"
+  find . -name "node_modules" -prune -o -print
 
   # ==> grep
   grep -P $CREDARR
@@ -1928,6 +2095,10 @@
   # list users and other resources too:
   compgen -u
 
+  # zsh issues
+  compaudit | xargs chmod g-w # fix permissions
+  compaudit | xargs chown $(whoami)
+
   # count user accounts in the Linux server
   compgen -u | wc -l
   getent passwd | wc -l
@@ -1987,15 +2158,20 @@
   bat --list-themes
 
   # ==> linux key commands
-  !:0 = the name of command executed.
-  !:1 = the first parameter of the previous command
-  !:4 = the fourth parameter of the previous command
-  !:* = all of the parameters of the previous command
-  !^ = the first parameter of the previous command (same as !:1)
-  !$ = the final parameter of the previous command
-  !:-3 = all parameters in range 0-3 (inclusive)
-  !:2-5 = all parameters in range 2-5 (inclusive)
-  !! = the previous command line
+  !:0   # the name of command executed.
+  !:1   # the first parameter of the previous command
+  !:4   # the fourth parameter of the previous command
+  !:*   # all of the parameters of the previous command
+  !^    # the first parameter of the previous command (same as !:1)
+  !$    # the final parameter of the previous command
+  !:-3  # all parameters in range 0-3 (inclusive)
+  !:2-5 # all parameters in range 2-5 (inclusive)
+  !!    # the previous command line
+  !-1
+
+  vim !!:$ # command with argument from previous command
+  vi  !^   # gets the first argument from the previous command
+  ls -l !cp:2
 
   xautolock -time 5 -locker "xscreensaver-command -lock" &
   xautolock -time 5 -locker "i3lock -c 000000" &
@@ -2183,6 +2359,9 @@
   done < input.txt
 
   diff -[ |q|u|y] file1 file 2
+  diff -rq /path/to/dir1 /path/to/dir2
+  diff -rq /path/to/dir1 /path/to/dir2 | awk '{print $3}' | sed 's/://' # Show only file paths
+  comm -3 file1 file2
 
   # ==> user execute
   chmod u+x run_all.sh
@@ -2230,15 +2409,15 @@
   du -sh
   df -h
 
-  apt-get clean
   mv /var/lib/apt/lists /tmp/
   mkdir -p /var/lib/apt/lists/partial
+  mkdir -p ~/{.config,.cache,.local/share,.local/state}
+
+  # ==> apt
   apt-get clean
   apt-get update 
-
   apt-get update --allow-unauthenticated
   apt-get update --allow-insecure-repositories
-
   apt upgrade -y
 
   xargs
@@ -2260,6 +2439,7 @@
 
   # 1 line
   ls -1 Pictures | xargs
+  ls -1A Pictures
 
   cut -d: -f1 < /etc/passwd | sort | xargs
   ls *upload* | xargs wc
@@ -2368,6 +2548,7 @@
   # ==> equivalent
   find ./foo -type f -name "*.txt" -exec rm {} \;
   find ./foo -type f -name "*.txt" | xargs rm
+  find /usr/local/share/zsh/site-functions -type l ! -exec test -e {} \; -delete
 
   netstat -tuln
   ss -tuln
@@ -2395,7 +2576,7 @@
   id
   iext
 
-  #==> ip address
+  # ==> ip address
   ifconfig
   ip route show
   ip sclet
@@ -2418,7 +2599,9 @@
   route -n get default or netstat -rn
 
   ip neigh show 
-  arp -a or ndp -a
+  arp -a #or 
+  ndp -a
+  arp 10.10.2.0/0
 
   iperf -c 10.10.2.127
   iperf -c nrmacm1
@@ -2428,10 +2611,43 @@
   kill -9 41164
   killall Safari
 
-
   ln -s ../.env
   ln -s ../swagger.yaml
   ln -s /Volumes/volume01 .
+
+  # remove symbolic link
+  unlink <symlink_name>
+  rm <symlink_name>
+
+  find /path -type l
+
+  # ==> find broken links
+  find /path -xtype l
+  find /path -xtype l -delete
+
+  find {/path/to/dir} -type l -action
+  find {/path/to/dir} -type l -name 'files-regex-to-search' -action
+  find {/path/to/dir} -type l -iname 'Case-Insensitive-files-regex-to-search' -action
+  find {/path/to/dir} -lname 'files-regex-to-search'  -action
+
+  find /tmp/bin/ -type l -iname "*.sh" -print
+  find /tmp/bin/ -type l -iname "*.txt" -print
+  ## modern syntax for GNU/find ##
+  find /tmp/bin/ -lname "*.txt" -print
+  find /tmp/bin/ -lname "*.db" -print
+  find /tmp/bin/ -lname "*.sh" -print
+
+  find /tmp/bin/ -lname "*.sh" -delete
+
+  find /tmp/bin/ -type l -name "*.txt" -exec rm -i {} +
+  find /tmp/bin/ -type l -name "*.db" -exec rm -i {} +
+
+  # rm target of a symbolic link without deleting the link itself
+  rm "$(readlink -f ~/Desktop/test.txt)"
+  find ~/Desktop/ -type l -name 'test.txt' -exec bash -c 'rm "$(readlink -f "$1")"' _ {} \;
+
+  find /usr/local/lib/ -maxdepth 1 -follow  -type l
+  find /usr/local/lib/ -maxdepth 1 -follow  -type l -delete
 
   loadtest --version
   loadtest -c 10 --rps 200 https://localhost:8443/api/v1/ping
@@ -2468,8 +2684,7 @@
   curl -d "param=value" -i -X POST http://username:myApiKey@myjenkins:8080/job/my-job/buildWithParameters
 
 
-  curl 
-       -X GET 
+  curl -X GET 
        -H "Authorization: Bearer <Access Token>" 
        -H "Content-type: application/json" 
        http://{hostname}/auth/realms/{realm_name}/protocol/openid-connect/userinfo
@@ -2571,6 +2786,10 @@
   less /var/log/lightdm/lightdm.log
   less /var/log/lightdm/seat0-greeter.log
 
+  # ==> history
+  history
+  history -5 # show error commnands
+  history -f
 
   history | sed -n 'START_NUM,END_NUMp'
   history | sed -n '321,456p'
@@ -2579,6 +2798,15 @@
 
   history | head -n END_NUM | tail -n $((END_NUM - START_NUM + 1))
   history 20
+  history -c # clear previous history
+
+  fc -l 
+  omz_history
+
+  # eliminate duplicates in history file - macos
+  awk -F';' '!visited[$2]++' ~/.zsh_history > ~/.zsh_history_new && mv ~/.zsh_history_new ~/.zsh_history
+  cat -n ~/.zsh_history | sort -t ';' -uk2 | sort -nk1 | cut -f2- > ~/.zsh_history_temp && mv ~/.zsh_history_temp ~/.zsh_history
+  sort -t ";" -k 2 -u ~/.zsh_history | sort -o ~/.zsh_history
 
   feh -g 640x480 -d -S filename /path/to/directory
 
@@ -2588,7 +2816,6 @@
   # ==> aria
   aria --version
   aria2 --version
-  arp 10.10.2.0/0
 
   # ==>axel
   axel --version
@@ -2686,6 +2913,13 @@
   time dig sclet
   timestamp
 
+  time bash|zsh -i -c exit
+  \time bash|zsh -i -c exit # Backslash bypasses alias/reserved word
+  =time bash|zsh -i -c exit  # = expands to path of command
+
+  command time ls # Bypasses the shell reserved word
+  /usr/bin/time ls # Full path to external version
+
   tldr --update
   tldr curl
 
@@ -2749,7 +2983,7 @@
 
   docklls
 
-  #==> dos/win file to unix vice versa
+  # ==> dos/win file to unix vice versa
   dos2unix [-b|-n] <filename>
   dos2unix *.txt | file1 file2
   unix2dos <filename>
@@ -2759,12 +2993,10 @@
 
   duckdb
 
-  #==> tail
+  # ==> tail
   tail [-f|-n 20] error.log
   tar -zxvf gpustat-1.1.1.tar
   tar zxvf sonar-scanner-cli-4.7.0.2747.tar 
-
-  totp_list
 
   transmission-cli https://cdimage.ubuntu.com/ubuntu-mate/releases/22.04/release/ubuntu-mate-22.04.3-desktop-amd64.iso.torrent -w ~/Downloads
   transmission-cli https://releases.ubuntu.com/24.04/ubuntu-24.04.1-live-server-amd64.iso.torrent\?_gl\=1\*1xj25r2\*_gcl_au\*MzEyNzgwNzA4LjE3MjcyMTg0NTc.\&_ga\=2.20543355.2131620572.1727218454-36498370.1727218454 -w ~/Downloads
@@ -2773,6 +3005,10 @@
 
   vimdiff ~/BizController.cs ~/BizController2.cs
   vimdiff Index.cshtml TCC/Index.cshtml
+
+  vimdiff file1 file2 or 
+  vim -d file1 file2
+  vimdiff file1 file2 file3
 
   whois app.kunyefinancial.com
   whois softcraft.ddns.net
@@ -2963,10 +3199,9 @@
   ssh-copy-id -i ~/.ssh/id_rsa.pub name@host
 
   for i in {1..10}; do uuidgen; done
+  for i in 7.0.0 7.0.3 8.0.6; do sudo dotnet-core-uninstall remove --runtime|--sdk $i; done
 
   docker run -d --name rabbi -e RABBITMQ_DEFAULT_USER=user -e RABBITMQ_DEFAULT_PASS=password -p 5672:5672 -p 15672:15672 rabbitmq:3.7.1
-
-  for i in {1..10}; do uuidgen; done
 
   -> FDD
   dotnet publish -c release
@@ -3009,6 +3244,7 @@
   yarn licenses ls/list
   yarn upgrade-interactive [--latest]
 
+  export PATH="$PATH:`yarn global bin`"
 
   for lang in es en fr; do \
       ng build --output-path=dist/$lang \
@@ -3018,18 +3254,12 @@
                --i18n-file=src/i18n/messages.$lang.xlf \
                --i18n-format=xlf \
                --locale=$lang; \
-    done
-
-
+  done
 
   consul connect proxy -sidecar-for <service>
   curl http://127.0.0.1:8500/v1/kv/secret | jq '.[].Value' | xargs echo | base64 --decode
 
-
-
-
   rsync -av --progress trmweb/ ./trmtfs --exclude packages/ --exclude trmweb/bin --exclude trmweb/obj --exclude .git --exclude .gitignore [-n]
-
 
   pytest test_login.py -n 4 --verbose --capture=no
   python3 -m pytest tests/test_auth.py
@@ -3043,8 +3273,6 @@
   : 1, lastLogin: 1, created: 1, rating: {$avg: '$rating.rating'}}}])
 
   curl http://gru:8088/git/notifyCommit?url=ssh://jenkins@scarlet/projects.git/projects/dgiini
-
-
 
   var http = require('http')
   http.globalAgent.maxSockets = 10
@@ -3850,6 +4078,9 @@
   gcloud compute firewall-rules create my-swarm-rule --allow tcp:80 --description "nginx service" --target-tags myswarm
 
   gcloud config set project goopro-178706
+  gcloud config set project [YOUR_PROJECT_ID]
+  gcloud config set compute/region [YOUR_REGION]
+  gcloud config set compute/zone [YOUR_ZONE]
   gcloud config set compute/zone us-west1-b
   gcloud projects delete gleaming-shard-178122
 
@@ -3858,7 +4089,6 @@
 
   gcloud config set disable_usage_reporting true
   gcloud config set disable_usage_reporting false
-
 
   # ==> gsutil
   gsutil version
@@ -4312,7 +4542,16 @@
   pm2 publish
 
 #::::::::::::::::::::::::::: powershell :::::::::::::::::::::::::::::
-    cd C:\windows\system32\wbem
+  cls|Clear-Host
+  ls|Set-Location
+  
+  # ==> system info and arch
+  msinfo32
+  (Get-CimInstance Win32_OperatingSystem).OSArchitecture
+
+  pwsh -l # Starts as a Login Shell
+
+  cd C:\windows\system32\wbem
   regsvr32 /s %systemroot%\system32\scecli.dll
   regsvr32 /s %systemroot%\system32\userenv.dll
   regsvr32 cimwin32.dll
@@ -4330,8 +4569,11 @@
   \\wsl.localhost\Ubuntu\home\clem_onawole
   \\wsl.localhost\<DistroName>\home\<your_linux_username>
   
-  $Env:Path
+  $env:Path [-split ';']
   echo %PATH%
+
+  Test-Path $PROFILE
+  New-Item -Type File -Path $PROFILE -Force
   
   powershell -Command "msbuild.exe /nologo project.sln |
                        Select-String 'Build succeeded|failed' -Context 0, 100"
@@ -4377,8 +4619,102 @@
   Get-NetAdapter -Name "Ethernet" | Disable-NetAdapter -Confirm:$false
   Get-NetAdapter -Name "Ethernet" | Enable-NetAdapter
 
-  #==> reach ports
-  tnc 10.10.2.80 -Port 4444
+  # ==> reach ports
+
+  Get-Cpmmand -CommandType Cmdlet
+  Get-Command -Name "*Process*"
+  Get-Command -Verb Get
+  Get-Command -Noun Service
+  Get-Command -Module Microsoft.PowerShell.Management
+  Get-Command -ListImported
+  Get-Help <CmdletName>
+
+  Get-Module -ListAvailable
+  Get-Command -Module <ModuleName>
+
+  Start-Transcript -Path “C:\extract\admin_session.txt”
+
+  $env:Path
+  $env:Path -split ';'
+
+  $env:Path += ";C:\MyScripts"
+  [Environment]::SetEnvironmentVariable("Path", $env:Path + ";C:\MyScripts", "Machine")
+  # For the current user only (no admin rights needed):
+  [Environment]::SetEnvironmentVariable("Path", $env:Path + ";C:\MyScripts", "User")
+
+  Test-Path $PROFILE
+
+  pwsh -Command "Get-Process"
+  pwsh -Command "& {Get-WinEvent -LogName Security}"
+  pwsh -Command Get-Date
+  pwsh C:\Scripts\MyScript.ps1
+  pwsh -File "C:\Scripts\My Script.ps1"
+
+  powershell.exe -noprofile
+  powershell_ise.exe -NoProfile
+  pwsh -NoProfile|nop
+  pwsh -NoExit|noe
+
+  Install-Module -Name PSReadLine -Scope CurrentUser -Force
+  Get-InstalledModule -Name PSReadLine
+  Save-Module -Name PSReadLine -Path  C:\WINDOWS\System32\WindowsPowerShell\v1.0\Modules
+
+  # ==> winget
+  winget upgrade [--all] [--include-unknown]
+  winget install --id Microsoft.PowerShell --source winget
+
+  winget install -e --id Oracle.JDK.25
+  winget install -e --id Microsoft.OpenJDK.25
+  winget install -e --id EclipseAdoptium.Temurin.25.JDK
+  winget install -e --id Amazon.Corretto.25.JDK
+  winget install -e --id Azul.Zulu.25.JDK
+
+  Get-ChildItem | Format-Table -AutoSize
+  Get-ChildItem | Format-List -Property *
+  Get-ChildItem | Format-Wide
+  Get-ChildItem | Select-Object Name, Length, LastWriteTime
+  Get-ChildItem | Select-Object Name, @{Name="Size(MB)";Expression={$_.Length / 1MB}}
+  Get-ChildItem -Name
+  Get-ChildItem -Attributes Hidden
+
+  Get-ChildItem | Export-Csv -Path "files.csv" -NoTypeInformation
+  Get-ChildItem | ConvertTo-Html | Out-File "report.html"
+
+  # ==> windows update
+  Set-ExecutionPolicy RemoteSigned -Force
+  Install-Module -Name PSWindowsUpdate -Force
+  Import-Module PSWindowsUpdate
+  Get-WindowsUpdate [-AcceptAll -Install -AutoReboot|IgnoreReboot]
+  Get-WindowsUpdate -MicrosoftUpdate -Install -AcceptAll -AutoReboot
+  Get-WindowsUpdate -MicrosoftUpdate -Install
+  Get-WUHistory
+  Get-WURebootStatus
+
+  Get-WindowsUpdate #: This is the main cmdlet of the module. It lists, downloads, installs, or hides a list of updates meeting predefined requisites and sets the rules of the restarts when installing the updates.
+  Remove-WindowsUpdate #: Uninstalls an update.
+  Add-WUServiceManage #: Registers a new Windows Update API Service Manager.
+  Get-WUHistory #: Shows a list of installed updates.
+  Get-WUSettings #: Gets Windows Update client settings.
+  Get-WUInstallerStatus #: Gets Windows Update Installer Status, whether it is busy or not.
+  Enable-WURemoting #: Enables firewall rules for PSWindowsUpdate remoting.
+  Invoke-WUJob #: Invokes PSWindowsUpdate actions remotely.
+  Clear-WUJob #: Clears the WUJob in Task Scheduler.
+  Get-WUInstall, Install-WindowsUpdate (alias for Get-WindowsUpdate –Install) #: Installs Windows updates.
+  Uninstall-WindowsUpdate #: Removes updates using the Remove-WindowsUpdate command.
+  Get-WULastResults #: Gets the dates for the last search and installation of updates.
+  Get-WURebootStatus #: Checks if a reboot is needed to apply an update.
+  Remove-WUServiceManager #: Disables the Windows Update Service Manager.
+  Set-PSWUSettings #: Saves settings of the PSWindowsUpdate module to an XML file.
+  Set-WUSettings #: Configures the Windows Update client’s settings.
+  Reset-WUComponents #: Resets the Windows Update agent to its default state.
+
+  # elevated rights
+  sudo netstat -ab
+  Start-Process powershell -Verb RunAs
+  runas /user:admin
+  Start-Process powershell -Verb RunAs -ArgumentList "-Command Write-Output 'Hello Admin'"
+  winget install gsudo # older windows
+  sudo runas /user:admin Get-WindowsUpdate -MicrosoftUpdate -Install
 
 #:::::::::::::::::::::::::::::: dotnet ::::::::::::::::::::::::::::::
   dotnet --info
@@ -4400,10 +4736,13 @@
   dotnet ef migrations add <migration name>
   dotnet ef migrations remove
   dotnet ef database update
-  dotnet tool install -g dotnetsay
+  dotnet tool install -g|--global dotnetsay|dotnet-ildasm
   dotnet tool update -g
   dotnet tool update -g dotnetsay
   dotnet tool list -g
+
+  dotnet ildasm MyAssembly.dll
+  dotnet ildasm MyAssembly.dll -o MyAssembly.il
 
   dotnet test .\MyWebApp.DataStoreTest\MyWebApp.DataStoreTest.csproj
   dotnet run -p .\MyWebApp.Client\MyWebApp.Client.csproj
@@ -4486,6 +4825,9 @@
   dotnet watch run --urls=https://0.0.0.0
   dotnet-counters monitor -p 41681 HatCo.HatStore
   dotnet-counters ps
+
+  dotnet-core-uninstall list
+  dotnet-core-uninstall dry-run --sdk --all-below 6.0.100
 
   mklink /H NLog.config ..\..\..\NLog.config
 
@@ -4577,7 +4919,11 @@
 
 #:::::::::::::::::::::::::::::::: java ::::::::::::::::::::::::::::::
   /usr/libexec/java_home -v
-  /usr/libexec/java_home -V
+  /Library/Java/JavaVirtualMachines/ # macos folder
+
+  ls -l /etc/alternatives
+  update-alternatives --config java
+  update-alternatives --install /usr/bin/java java /usr/local/java/jre1.7.0_09/bin/java 1085
 
   jar xf <file>.jsr - extract
   java -jar build/jar/Hello.jar
@@ -4614,20 +4960,26 @@
   git fetch --depth 1 origin <branch-name> # use on existing clone
 
   git merge master
+  git merge-file <current-file> <base-file> <other-file>
 
   git reset --hard main
   git reset --soft/hard HEAD~1
   git rebase
   git reflog
 
+  # ==> git config
   git config --global user.name "Sam Smith"
   git config --global user.email sam@example.com
   git config --global user.signingkey 0A46826A
+
+  git config --unset-all core.hooksPath
+  git config --get remote.origin.url
+  git config --global alias.open '!f() { open=$(which xdg-open 2>/dev/null || which open 2>/dev/null || which start 2>/dev/null); url=$(git config remote.${1:-origin}.url | sed -E "s/:([^\\/])/\\/\\1/g" | sed -e "s/ssh:\\/\\///g" | sed -e "s/git@/https:\\/\\//g" | sed -e "s/\\.git\$//g"); $open $url; }; f'
+
   git init [-bare]
 
   git add <filename>
-  git add *
-  git add -
+  git add *|-
 
   git rm -r [file-name.txt]
   git commit -m "Commit message"
@@ -4643,6 +4995,15 @@
   git checkout <branchname>
   git checkout -- [file-name.txt]
   git checkout --orphan latest_branch # check out a new orphan branch/erase history
+
+  git checkout main
+  git reset --hard HEAD~N  # where N is the number of commits to remove
+  git push --force origin main
+
+  git checkout dev
+  git reset --hard HEAD~N
+  git push --force origin dev
+
   git branch
   git branch -a
   git branch -m
@@ -4676,7 +5037,7 @@
   git add <filename>
   git tag 1.0.0 <commitID>
   
-  #==> git log
+  # ==> git log
   git log
   git log --show-signature -1
   git log --summary
@@ -4693,9 +5054,16 @@
   git checkout -- <filename>
   git restore --staged <filename>|*
   git grep "foo()"
+
+  git clean -n    # untracked files
+  git clean -f -d # intracked files & directory
+
   git stash
+  git stash -u
   git stash clear
+  git stash pop
   git stash push -m <stashname> <file>
+
   git tag -a v1.4 -m "my version 1.4"
   git show v1.4
   git tag v1.4w # lightweight tag
@@ -4753,6 +5121,7 @@
   git merge --abort
   git merge --continue
   git merge --no-ff # no fast-forward
+  git merge <branch-name>
   git rebase -i HEAD~4
   git show --name-only {commit}
   git diff --staged
@@ -4808,8 +5177,8 @@
   git branch -avv
 
   git fetch --progress --all
-  git commit -a -m "first blood
-  git rebase -i HEAD~<num-commits>"
+  git commit -a -m "first blood"
+  git rebase -i HEAD~<num-commits>
   git ls-remote -h murpheux@gru:/projects.git/projects/seisewa HEAD
   git fetch --progress "--all"
 
@@ -4826,6 +5195,18 @@
   git reflog expire --expire=now --all
   git gc --prune=now --aggressive
 
+  git commit --no-verify
+
+  git diff --diff-filter=M # modified
+  git diff --diff-filter=ad # added and deleted
+  git diff --diff-filter=[A|C|D|M|R|T|U|X|B]
+
+  # ==> pre-commit
+  pre-commit --version
+  pre-commit sample-config > .pre-commit-config.yaml
+  pre-commit install
+  pre-commit run --all-files
+
   # ==> tig
   git show | tig
 
@@ -4837,10 +5218,12 @@
   tig --since=1.month -n20 -- Documentation/
   tig --all --since=1.week -- Makefile
 
-  #==> ssh test git
-  ssh -T git@github.com
+  eval "$(ssh-agent -k)"
+  # Then start a new agent session
+  eval "$(ssh-agent -s)"
 
-  #==> dotfiles taming
+
+  # ==> dotfiles taming
   git clone --bare git@github.com:kikedose/dotfiles.git ~/.dotfiles
   alias dotfiles='/usr/bin/git --git-dir=$HOME/.dotfiles/ --work-tree=$HOME'
   alias dotfiles="/opt/homebrew/bin/git --git-dir=$HOME/.dotfiles/.git --work-tree=$HOME/.dotfiles/"
@@ -4884,6 +5267,7 @@
   vboxheadless
   vboxmanage list vms
   vboxmanage list runningvms
+
   vn startvm ubuntu --type headless
   vboxmanage controlvm default poweroff
   vboxmanage controlvm "Ubuntu Server" pause --type headless
@@ -5624,6 +6008,7 @@
   openssl x509 -req -days 365 -in certificate.csr -signkey private.key -out selfsigned.crt
   openssl x509 -in selfsigned.crt -text -noout
 
+  openssl x509 -in <filename.pem> -noout -dates
 
   openssl x509 -req -sha256 -days 365 -in server.csr -signkey server.key -out server.crt
 
@@ -5706,6 +6091,9 @@
   brew info
   brew --cellar
   brew --prefix
+  brew --prefix httpd
+
+  brew shellenv
 
   brew cellar
   brew cellar info
@@ -5909,7 +6297,7 @@
 
 #:::::::::::::::::::::::::::: ggshield ::::::::::::::::::::::::::::::
   ggshield --version
-  ggshield auth login
+  ggshield auth login [--method token]
   ggshield secret scan repo .
   ggshield secret scan repo ddcb109
   ggshield secret scan commit-range HEAD~1
@@ -5918,11 +6306,19 @@
   ggshield secret scan path my_repo/my_file.py
   ggshield secret scan path --recursive my_repo/
 
+  ggshield secret scan pre-commit
+  ggshield secret scan changes
+
   # config .gitguardian.yaml
 
   ggshield secret scan path my_script.py
   ggshield secret scan path --recursive . [--use-gitignore]
   ggshield secret scan path -r .
+
+  ggshield install --mode global
+  ggshield install --mode global -t pre-push
+
+  ggshield config list
 
 #:::::::::::::::::::::::::::::: Kafka :::::::::::::::::::::::::::::::
   curl http://localhost:8082/brokers
@@ -5950,7 +6346,7 @@
   ./kafka-reassign-partitions.sh --zookeeper localhost:2181 --reassignment-json-file /tmp/reassignment-file.json --verify
 
 #::::::::::::::::::::::::::::: aws cli ::::::::::::::::::::::::::::::
-  #==> octo cli
+  # ==> octo cli
   octo login aws
   octo login aws --tenant-id <tenant-id> --profile <profile-name>
   
@@ -5968,25 +6364,47 @@
   aws configure list-profiles
   aws configure --profile userdev2
   aws configure list --profile userdev2
-  aws sts get-caller-identity [--profile pccto]
+  aws sts get-caller-identity [--no-verify-ssl] [--profile pccto]
   
   aws configure set region us-west-2 --profile integ
   aws configure get region --profile integ
   
   ssh -i <keypair> ubuntu@18.232.181.251
 
-  aws iam list-user
-  aws iam list-roles
-  aws iam create-role --role-name lambda-role --assume-role-policy-document file://role.json
-  aws iam list-users
-  aws iam list-users --output text
-  aws iam list-users --output yaml
   aws iam list-users
   aws iam list-roles
   aws iam list-groups
+  aws iam create-role --role-name lambda-role --assume-role-policy-document file://role.json
+
+  aws ec2 help
 
   # find latest ami
+  # Windows platform=,  Linux  name=amzn2-* or al2023-*, Ubuntu  owners=099720109477 + name=ubuntu/*
+  # RHEL  owners=309956199498, SUSE  owners=013907871322, Generic Linux platform is empty
+ 
   aws ec2 describe-images --owners amazon --filters "Name=name,Values=amzn2-ami-hvm-*-x86_64-gp2" "Name=state,Values=available" --query "sort_by(Images, &CreationDate)[-1].ImageId" --output text
+  aws ec2 describe-images --owners amazon --filters "Name=platform,Values=windows" --query "Images[*].[ImageId,Name,CreationDate]" --output table
+  aws ec2 describe-images --owners amazon --filters "Name=name,Values=amzn2-ami-hvm-*-x86_64-gp2" --query "Images[*].[ImageId,Name,CreationDate]" --output table
+  aws ec2 describe-images --owners amazon --filters "Name=name,Values=al2023-ami-*-x86_64" --query "Images[*].[ImageId,Name,CreationDate]" --output table
+  aws ec2 describe-images --owners 099720109477 --filters "Name=name,Values=ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*" --query "Images[*].[ImageId,Name,CreationDate]" --output table
+  aws ec2 describe-images --owners 309956199498 --filters "Name=name,Values=RHEL-*-x86_64-*" --query "Images[*].[ImageId,Name,CreationDate]" --output table
+  aws ec2 describe-images --owners amazon --filters "Name=platform,Values=" --query "Images[*].[ImageId,Name,PlatformDetails]" --output table
+  
+  aws ec2 describe-instance-types --query "InstanceTypes[].InstanceType" --output table
+  aws ec2 describe-instance-types --filters "Name=instance-type,Values=t2.*" --query "InstanceTypes[].InstanceType" --output table
+  aws ec2 describe-instance-types --filters "Name=instance-type,Values=t3.*" --query "InstanceTypes[].InstanceType" --output table
+  aws ec2 describe-instance-types --filters "Name=processor-info.supported-architecture,Values=arm64" --query "InstanceTypes[].InstanceType" --output table
+
+  # general purpose
+  aws ec2 describe-instance-types --filters "Name=processor-info.supported-architecture,Values=arm64" --query "InstanceTypes[].InstanceType" --output table
+  # compute optimized
+  aws ec2 describe-instance-types --filters "Name=instance-type,Values=c*" --query "InstanceTypes[].InstanceType" --output table
+  # memory optimized
+  aws ec2 describe-instance-types --filters "Name=instance-type,Values=r*,x*,u*" --query "InstanceTypes[].InstanceType" --output table
+
+  # vCPU, memory, architecture
+  aws ec2 describe-instance-types --query "InstanceTypes[*].{Type:InstanceType, vCPU:VCpuInfo.DefaultVCpus, Mem:MemoryInfo.SizeInMiB, Arch:ProcessorInfo.SupportedArchitectures}" --output table
+
 
   # fgilter by vpc
   aws ec2 describe-vpcs --vpc-id vpc-0123456789abcdef0
@@ -6003,13 +6421,15 @@
   aws ec2 describe-volumes
   aws ec2 describe-regions
   aws ec2 describe-availability-zones
+
   aws ec2 create-key-pair --key-name mykey
+  aws ec2 create-key-pair --key-name MyKeyPair --query 'KeyMaterial' --output text > ./path/to/your/folder/MyKeyPair.pem
+  
   aws ec2 run-instances --image-id ami-05b10e08d247fb927 --instance-type t2.micro --security-group-ids sg-06ea0c6e07290af18 --profile viper --count 1 --key-name myawskeys
   aws ec2 run-instances --image-id ami-05b10e08d247fb92 --instance-type t2-micro --count 1 --subnet-id net-prvt --security-group-ids sg-083933 --key-name mykey
   aws ec2 run-instances --image-id ami-0123456789abcdef0 --count 1 --instance-type t2.micro \
     --key-name vpc-tutorial-key --security-group-ids sg-0123456789abcdef0 --subnet-id subnet-0123456789abcdef0 \
-    --associate-public-ip-address \
-    --user-data '#!/bin/bash
+    --associate-public-ip-address --user-data '#!/bin/bash
                   yum update -y
                   yum install -y httpd
                   systemctl start httpd
@@ -6041,21 +6461,15 @@
   aws ec2 describe-availability-zones
   aws ec2 describe-availabilityzones
   aws ec2 describe-instances
-  aws ec2 describe-instances --output json
-  aws ec2 describe-instances --output json | grep Value
-  aws ec2 describe-instances --output json | grep kunye-dev
-  aws ec2 describe-instances --output json | grep value
   aws ec2 describe-volumes
   aws ec2 describe-vpcs
   aws ec2 describe-vpcs kunye-dev-vpc
   aws ec2 describe-instances --profile user1
   aws ec2 describe-instances --instance-ids i-0123456789abcdef0 --query 'Reservations[0].Instances[0].PublicIpAddress' --output text
+  
   # Get the private IP of the database server
-  aws ec2 describe-instances \
-    --instance-ids i-0123456789abcdef1 \
-    --query 'Reservations[0].Instances[0].PrivateIpAddress' \
-    --output text
-  aws ec2 help
+  aws ec2 describe-instances --instance-ids i-0123456789abcdef1 --query 'Reservations[0].Instances[0].PrivateIpAddress' --output text
+  
   aws ec2 describe-regions --output table
   aws ec2 describe-availability-zones --region us-west-1
   aws ec2 describe-instances --instance-ids i-1234567890abcdef0
@@ -6102,6 +6516,19 @@
   aws help
   aws configure list
   aws configure set region us-east-1
+
+  aws sso login --profile <your-profile-name>
+  aws login --profile <your-profile-name>
+  aws login --remote --profile <your-profile-name>
+
+  # ==> awsume
+  awsume -l
+  awsume <profile name>
+
+  # alternatives
+  assume -c <profile-name>
+  aws-vault login <profile-name>
+  BROWSER="/usr/bin/google-chrome --profile-directory='Profile 1'" aws sso login --profile <name>
 
   aws sns publish --topic-arn arn:aws:sns:us-east-1:546419318123:OperationsError --message "Script Failure"
   aws sqs receive-message --queue-url https://queue.amazonaws.com/546419318123/Test
@@ -6219,7 +6646,6 @@
 
   aws secretsmanager get-random-password --require-each-included-type
   aws secretsmanager get-random-password --password-length 16 --include-space
-
 
 #::::::::::::::::::::::::::::: openssl ::::::::::::::::::::::::::::::
   # Create a new Private Key and Certificate Signing Request
@@ -6652,6 +7078,12 @@
   nvm install node --reinstall-packages-from=current
   nvm install --lts --reinstall-packages-from=current
 
+  nvm install <new version> --reinstall-packages-from=<old version>
+  nvm install v20.15.0 --reinstall-packages-from=v18.20.3
+
+  nvm reinstall-packages <from-version>
+  nvm reinstall-packages v18.20.3
+
   nvm alias default <version>
   nvm uninstall <old_version>
   nvm ls-remote
@@ -6678,18 +7110,6 @@
   node -r newrelic src/server.js
   node app
   node app.js
-  node index
-  node index.js
-  node main.js
-  node server
-  node server.api
-  node server.api.js
-  node server.js
-  node src/app.js
-  node src/server
-  node src/server.api
-  node src/server.js
-  node weather.js
 
   # ==> nodemon
   nodemon --version
@@ -6710,27 +7130,8 @@
   npm i
   npm i -g *
   npm i -g @angular/cli
-  npm i -g @angular/cli@latest
-  npm i -g cordova
-  npm i -g cypress
-  npm i -g eas-cli
-  npm i -g eslint
-  npm i -g express-gateway
-  npm i -g forever
-  npm i -g gulp
-  npm i -g ionic
-  npm i -g loadtest
-  npm i -g nodemon
   npm i -g npm-upgrade
-  npm i -g react-native
-  npm i 0g npm-upgrade
   npm install -g @angular/cli@latest
-  npm install -g expo-cli
-  npm install -g nodemon
-  npm install -g npm
-  npm install -g npmc
-  npm install -g pm2
-  npm install -g yarn
   npm install --prefix ./install/here <package>
   npm ls
   npm prefix
@@ -6742,8 +7143,7 @@
   npm run test test/unit --if-present
   npm u -g @angular/cli
   npm uninstall -g @angular/cli
-  npm update
-  npm upgrade
+  npm update|upgrade
   npm-upgrade
 
   npx babel --version
@@ -6878,16 +7278,29 @@
   git clone /path/to/repository
   git clone username@host:/path/to/repository
 
+  git clone -c http.sslVerify=false https://example.com
+  git clone --config core.sshCommand="ssh -i ~/location/to/private_ssh_key" git@provider.com:userName/projectName.git
+  git clone -c http.proxy="" https://example.com
+  git clone -c core.askPass=true https://github.com
+  git clone --no-local /path/to/local/repo /path/to/new/repo
+
+  git clone --branch feature-login --single-branch https://github.com
   git clone [--depth 1 --branch develop] git@github.com:murpheux/.dotfiles.git [clean_dotfiles]
 
   git checkout -b dev
   git checkout deploy
   git checkout dev
   git checkout dev -c check2
+
   git config --global --list
   git config --global list
+  git config --global --edit
   git config --show-origin
   git config --global alias.tree 'log --oneline --graph --decorate --all'
+
+  git config --global --unset [key]
+  git config --global --unset-all [key]
+
   git diff
   git diff c991ce9 967dd83
   git diff models/User.js
@@ -6916,21 +7329,27 @@
   git remote add origin https://github.com/murpheux/.dotfiles.git
   git remote set-url origin git@github.com:murpheux/.dotfiles.git
   git remote set-url origin git@github.com:murpheux/AwesomeApp.git
+  git remote remove origin
+
   git reset --hard
   git reset --hard HEAD~1
+  git reset --hard <commit_sha>
   git reset HEAD -- apm/nodejs/*.log
   git reset eTCA/api/service/service.csproj
+
   git restore --staged
   git restore --staged *
   git restore --staged eTCA/web/Pages/NewRegistrant/Ebc-Registration.cshtml
   git restore --staged eTCA/web/Pages/NewRegistrant/Esop-Registration.cshtml
   git restore --staged eTCA/web/Pages/NewRegistrant/partial_forms/_business-information.cshtml
   git restore eTCA/web/Pages/NewRegistrant/Esop-Registration.cshtml
+
   git rm -r --cached
   git rm -r --cached .
   git rm -r --cached eTCA/web/Pages/NewRegistrant/Ebc-Registration.cshtml
   git rm -rf --cached .
   git rm eTCA/web/Pages/NewRegistrant/Ebc-Registration.cshtml
+
   git s
   git sco add eTCA check.ps1
   git sco disable
@@ -7198,6 +7617,13 @@
 
   # ==> unique lines with vim
   :%! uniq
+
+  # guw: Change to lowercase from the cursor position to the end of the current word.
+  # guiw or guaw: Change the entire current word to lowercase, regardless of where the cursor is within the word.
+  # gu$: Change to lowercase from the cursor position to the end of the line.
+  # guu or g~~ with u: Change the entire current line to lowercase. (Note: g~~ actually toggles case).
+  # guG or ggguG: Change the entire file to lowercase (from the current line to the end of the file, or from the beginning to the end).
+  # guap: Change the entire current paragraph to lowercase. 
 
 #:::::::::::::::::::::::::::::: ansible :::::::::::::::::::::::::::::
   ansible --version
@@ -9186,19 +9612,41 @@
   op item get <item name>
   op tem get <vault key> --reveal
 
+  op item get "www.instagram.com" --otp
+  op read "op://Private/GitHub/Security/one-time password?attribute=otp"
+
+
   op item list --format=json | jq -r '.[] | "\(.created_at) \(.title)"' | sort
   op item list --vault "YourVaultName" --format=json | jq -r '.[] | "\(.created_at) \(.title)"' | sort
 
   op item create --category login --generate-password --title "My New Item"
   op item create --category login --generate-password='' --title "Secure Item"
 
-  op item create --title='retrievable generated password' --category=password --generate-password=20,letters,digits | op read op://Private/'retrievable generated password'/password
+  op item create --title='retrievable generated password' --category=password --generate-password=20,letters,digits,symbols | #or 
+  op read op://Private/'retrievable generated password'/password
   op item create --category password --generate-password --dry-run --format json | jq -r '.fields[0].value' | pbcopy
 
   op item create --category password --generate-password='' --dry-run --format json | jq -r '.fields[0].value'
+  op item create --category login --title "Secure Passphrase" --generate-password=4,words # pass-phrase
+  op item create --category login --generate-password=6,words,underscores
 
   op://<vault>/<item>[/<section>]/<field>
   op read 'op://MyVault/NPM/Security/one-time password'
+
+  op plugin init aws
+  op plugin list
+  op plugin run -- aws ...
+
+  op plugin inspect aws # troubleshoot
+  op plugin clear aws --all
+
+  op document create <file_path>
+  op document create "../demos/videos/demo.mkv" --title "2020-06-21 Demo Video"
+  cat auth.log.* | op document create - --title "Authlogs 2020-06" --file-name "auth.log.2020.06"
+  op document delete [{ <itemName> | <itemID> | - }] [flags]
+  op document get { <itemName> | <itemID> } [flags]
+
+  op item create --category login --generate-password=24 --dry-run
 
 #::::::::::::::::::::::::::::: passwd gen :::::::::::::::::::::::::::
 
@@ -9237,29 +9685,43 @@
   apg -M SNCL -n 1 -m 64
   apg -a 1 -M LCNS -m 16 -x 16 -n 1
 
-#::::::::::::::::::::::::::::: ai :::::::::::::::::::::::::::::
-  #==> warp ai
+#:::::::::::::::::::::::::::::::: ai ::::::::::::::::::::::::::::::::
+  # ==> warp ai
   aliases (ga for git add, gc for commit, gp for push)
 
   oz
 
-  #==> github copilot
+  # ==> github copilot
   copilot update
   copilot
   copilot --banner
   !<shell commands>
 
-  #==> wave term
+  # ==> wave term
   wsh editconfig waveai.json
   wsh setconfig waveai:defaultmode="ollama-llama"
 
   wsh secret set OPENAI_KEY=sk-xxxxxxxxxxxxxxxx
   wsh secret set OPENROUTER_KEY=sk-xxxxxxxxxxxxxxxx
 
+  # ==> Ollama
+  ollama
+  ollama launch claude
 
+#:::::::::::::::::::::::::::::::: aws console-2-code ::::::::::::::::::::::::::::::::
 
-
-
+aws ec2 create-vpc --cidr-block '10.0.0.0/16' --instance-tenancy 'default' --tag-specifications '{"resourceType":"vpc","tags":[{"key":"Name","value":"beamer-vpc"}]}' 
+aws ec2 modify-vpc-attribute --vpc-id 'preview-vpc-1234' --enable-dns-hostnames '{"Value":true}' 
+aws ec2 describe-vpcs --vpc-ids 'preview-vpc-1234' 
+aws ec2 create-vpc-endpoint --vpc-id 'preview-vpc-1234' --service-name 'com.amazonaws.us-west-1.s3' --tag-specifications '{"resourceType":"vpc-endpoint","tags":[{"key":"Name","value":"beamer-vpce-s3"}]}' 
+aws ec2 create-subnet --vpc-id 'preview-vpc-1234' --cidr-block '10.0.144.0/20' --availability-zone 'us-west-1c' --tag-specifications '{"resourceType":"subnet","tags":[{"key":"Name","value":"beamer-subnet-private2-us-west-1c"}]}' 
+aws ec2 create-internet-gateway --tag-specifications '{"ResourceType":"internet-gateway","Tags":[{"Key":"Name","Value":"beamer-igw"}]}' 
+aws ec2 attach-internet-gateway --internet-gateway-id 'preview-igw-1234' --vpc-id 'preview-vpc-1234' 
+aws ec2 create-route-table --vpc-id 'preview-vpc-1234' --tag-specifications '{"ResourceType":"route-table","Tags":[{"Key":"Name","Value":"beamer-rtb-private2-us-west-1c"}]}' 
+aws ec2 create-route --route-table-id 'preview-rtb-public-0' --destination-cidr-block '0.0.0.0/0' --gateway-id 'preview-igw-1234' 
+aws ec2 associate-route-table --route-table-id 'preview-rtb-private-2' --subnet-id 'preview-subnet-private-3' 
+aws ec2 describe-route-tables --route-table-ids   'preview-rtb-private-1' 'preview-rtb-private-2' 
+aws ec2 modify-vpc-endpoint --vpc-endpoint-id 'preview-vpce-1234' --add-route-table-ids 'preview-rtb-private-1' 'preview-rtb-private-2' 
 
 
 

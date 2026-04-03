@@ -32,6 +32,7 @@ export GOPATH="$HOME/zApps/go"
 export OUT_DIR="./dist"
 export NODE_ENV="development"
 export GPG_TTY="$(tty)"
+export TOTP_CLI_CREDENTIAL_FILE="$HOME/.totp-crendentials"
 
 path_append "$HOME/.local/bin"
 path_append "$HOME/bin"
@@ -47,10 +48,17 @@ if [[ "$OSTYPE" == darwin* ]]; then
 
   path_prepend "/opt/homebrew/bin"
   path_prepend "/opt/homebrew/anaconda3/bin"
+  path_prepend "/opt/homebrew/opt/libpq/bin"
+  path_prepend "/opt/homebrew/opt/util-linux/bin"
+  path_prepend "/opt/homebrew/opt/util-linux/sbin"
   path_prepend "/opt/homebrew/opt/coreutils/libexec/gnubin"
   path_append "$HOME/Library/Python/3.9/bin"
+  path_append "$HOME/.cargo/bin"
+  path_append "$HOME/.config/emacs/bin"
+  path_append "$HOME/.zim"
   path_append "$HOME/zApps/bin"
   path_append "$HOME/zApps/flutter/bin"
+  path_append "$HOME/zApps/kafka_2.13-3.9.0/bin"
   path_append "$ANDROID_SDK/platform-tools"
   path_append "$ANDROID_SDK/tools/bin"
 
@@ -64,37 +72,25 @@ if [[ "$OSTYPE" == darwin* ]]; then
     export NVM_DIR="$HOME/.nvm"
     [ -s "/opt/homebrew/opt/nvm/nvm.sh" ] && . "/opt/homebrew/opt/nvm/nvm.sh"
 
-    if [ "${AUTO_NVM_USE:-0}" = "1" ] && command -v nvm >/dev/null 2>&1; then
-      nvm use --delete-prefix v24.8.0 >/dev/null 2>&1 || true
-    fi
+    [ "${AUTO_NVM_USE:-0}" = "1" ] && command -v nvm >/dev/null && nvm use --delete-prefix v24.8.0 2>/dev/null || true
   }
 
-  nvm() {
-    lazy-nvm
-    nvm $@
-  }
-
-  node() {
-    lazy-nvm
-    node $@
-  }
-
-  npm() {
-    lazy-nvm
-    npm $@
-  }
-
-  npx() {
-    lazy-nvm
-    npx $@
-  }
+  for cmd in nvm node npm npx; do
+    eval "$cmd() { lazy-nvm; $cmd \$@; }"
+  done
 
   if [ "${AUTO_NG_COMPLETION:-0}" = "1" ] && command -v ng >/dev/null 2>&1; then
     source <(ng completion script)
   fi
 
-  [ -f "$HOME/zApps/google-cloud-sdk/path.bash.inc" ] && . "$HOME/zApps/google-cloud-sdk/path.bash.inc"
-  [ -f "$HOME/zApps/google-cloud-sdk/completion.bash.inc" ] && . "$HOME/zApps/google-cloud-sdk/completion.bash.inc"
+  if [ -n "$ZSH_VERSION" ]; then
+    [ -f "$HOME/zApps/google-cloud-sdk/path.zsh.inc" ] && . "$HOME/zApps/google-cloud-sdk/path.zsh.inc"
+    [ -f "$HOME/zApps/google-cloud-sdk/completion.zsh.inc" ] && . "$HOME/zApps/google-cloud-sdk/completion.zsh.inc"
+  else
+    # bash
+    [ -f "$HOME/zApps/google-cloud-sdk/path.bash.inc" ] && . "$HOME/zApps/google-cloud-sdk/path.bash.inc"
+    [ -f "$HOME/zApps/google-cloud-sdk/completion.bash.inc" ] && . "$HOME/zApps/google-cloud-sdk/completion.bash.inc"
+  fi
 
   export SSH_AUTH_SOCK="$HOME/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
 else

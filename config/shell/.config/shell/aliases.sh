@@ -21,7 +21,10 @@ alias lf="ls -l | egrep -v '^d'"
 alias ldir="ls -l | egrep '^d'"
 alias grep="grep --colour=auto"
 alias psg="ps aux | grep -v grep | grep -i"
-alias path='echo -e ${PATH//:/\n}'
+
+alias path="echo $PATH"
+alias pathd='echo -e ${PATH//:/\n}'
+alias pathz="echo \$PATH | tr ':' '\n' | sort | uniq"
 
 alias df="df -h"
 alias du="du -h"
@@ -64,6 +67,15 @@ alias dtstamp='date +"%Y%m%d_%H%M%S"'
 alias fast='fast --upload --single-line'
 alias speed='speedtest-cli --simple'
 alias ydload='yt-dlp -U && cd "$HOME/Downloads" && yt-dlp --concurrent-fragments 4 -q --no-check'
+
+alias sz="source ~/.zshrc"
+alias h="history | tail"
+alias bup="brew update && brew upgrade"
+alias dotfiles="/opt/homebrew/bin/git --git-dir=$HOME/.dotfiles/.git --work-tree=$HOME/.dotfiles/"
+alias dot=dotfiles
+
+# replace def
+alias cat="bat --style plain "
 
 alias rm="rm -i"
 alias sudo="sudo "

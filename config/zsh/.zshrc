@@ -26,12 +26,7 @@ POWERLEVEL10K_VCS_MODIFIED_BACKGROUND='red'
 typeset -g POWERLEVEL9K_INSTANT_PROMPT=off
 
 # Plugins (trim this list if startup latency is still high)
-plugins=(
-  git
-  npm
-  zsh-autosuggestions
-  fast-syntax-highlighting
-)
+plugins=(git)
 
 # Load oh-my-zsh framework
 if [[ -f "$ZSH/oh-my-zsh.sh" ]]; then
@@ -43,22 +38,60 @@ ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE="fg=#663399,standout"
 ZSH_AUTOSUGGEST_BUFFER_MAX_SIZE="20"
 ZSH_AUTOSUGGEST_USE_ASYNC=1
 
+
+### Added by Zinit's installer
+if [[ ! -f $HOME/.local/share/zinit/zinit.git/zinit.zsh ]]; then
+    print -P "%F{33} %F{220}Installing %F{33}ZDHARMA-CONTINUUM%F{220} Initiative Plugin Manager (%F{33}zdharma-continuum/zinit%F{220})…%f"
+    command mkdir -p "$HOME/.local/share/zinit" && command chmod g-rwX "$HOME/.local/share/zinit"
+    command git clone https://github.com/zdharma-continuum/zinit "$HOME/.local/share/zinit/zinit.git" && \
+        print -P "%F{33} %F{34}Installation successful.%f%b" || \
+        print -P "%F{160} The clone has failed.%f%b"
+fi
+
+source "$HOME/.local/share/zinit/zinit.git/zinit.zsh"
+autoload -Uz _zinit
+(( ${+_comps} )) && _comps[zinit]=_zinit
+
+# Load a few important annexes, without Turbo
+# (this is currently required for annexes)
+zinit light-mode for \
+    zdharma-continuum/zinit-annex-as-monitor \
+    zdharma-continuum/zinit-annex-bin-gem-node \
+    zdharma-continuum/zinit-annex-patch-dl \
+    zdharma-continuum/zinit-annex-rust
+
+### End of Zinit's installer chunk
+
+zinit light zsh-users/zsh-completions
+zinit light zsh-users/zsh-syntax-highlighting
+zinit light zsh-users/zsh-autosuggestions
+zinit light Aloxaf/fzf-tab
+
+zstyle ':completion:*:git-checkout:*' sort false
+zstyle ':completion:*:descriptions' format '[%d]'
+zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
+#zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}' 'r:|[._-]=** r:|=**'
+# Requires 'exa' (or 'ls') to be installed.
+zstyle ':fzf-tab:complete:cd:*' fzf-preview 'exa -1 --color=always $realpath'
+zstyle ':fzf-tab:*' switch-group ',' '.'
+
+
 # History behavior
 export HISTFILESIZE=-1
-export HISTSIZE=-1
+export HISTSIZE=10000
+export SAVEHIST=20000
 export HISTORY_IGNORE="(ls|ll|cat|pwd|clear|which *|dig *|rm *|cls|bup|h|pwd|rm -rf *|paru|paru -Syy|paru -Syu|paru -Syyu|cd *|sz|AWS|SECRET)"
-setopt INC_APPEND_HISTORY
-setopt HIST_FIND_NO_DUPS
-setopt HIST_IGNORE_DUPS
-setopt HIST_IGNORE_ALL_DUPS
-setopt HIST_IGNORE_SPACE
-setopt HIST_SAVE_NO_DUPS
-setopt HIST_EXPIRE_DUPS_FIRST
-setopt SHARE_HISTORY
-setopt HIST_VERIFY
+setopt inc_append_history
+setopt hist_find_no_dups
+setopt hist_ignore_dups
+setopt hist_ignore_all_dups
+setopt hist_ignore_space
+setopt hist_expire_dups_first
+setopt share_history
+setopt hist_verify
 
 # Completion initialization
-autoload -Uz compinit
+autoload -Uz compinit -u
 if [ "$(date +'%j')" != "$(stat -f '%Sm' -t '%j' ~/.zcompdump 2>/dev/null)" ]; then
     compinit
 else
@@ -75,6 +108,9 @@ fi
 if (( $+commands[kitty] )); then
   alias kitty='false'
 fi
+
+# replace fefault commands
+eval "$(zoxide init --cmd cd zsh)"
 
 # Source user modules (kept separate on purpose)
 [ -f "$HOME/.config/shell/exports.sh" ] && source "$HOME/.config/shell/exports.sh"
@@ -117,21 +153,11 @@ if [[ -n "$BASH_VERSION" && -f "$HOME/.config/broot/launcher/bash/br" ]]; then
   source "$HOME/.config/broot/launcher/bash/br"
 fi
 
-# Zellij behavior
-export ZELLIJ_AUTO_ATTACH=true
-export ZELLIJ_AUTO_EXIT=true
-if [[ "$IS_ALACRITTY" == "true" && -z "$ZELLIJ" ]]; then
-  if [[ "$ZELLIJ_AUTO_ATTACH" == "true" ]]; then
-    if (( $+commands[zml] )); then
-      zml
-    elif (( $+commands[zellij] )); then
-      zellij attach --create main
-    fi
-  elif (( $+commands[zellij] )); then
-    zellij
-  fi
+source $HOME/.config/op/plugins.sh
 
-  if [[ "$ZELLIJ_AUTO_EXIT" == "true" ]]; then
-    exit
-  fi
-fi
+[[ "$TERM_PROGRAM" == "kiro" ]] && . "$(kiro --locate-shell-integration-path zsh)"
+
+
+#THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
+export SDKMAN_DIR="$HOME/.sdkman"
+[[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"

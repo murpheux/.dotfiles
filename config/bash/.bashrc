@@ -67,3 +67,5 @@ if command -v oh-my-posh >/dev/null 2>&1; then
     eval "$(oh-my-posh init bash)"
   fi
 fi
+
+[[ "$TERM_PROGRAM" == "kiro" ]] && . "$(kiro --locate-shell-integration-path bash)"
