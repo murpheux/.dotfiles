@@ -1,5 +1,7 @@
 {
   "autoupdate:channel": "latest",
-  "window:transparent": true,
-  "window:opacity": 0.65
+  "waveai:defaultmode": "ollama-llama",
+  "waveai:showcloudmodes": false,
+  "window:opacity": 0.65,
+  "window:transparent": true
 }

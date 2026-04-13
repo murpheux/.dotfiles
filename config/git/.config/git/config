@@ -3,11 +3,11 @@
 	email = dapo.onawole@gmail.com
 	signingkey = 6D5DE597C5D7AC22BFDFB02A2FDFBB5B915D7595
 [core]
-	editor = vim
+	editor = nvim
 	whitespace = fix,-indent-with-non-tab,trailing-space,cr-at-eol
-    excludesfile = /home/murpheux/.config/git/ignore
-    quotepath = false
-    pager = delta
+	excludesfile = /home/murpheux/.config/git/ignore
+	quotepath = false
+	pager = delta
 	autocrlf = input
 [sendemail]
 	smtpencryption = tls
@@ -21,10 +21,10 @@
 	enabled = 1
 	autoupdate = 1
 [color]
-    status = auto
-    branch = auto
-    interactive = auto
-    diff = auto
+	status = auto
+	branch = auto
+	interactive = auto
+	diff = auto
 [color "branch"]
 	current = yellow bold
 	local = green bold
@@ -40,10 +40,10 @@
 	changed = yellow bold
 	untracked = red bold
 [github]
-    user = GITUB_USER
-    token = GITHUB_TOKEN
+	user = GITUB_USER
+	token = GITHUB_TOKEN
 [pretty]
-    pretty-history = format:%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset
+	pretty-history = format:%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset
 [alias]
 	co = checkout
 	br = branch
@@ -59,44 +59,44 @@
 	glo = log --oneline --decorate --all --graph
 	glog = log --pretty=format:'%h%x09%an%x09%ad%x09%s'
 	sb = submodule
-        wdiff = diff --word-diff=color --unified=1
+	wdiff = diff --word-diff=color --unified=1
 	lol = log --graph --decorate --pretty=oneline --abbrev-commit
 	lola = log --graph --decorate --pretty=oneline --abbrev-commit --all
 	ll = log --oneline
 	rv = remote -v
-    #d = diff
 	dv = difftool -t vimdiff -y
 	gl = config --global -l
-    se = !git rev-list --all | xargs git grep -F
-    sl = stash list
-    sa = stash apply
-    sd = stash drop
-    quicklog = log --pretty=format:'%Cblue%h %Cred%cD %Creset%cn %Cgreen%s%Creset' --date-order --graph
-    changes = log --oneline --decorate
-    changelog = show --name-only
-    svnup = svn rebase
-    svnpush = svn dcommit
-    commitnumber = !git log --pretty=oneline | wc -l
-    diffmate = !sh -c 'git diff HEAD $1 | mate -' -
-    difffile = !sh -c 'git diff HEAD $1 | mate -' -
-    diffile = !sh -c 'git diff HEAD $1 | mate -' -
-    difile = !sh -c 'git diff HEAD $1 | mate -' -
-    worddiff = diff --word-diff
-    fakeignore = update-index --assume-unchanged
-    ignore = update-index --assume-unchanged
-    undo = reset --soft --keep HEAD^
-    unstage = reset HEAD
-    first = !sh -c 'git log origin/master --pretty=format:%H  --reverse | head -1'
-    lasttag = !sh -c 'git log --simplify-by-decoration --decorate=short --tags --format="%H" |head -1'
-    wtf = !git-wtf
-    has = branch --contains
-    db = !sh -c 'git branch -D $1 && git push origin :$1' -
-    sweep = !sh -c 'git-sweep cleanup'
-    ph = log --graph --pretty=pretty-history --abbrev-commit --date=relative
-    permission-reset = "git clone git://github.com/balupton/history.js.git help config  diff -p | grep -E '^(diff|old mode|new mode)' | sed -e 's/^old/NEW/;s/^new/old/;s/^NEW/new/' | git apply"
-    username = config --get user.name
-    standup = !sh -c 'git log --pretty=format:\"%Cred%h%Creset - %Cgreen%cr%Creset : %s\" --since=\"`date -v-1d \"+%Y-%m-%d 00:00:00\"`\" --until=\"`date \"+%Y-%m-%d 00:00:00\"`\" --all --author=\"`git config --get user.name`\"'
-    a = add --all
+	se = !git rev-list --all | xargs git grep -F
+	sl = stash list
+	sa = stash apply
+	sd = stash drop
+	quicklog = log --pretty=format:'%Cblue%h %Cred%cD %Creset%cn %Cgreen%s%Creset' --date-order --graph
+	changes = log --oneline --decorate
+	changelog = show --name-only
+	svnup = svn rebase
+	svnpush = svn dcommit
+	commitnumber = !git log --pretty=oneline | wc -l
+	diffmate = !sh -c 'git diff HEAD $1 | mate -' -
+	difffile = !sh -c 'git diff HEAD $1 | mate -' -
+	diffile = !sh -c 'git diff HEAD $1 | mate -' -
+	difile = !sh -c 'git diff HEAD $1 | mate -' -
+	worddiff = diff --word-diff
+	dirdiff = difftool --ignore-submodules --dir-diff --no-symlinks --tool=vimdirdiff
+	fakeignore = update-index --assume-unchanged
+	ignore = update-index --assume-unchanged
+	undo = reset --soft --keep HEAD^
+	unstage = reset HEAD
+	first = !sh -c 'git log origin/master --pretty=format:%H  --reverse | head -1'
+	lasttag = !sh -c 'git log --simplify-by-decoration --decorate=short --tags --format="%H" |head -1'
+	wtf = !git-wtf
+	has = branch --contains
+	db = !sh -c 'git branch -D $1 && git push origin :$1' -
+	sweep = !sh -c 'git-sweep cleanup'
+	ph = log --graph --pretty=pretty-history --abbrev-commit --date=relative
+	permission-reset = "git clone git://github.com/balupton/history.js.git help config  diff -p | grep -E '^(diff|old mode|new mode)' | sed -e 's/^old/NEW/;s/^new/old/;s/^NEW/new/' | git apply"
+	username = config --get user.name
+	standup = !sh -c 'git log --pretty=format:\"%Cred%h%Creset - %Cgreen%cr%Creset : %s\" --since=\"`date -v-1d \"+%Y-%m-%d 00:00:00\"`\" --until=\"`date \"+%Y-%m-%d 00:00:00\"`\" --all --author=\"`git config --get user.name`\"'
+	a = add --all
 	ai = add -i
 	#############
 	ap = apply
@@ -293,11 +293,11 @@
 	ours = "!f() { git checkout --ours $@ && git add $@; }; f"
 	theirs = "!f() { git checkout --theirs $@ && git add $@; }; f"
 	subrepo = !sh -c 'git filter-branch --prune-empty --subdirectory-filter $1 master' -
-    human = name-rev --name-only --refs=refs/heads/*
-    #############
-    # me added
-    sco = sparse-checkout
-	tree = log --oneline --graph --decorate --all
+	human = name-rev --name-only --refs=refs/heads/*
+	#############
+	sco = sparse-checkout
+    tree = log --oneline --graph --decorate --all
+	root = rev-parse --show-toplevel
 [push]
 	default = matching
 [filter "lfs"]
@@ -319,15 +319,19 @@
 [diff]
 	tool = vimdiff
 [diff "odt"]
-        binary = true
-        textconv = odt2txt
+	binary = true
+	textconv = odt2txt
 [diff "pandoc"]
-        textconv = pandoc --to=markdown
-        prompt = false
+	textconv = pandoc --to=markdown
+	prompt = false
 [difftool]
 	prompt = false
 [difftool "diffmerge"]
 	cmd = diffmerge \"$LOCAL\" \"$REMOTE\"
+[difftool "vimdirdiff"]
+	cmd = vim -f '+next' '+execute \"DirDiff\" argv(0) argv(1)' $LOCAL $REMOTE
+[difftool "vscode"]
+	cmd = code --wait --diff $LOCAL $REMOTE
 [delta]
 	features = line-numbers decorations
 	line-numbers = true
@@ -371,5 +375,7 @@
 [mergetool "sourcetree"]
 	cmd = /Applications/Sourcetree.app/Contents/Resources/opendiff-w.sh \"$LOCAL\" \"$REMOTE\" -ancestor \"$BASE\" -merge \"$MERGED\"
 	trustExitCode = true
+[mergetool "vscode"]
+	cmd = code --wait --merge $REMOTE $LOCAL $BASE $MERGED
 [url "git@github.com:"]
 	insteadOf = https://github.com/

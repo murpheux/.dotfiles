@@ -1,0 +1,35 @@
+{
+  "ollama-llama": {
+    "display:name": "Ollama - Llama 3.3",
+    "display:order": 1,
+    "display:icon": "microchip",
+    "display:description": "Local Llama 3.3 70B model via Ollama",
+    "ai:apitype": "openai-chat",
+    "ai:model": "llama3.3:70b",
+    "ai:thinkinglevel": "medium",
+    "ai:endpoint": "http://localhost:11434/v1/chat/completions",
+    "ai:apitoken": "ollama"
+  },
+  "lmstudio-qwen": {
+    "display:name": "LM Studio - Qwen",
+    "display:order": 2,
+    "display:icon": "server",
+    "display:description": "Local Qwen model via LM Studio",
+    "ai:apitype": "openai-chat",
+    "ai:model": "qwen/qwen-2.5-coder-32b-instruct",
+    "ai:thinkinglevel": "medium",
+    "ai:endpoint": "http://localhost:1234/v1/chat/completions",
+    "ai:apitoken": "not-needed"
+  },
+  "vllm-local": {
+    "display:name": "vLLM",
+    "display:order": 3,
+    "display:icon": "server",
+    "display:description": "Local model via vLLM",
+    "ai:apitype": "openai-chat",
+    "ai:model": "your-model-name",
+    "ai:thinkinglevel": "medium",
+    "ai:endpoint": "http://localhost:8000/v1/chat/completions",
+    "ai:apitoken": "not-needed"
+  }
+}

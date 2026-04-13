@@ -1,0 +1,71 @@
+{
+    "fish": {
+        "icon": "fish",
+        "color": "#4abc39",
+        "label": "fish",
+        "blockdef": {
+            "meta": {
+                "view": "term",
+                "controller": "shell",
+                "term:localshellpath": "/usr/local/bin/fish",
+                "term:localshellopts": "-i -l"
+            }
+        }
+    },
+    "pwsh": {
+        "icon": "rectangle-terminal",
+        "color": "#2671be",
+        "label": "pwsh",
+        "blockdef": {
+            "meta": {
+                "view": "term",
+                "controller": "shell",
+                "term:localshellpath": "pwsh"
+            }
+        }
+    },
+    "speedtest": {
+        "icon": "gauge-high",
+        "label": "speed",
+        "blockdef": {
+            "meta": {
+                "view": "term",
+                "controller": "cmd",
+                "cmd": "speedtest-go --unix",
+                "cmd:clearonstart": true
+            }
+        }
+    },
+    "github": {
+        "icon": "brands@github",
+        "label": "github",
+        "blockdef": {
+            "meta": {
+                "view": "web",
+                "url": "https://github.com",
+                "pinnedurl": "https://google.com"
+            }
+        }
+    },
+    "3min-info": {
+        "icon": "circle-3",
+        "label": "3mininfo",
+        "blockdef": {
+            "meta": {
+                "view": "sysinfo",
+                "graph:numpoints": 180,
+                "sysinfo:type": "CPU + Mem"
+            }
+        }
+    },
+    "all-cpu": {
+        "icon": "chart-scatter",
+        "label": "all-cpu",
+        "blockdef": {
+            "meta": {
+                "view": "sysinfo",
+                "sysinfo:type": "All CPU"
+            }
+        }
+    }
+}

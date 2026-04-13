@@ -75,20 +75,20 @@ zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
 zstyle ':fzf-tab:complete:cd:*' fzf-preview 'exa -1 --color=always $realpath'
 zstyle ':fzf-tab:*' switch-group ',' '.'
 
+# History - Clean duplicate-free setup
+HISTSIZE=100000
+SAVEHIST=200000
+setopt EXTENDED_HISTORY          # Add timestamps
+setopt inc_append_history        # Add commands immediately
+setopt share_history             # Share across sessions
+setopt hist_ignore_all_dups      # Don't add duplicates
+setopt hist_save_no_dups         # Remove duplicates on save
+setopt hist_expire_dups_first    # Remove duplicates when full
+setopt hist_ignore_space         # Skip commands with leading space
+setopt hist_verify               # Confirm before running from history
+setopt hist_find_no_dups         # Don't show duplicates in search
 
-# History behavior
-export HISTFILESIZE=-1
-export HISTSIZE=10000
-export SAVEHIST=20000
-export HISTORY_IGNORE="(ls|ll|cat|pwd|clear|which *|dig *|rm *|cls|bup|h|pwd|rm -rf *|paru|paru -Syy|paru -Syu|paru -Syyu|cd *|sz|AWS|SECRET)"
-setopt inc_append_history
-setopt hist_find_no_dups
-setopt hist_ignore_dups
-setopt hist_ignore_all_dups
-setopt hist_ignore_space
-setopt hist_expire_dups_first
-setopt share_history
-setopt hist_verify
+export HISTORY_IGNORE="(ls|ll|cat|pwd|clear|which|dig|rm|cls|bup|h|eza|path|rm -rf|export|paru*|cd|sz)*"
 
 # Completion initialization
 autoload -Uz compinit -u
@@ -111,6 +111,9 @@ fi
 
 # replace fefault commands
 eval "$(zoxide init --cmd cd zsh)"
+
+# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
+[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 
 # Source user modules (kept separate on purpose)
 [ -f "$HOME/.config/shell/exports.sh" ] && source "$HOME/.config/shell/exports.sh"
@@ -153,11 +156,7 @@ if [[ -n "$BASH_VERSION" && -f "$HOME/.config/broot/launcher/bash/br" ]]; then
   source "$HOME/.config/broot/launcher/bash/br"
 fi
 
-source $HOME/.config/op/plugins.sh
+[ -f "$HOME/.config/op/plugins.sh" ] && source "$HOME/.config/op/plugins.sh"
 
 [[ "$TERM_PROGRAM" == "kiro" ]] && . "$(kiro --locate-shell-integration-path zsh)"
 
-
-#THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
-export SDKMAN_DIR="$HOME/.sdkman"
-[[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"

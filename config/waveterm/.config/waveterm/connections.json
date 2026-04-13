@@ -1,0 +1,11 @@
+{
+  "murpheux@dns": {
+    "conn:wshenabled": true,
+    "ssh:hostname": "dns"
+  },
+  "murpheux@sclet": {
+    "conn:wshenabled": true,
+    "ssh:hostname": "scarlet"
+  },
+  "murpheux@wagner": {}
+}

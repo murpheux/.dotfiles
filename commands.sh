@@ -18,6 +18,7 @@
 # AI     : github copilot, gemini, claude, ollama, deepSeek, chatGPT, grok, commet, perflexity
 # Models : claude, oz,
 # Sec Mgr: 1password, Bitwarden, Passwords (macos), lastpass
+# Lib Pac: brew, macports, nix, zerobrew, pkgsrc, rudix, fink
 
 #:::::::::::::::::::::::::::: unix comms ::::::::::::::::::::::::::::
   ushd
@@ -126,6 +127,7 @@
   networksetup -listallhardwareports
   networksetup -getcurrentlocation
   networksetup -ordernetworkservices
+  networksetup -deletepppoeservice "Service Name"
 
   sw_vers
   system_profiler | more
@@ -225,6 +227,13 @@
   tput smam
 
   setterm -linewrap off
+
+  # ==> restart bluetooth
+  sudo pkill bluetoothd
+  sudo kextunload -b # bluetooth driver
+
+  com.apple.iokit.BroadcomBluetoothHostControllerUSBTransport
+  sudo kextload -b com.apple.iokit.BroadcomBluetoothHostControllerUSBTransport
 
   # ==> RAM Disk
   hdid -nomount ram://<blocksize>
@@ -428,13 +437,13 @@
   networksetup -getdnsservers Wi-Fi
 
   #Stop the application layer firewall:
-  launchctl unload /System/Library/LaunchAgents/com.apple.alf.useragent.plist launchctl unload /System/Library/LaunchDaemons/com.apple.alf.agent.plist
+  launchctl unload /System/Library/LaunchAgents/com.apple.alf.useragent.plistlaunchctl unload /System/Library/LaunchDaemons/com.apple.alf.agent.plist
 
   #Start the application layer firewall:
-  launchctl load /System/Library/LaunchDaemons/com.apple.alf.agent.plist launchctl load /System/Library/LaunchAgents/com.apple.alf.useragent.plist
+  launchctl load /System/Library/LaunchDaemons/com.apple.alf.agent.plistlaunchctl load /System/Library/LaunchAgents/com.apple.alf.useragent.plist
 
   #Allow an app to communicate outside the system through the application layer firewall:
-  socketfilterfw -t “/Applications/FileMaker Pro/FileMaker Pro.app/Contents/MacOS/FileMaker Pro”
+  socketfilterfw -t“/Applications/FileMaker Pro/FileMaker Pro.app/Contents/MacOS/FileMaker Pro”
 
   #See the routing table of a Mac:
   netstat -nr
@@ -452,8 +461,11 @@
   killall -Iiv -r "^chat"
   killall -9 "Parallels Desktop" "prl_client_app" "prl_vm_app"
 
+  killall ollama
+  pkill -x AppName
+
   #Stop Bonjour:
-  launchctl unload -w /System/Library/LaunchDaemons/com.apple.mDNSResponder.plist 
+  launchctl unload -w /System/Library/LaunchDaemons/com.apple.mDNSResponder.plist
 
   #Start Bojour:
   launchctl load -w /System/Library/LaunchDaemons/com.apple.mDNSResponder.plist
@@ -593,6 +605,7 @@
   #Whitelist the ip address 10.10.10.2:
   /Applications/Server.app/Contents/ServerRoot/usr/libexec/afctl -w 10.10.10.2
 
+  # ==> Mac hostname
   scutil --dns | grep 'nameserver\[[0-9]*\]'
   scutil --set ComputerName "name"
   scutil --set LocalHostName "name"
@@ -655,6 +668,49 @@
      --to 'SuperVPN, Inc.' --date 'June 10, 2025'  --tax 0.18 \
      --discount 0.2  --item 'Paid Article' --quantity 5 --rate 250
      --note 'Pleasure doing business with you.'
+
+  invoice generate --from 'Nikhil Vemu LLC' \
+  --logo logo.png
+  --to 'SuperVPN, Inc.' \
+  --date 'June 10, 2025' \
+  --tax 0.18 \
+  --discount 0.2 \
+  --item 'Paid Article'
+  --quantity 5
+  --rate 250
+  --note 'Pleasure doing business with you.'`
+
+  # ==> zerobrew
+  zb --version
+  zb init|gc|reset
+  zb install|uninstall ffmpeg [wget git curl]
+  zb install ffmpeg --build-from-source # Build from source instead of using bottles
+  zb install libsodium --no-link # Install without creating symlinks
+  zb --concurrency 10 install ffmpeg # parallel operations
+  zb list|outdated|update
+  zb info jq
+
+  zbx yetris # run without installing
+  zbx jq --version
+
+  zb bundle
+  zb bundle install -f myfile # brew file
+  zb bundle dump
+  zb bundle dump -f Brewfile --force
+
+  zb --root /custom/root --prefix /custom/prefix install jq # override default install dir
+  export ZEROBREW_ROOT="/custom/root"
+  export ZEROBREW_PREFIX="/custom/prefix"
+  zb install jq
+  zb --auto-init install jq # auto init zb if not already set up
+
+  # ==> shell completion
+  zb completion bash > ~/.local/share/bash-completion/completions/zb
+  zb completion zsh > "${fpath[1]}/_zb"
+  zb completion fish > ~/.config/fish/completions/zb.fish
+
+  zb update|outdated
+  zb outdated | awk '{print $1}' | xargs zb install
 
 #:::::::::::::::::::::::::::::: linux :::::::::::::::::::::::::::::::
   # ==> Tools
@@ -760,7 +816,6 @@
   lsusb
 
   findmnt
-  lsblk
 
   netstat
 
@@ -778,6 +833,12 @@
 
   # ==> show network devices
   ip link show
+  ip link add name br0 type bridge
+  ip link set dev eth0 master br0 # eth0 needs to be down. not use ssh
+  ip link set br0 up
+  ip link delete ipvlan0
+  brctl show # view bridges
+  
   nmcli device status
   nmcli connection show
 
@@ -820,6 +881,12 @@
 
   grubby --info=0
   grubby savedefault --default=2 --once
+
+  # ==> excvluide commented lines and whitespaces
+  grep -Ev '^[[:space:]]*#|^[[:space:]]*$' filename
+  sed '/^[[:space:]]*#/d; /^[[:space:]]*$/d' filename
+  grep -Ev '^[[:space:]]*;|^[[:space:]]*$' filename # for semicolon comments
+  cat filename | grep -Ev '^[[:space:]]*#|^[[:space:]]*$'
 
   # strip dot from filenames
   for f in .*; do [ -f "$f" ] && mv -n "$f" "${f#.}"; done
@@ -926,7 +993,11 @@
   zellij setup --check
   zellij action toggle-floating-panes
   zellij action toggle-fullscreen
-  zellij action toggle-pane-embed-or-floating 
+  zellij action toggle-pane-embed-or-floating
+
+  zellij run -- <COMMAND>
+  zellij run -- git diff
+  zellij run -f -- sh -c 'git stash -u && nvim .'
 
   # ==> screen
   screen
@@ -1131,7 +1202,12 @@
 
   fdisk -l
   sfdidk -l
-  lsblk
+  lsblk [-f] # -f shows uuid
+  lsblk -o NAME,SIZE,TYPE,UUID,MOUNTPOINT
+  lsblk -o +UUID
+  lsblk -o NAME,UUID,PARTUUID
+  blkid
+  blkid /dev/sdb1
   inxi -D
 
   service --status-all
@@ -1286,7 +1362,7 @@
   ssh-keygen -t dsa
   ssh-keygen -t ecdsa -b 521
   ssh-keygen -t ed25519
-  ssh-keygen -o -a 100 -t ed25519 -f ~/.ssh/id_ed25519 -C "john@example.com"
+  ssh-keygen -o -a 100 -t ed25519 -f ~/.ssh/id_ed25519 -C "dapo.onawole@gmail.com"
   ssh-keygen -f "~/.ssh/known_hosts" -R "dru"
   ssh-keygen -t rsa -m PEM -f <output_pem_file>
   ssh-keygen -t rsa -m PEM -f demo.pem
@@ -1969,9 +2045,6 @@
 
   security add-generic-password -s "summon" -a "secret/path" -w "secretvalue"
 
-
-  fc -l 4 7
-
   client certificates,
   bearer tokens,
   authenticating proxy,
@@ -2221,10 +2294,16 @@
 
   uname -a
   uname -m
+
+  # ==> unset var
   unset $AWS_ACCESS_KEY_ID
   unset pbcopy
   unset pbpaste
-  unzip Kunye_frontend-main.zip
+
+  # ==> unzip
+  unzip main.zip
+  unzip -l main.zip
+  unzip main.zip -d /path/to/dir
 
   find "$(pwd)" -name .htaccess
   find "$PWD" -name .htaccess
@@ -2281,7 +2360,10 @@
 
   ifconfig en0 | grep 'inet' | awk 'NR== 2 { print substr($2, 1) }'
 
+  # ==> fzf
   fzf --preview "bat --color=always --style=numbers --line-range=:500 {}"
+  fzf --preview 'bat {-1} --color=always'
+
   tail -f /var/log/pacman.log | bat --paging=never -l log
 
 
@@ -2587,6 +2669,7 @@
   ip addr show docker0
 
   ip addr show or ip a 
+  ip addr show eth0
   ifconfig or ifconfig en0
 
   ip link set dev <int> up 
@@ -2597,6 +2680,8 @@
 
   ip route show or ip r 
   route -n get default or netstat -rn
+
+  ip addr flush dev eth0 # remove ip from interface
 
   ip neigh show 
   arp -a #or 
@@ -2753,6 +2838,7 @@
 
   # ==> change username
   su -  
+  su - ${USER}. # log out of the server and back in
   sudo su [-] # substitute user: similar to sudo [change home]
   sudo su ec2-user
 
@@ -2799,9 +2885,15 @@
   history | head -n END_NUM | tail -n $((END_NUM - START_NUM + 1))
   history 20
   history -c # clear previous history
+  history -E -10
+  history -i
 
-  fc -l 
+  fc -l
+  fc -l 4 7
+  fc -E -l -10
   omz_history
+
+  zsh_stats
 
   # eliminate duplicates in history file - macos
   awk -F';' '!visited[$2]++' ~/.zsh_history > ~/.zsh_history_new && mv ~/.zsh_history_new ~/.zsh_history
@@ -3062,12 +3154,19 @@
   vgchange -ay           #Activates LVM Volume Group(s)
   lvscan                 #Scans for available Logical Volumes
 
+  # ==> lvm
   lvm
+  vgdisplay
   lvextend -l +100%FREE /dev/ubuntu-vg/ubuntu-lv
-  exit
-
-  resize2fs /dev/ubuntu-vg/ubuntu-lv
+  sudo lvextend -r -l +100%FREE /dev/ubuntu-vg/ubuntu-lv  # extension and resizing steps
+  resize2fs /dev/ubuntu-vg/ubuntu-lv # ext4
+  xfs_growfs / # xfs
+  df -h /
   df -h
+  pvdisplay
+
+  growpart /dev/sda3
+  pvresize /dev/sda3 # if pvdisplay not using whole disk
 
   netstat -anv | grep 9100
 
@@ -3244,7 +3343,7 @@
   yarn licenses ls/list
   yarn upgrade-interactive [--latest]
 
-  export PATH="$PATH:`yarn global bin`"
+  export PATH="$PATH:`yarn global bin`
 
   for lang in es en fr; do \
       ng build --output-path=dist/$lang \
@@ -3547,6 +3646,7 @@
 
   pm install -g sharp-cli
   pm2 --version
+
   pod install
   podman --version
 
@@ -3562,6 +3662,8 @@
   rn -rf tomove/
   route
   ruby eventapi.rb
+
+  # ==> rust
   rustc --version
   rustup update
 
@@ -3728,6 +3830,8 @@
   docker start swiftfun
   docker attach swiftfun
 
+  docket stats <container_id_or_name> [--format "table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}"]
+
   docker build -t hello-world .
   docker build -t hello-node:v1 .
   docker rm sad_stonebraker
@@ -3736,7 +3840,11 @@
   docker ps [-a]/[-q -l]
   docker start my-nginx or 87a77be6a8e4
   docker stop my-nginx or 87a77be6a8e4
-  docker inspect <continer id>
+
+  docker inspect <container_id_or_name>
+  docker inspect -f '{{.HostConfig.Memory}}' <container_id_or_name>
+  docker inspect -f '{{.HostConfig.NanoCpus}}' <container_id_or_name>
+
   docker exec -ti my-nginx /bin/sh  # ti - interactive -it
   docker run -it -d nginx /bin/bash
   docker exec -ti <container_id_or_name> echo "Hello from container!"
@@ -4542,6 +4650,10 @@
   pm2 publish
 
 #::::::::::::::::::::::::::: powershell :::::::::::::::::::::::::::::
+  . $PROFILE # load powershell
+
+  $env:PATH -split ';'
+
   cls|Clear-Host
   ls|Set-Location
   
@@ -4715,6 +4827,39 @@
   Start-Process powershell -Verb RunAs -ArgumentList "-Command Write-Output 'Hello Admin'"
   winget install gsudo # older windows
   sudo runas /user:admin Get-WindowsUpdate -MicrosoftUpdate -Install
+
+  Get-WindowsCapability -Online | Where-Object Name -like 'OpenSSH.Server*'
+  New-NetFirewallRule -Name "AllowSSH" -DisplayName "Allow SSH Port 22" -Enabled True -Direction Inbound -Protocol TCP -LocalPort 22 -Action Allow
+
+  # ==> test ssh
+  netstat -an | findstr :22
+  Test-NetConnection -ComputerName localhost -Port 22
+
+  # For PowerShell 7 (pwsh)/PowerShell 5.1 (powershell)
+  New-ItemProperty -Path "HKLM:\SOFTWARE\OpenSSH" -Name DefaultShell -Value "C:\Program Files\PowerShell\7\pwsh.exe" -PropertyType String -Force
+  New-ItemProperty -Path "HKLM:\SOFTWARE\OpenSSH" -Name DefaultShell -Value "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe" -PropertyType String -Force
+
+  Get-ItemPropertyValue -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion" -Name "ProgramFilesDir"
+
+  msiexec /i OpenSSH-Win64-v9.x.x.x.msi ADDLOCAL=Client|Server
+
+  Start-Service sshd
+  Set-Service sshd -StartupType Automatic
+
+  PowerShell.exe -ExecutionPolicy Bypass -File "C:\Program Files\OpenSSH\install-sshd.ps1"
+
+  Invoke-WebRequest -Uri "https://example.com/file.zip" -OutFile "C:\path\to\save\file.zip"
+  Start-BitsTransfer -Source "https://example.com/file.zip" -Destination "C:\Downloads\file.zip"
+  (New-Object System.Net.WebClient).DownloadFile("https://example.com/file.zip", "C:\Downloads\file.zip")
+  curl "https://example.com/file.zip" -OutFile "file.zip"
+
+  # ==> performance download
+  $ProgressPreference = 'SilentlyContinue'
+  Invoke-WebRequest -Uri $url -OutFile $dest
+  $ProgressPreference = 'Continue'
+
+  (New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+
 
 #:::::::::::::::::::::::::::::: dotnet ::::::::::::::::::::::::::::::
   dotnet --info
@@ -4950,6 +5095,13 @@
   gradle -PmainClass=com.softcraftng.murpheux.Hello execute
 
 #::::::::::::::::::::::::::::::: git ::::::::::::::::::::::::::::::::
+  git init [-bare]
+
+  git add <filename>
+  git add *|-
+  git add -N <file_path>
+  git add --intent-to-add .
+
   alias glog='git log --pretty=format:"%h%x09%an%x09%ad%x09%s"'
   alias glo='git log --oneline --decorate --all --graph'
 
@@ -4959,13 +5111,26 @@
   git fetch origin
   git fetch --depth 1 origin <branch-name> # use on existing clone
 
-  git merge master
-  git merge-file <current-file> <base-file> <other-file>
-
   git reset --hard main
   git reset --soft/hard HEAD~1
   git rebase
   git reflog
+
+  # ==> clone into folder solutions
+  git init
+  git remote add origin git@github.com:murpheux/homenet.git
+  git fetch
+  git checkout -t origin/main
+
+  git init
+  git remote add origin git@github.com:murpheux/homenet.git
+  git fetch origin
+  git merge origin/main --allow-unrelated-histories
+
+  git init
+  git remote add origin git@github.com:murpheux/homenet.git
+  git fetch origin
+  git merge origin/main --allow-unrelated-histories
 
   # ==> git config
   git config --global user.name "Sam Smith"
@@ -4976,10 +5141,24 @@
   git config --get remote.origin.url
   git config --global alias.open '!f() { open=$(which xdg-open 2>/dev/null || which open 2>/dev/null || which start 2>/dev/null); url=$(git config remote.${1:-origin}.url | sed -E "s/:([^\\/])/\\/\\1/g" | sed -e "s/ssh:\\/\\///g" | sed -e "s/git@/https:\\/\\//g" | sed -e "s/\\.git\$//g"); $open $url; }; f'
 
-  git init [-bare]
+  git config --global --list
+  git config --global list
+  git config --global --edit
+  git config --show-origin
+  git config --global alias.tree 'log --oneline --graph --decorate --all'
 
-  git add <filename>
-  git add *|-
+  git config --global --unset [key]
+  git config --global --unset-all [key]
+
+  git config --global diff.tool vimdiff
+  git config --global difftool.prompt false
+
+  git config --global mergetool.keepBackup false # by default, git creates .orig backup files during merges
+  git config --global mergetool.<tool>.cmd "executable_path \$LOCAL \$REMOTE \$BASE \$MERGED" # manually define launch command
+
+  git config --global --unset core.editor
+  git config --global -e # delete respective lines
+  git config --global --edit
 
   git rm -r [file-name.txt]
   git commit -m "Commit message"
@@ -4987,6 +5166,8 @@
   git commit -a
   git push origin master
   git status [-C|-git-dir <path/to/other/directory>]
+  git status -vv
+  git status -b -s
   git remote add origin <server>
   git remote set-url origin <server>
   git remote -v
@@ -5025,15 +5206,39 @@
   git push -u origin [branch name]
   git pull
   git pull origin [branch name]
+
+  # ==> git merge
   git merge <branchname>
   git merge [source branch] [target branch]
   git merge --verify-signatures non-verify
   git merge --verify-signatures signed-branch
   git merge --verify-signatures -S  signed-branch
+
+  git merge master
+  git merge-file <current-file> <base-file> <other-file>
+
+  # ==> git imerge
+  git imerge merge <branch>
+  git imerge rebase <branch>
+  git imerge continue
+  git imerge finish
+  it imerge remove
+
+  # ==> diff
   git diff
   git diff --staged
+  git diff --name-only
+  git diff --name-status
+  git diff --color=always
+  git diff --color-words
   git diff --base <filename>
+  git diff origin/main HEAD
   git diff <sourcebranch> <targetbranch>
+
+  fdz
+  fdz master .
+  fd 4c674950 6d88a7bfd8
+
   git add <filename>
   git tag 1.0.0 <commitID>
   
@@ -5057,6 +5262,10 @@
 
   git clean -n    # untracked files
   git clean -f -d # intracked files & directory
+  git clean -dn
+  git clean -x # force removal of ignored files
+  git clean -xf
+  git clean -di # interactive
 
   git stash
   git stash -u
@@ -5118,13 +5327,17 @@
   git rebase --continue
 
   git add -p
+
   git merge --abort
   git merge --continue
   git merge --no-ff # no fast-forward
+  git mergetool --no-prompt
+  git mergetool --tool-help
   git merge <branch-name>
+
   git rebase -i HEAD~4
   git show --name-only {commit}
-  git diff --staged
+  git diff --staged|cached
   git diff HEAD
   git bisect start
 
@@ -5174,6 +5387,7 @@
   git ls-remote -h murpheux@gru:/projects.git/projects/seisewa HEAD
   git log --pretty=oneline -S"blame_usage"
   git blame <file>
+  got branch -a
   git branch -avv
 
   git fetch --progress --all
@@ -5222,7 +5436,6 @@
   # Then start a new agent session
   eval "$(ssh-agent -s)"
 
-
   # ==> dotfiles taming
   git clone --bare git@github.com:kikedose/dotfiles.git ~/.dotfiles
   alias dotfiles='/usr/bin/git --git-dir=$HOME/.dotfiles/ --work-tree=$HOME'
@@ -5245,10 +5458,7 @@
   mongo 10.121.65.58/mydb
 
   db
-  show dbs
-  show collections
-  show users
-  show roles
+  show dbs|collections|users|roles
 
   db.status()
   db.<collection>.find()[1]
@@ -6105,6 +6315,7 @@
   brew install --HEAD iina/mpv-iina/mpv-iina
   brew install --cask --no-quarantine wine
   brew install [--no-link] yt=dlp
+  brew install font-hack-nerd-font
 
   brew list
   brew outdated
@@ -6119,9 +6330,8 @@
   brew update
   brew update & brew upgrade
   brew update && brew upgrade
-  brew upgrade
-  brew upgrade --cask powershell
-  brew upgrade --cask pwsh
+  brew upgrade [--cask] [--greedy]
+  brew upgrade --cask powershell|pwsh
   brew which nmap
 
   brew cleanup -n|--dry-run
@@ -6139,6 +6349,11 @@
   # turn off Homebrew’s anonymous aggregate user behaviour analytics
   brew analytics off
 
+  brew cu # cask upgrade
+
+  export HOMEBREW_BREWFILE=~/.brewfile
+  export HOMEBREW_CASK_OPTS="--appdir=$HOME/MyApplications"
+
   brew update
   brew upgrade [--dry-run bat]
   brew upgrade --greedy-latest chromium
@@ -6150,16 +6365,47 @@
   brew outdated
   brew uninstall <INSTALLED_PACKAGE_NAME>
 
+  brew bundle dump --global --force
+  brew bundle dump --global --force --describe
+  brew "ruby"
+  brew bundle --global
+
+  brew bundle cleanup --global --force
+  brew bundle list
+  brew bundle list --cask
+  brew bundle edit
+
   brew bundle dump [--force] [cleanup]
-
   brew bundle dump --file=/path/to/your/custom_list.txt
-  brew list --formula > brew_programs_list.txt
 
-  brew bundle install --file=/path/to/your/Brewfile
+  brew "node"
+  brew bundle exec which node
+
+  brew bundle exec --check
+  brew bundle exec --install
+  brew bundle exec --services
+  brew bundle sh
+
+  brew bundle env | grep node
+
+  brew list --formula > brew_programs_list.txt
+  brew list --formulae
+  brew list --casks
+  brew list | grep gnu
+
+  brew bundle install --file=/path/to/Brewfile
   cat brew_programs_list.txt | xargs brew install
+
+  # ignore cask
+  HOMEBREW_BUNDLE_CASK_SKIP=1 brew bundle install
+  export HOMEBREW_BUNDLE_CASK_SKIP=1
+  HOMEBREW_BUNDLE_CASK_SKIP="google-chrome spotify" brew bundle install
+  brew bundle install --no-upgrade
 
   brew search <PACKAGE_NAME>
   brew search /^postgresql@/
+  brew search gnu
+  brew search --eval-all --desc "GNU"
 
   brew tap [<TAP>]
   brew tap martido/homebrew-graph
@@ -6173,6 +6419,7 @@
 
   brew deps vim
   brew deps --installed
+  brew deps --tree --installed
   brew uses perl --installed
 
   brew deps --tree <brewformula>
@@ -6241,9 +6488,14 @@
   brew install make # GNU Make (if you want the latest version)
   brew install nano # GNU Nano (if you prefer Nano over Vim or Emacs)
 
+  du -d 1 -h $(brew --cellar) | sort -h
+  brew list --formula | xargs -n1 -I {} sh -c "brew info {} | grep -E '[0-9]* files, ' | sed 's/^.*[0-9]* files, \(.*\)).*$/{} \1/'" | sort -h -r -k2
+  brew leaves | xargs -n1 -I {} sh -c "brew info {} | grep -E '[0-9]* files, ' | sed 's/^.*[0-9]* files, \(.*\)).*$/{} \1/'" | sort -h -r -k2
+
   # Tools that are no longer necessary:
   # – zsh is now the default shell in macOS, so you don’t need to install it via Homebrew.
   # – Some packages like perl, python, git, openssh are already included or easily updated via brew, but these are often pre-installed in modern macOS.
+  alias brew_all="brew outdated && brew update && brew upgrade && brew cleanup
 
 #::::::::::::::::::::::::::::: angular ::::::::::::::::::::::::::::::
   ng build --source-map=false
@@ -6263,7 +6515,6 @@
 
   ng build --source-map=false
   ng build --st --stats-json --source-map=falseats-json 
-  ng build
 
 #::::::::::::::::::::::::::::: gluster ::::::::::::::::::::::::::::::
   gfs version
@@ -6330,20 +6581,20 @@
   kafka-console-consumer --bootstrap-server localhost:9092 --topic myorders --from-beginning --key-deserializer org.apache.kafka.common.serialization.StringDeserializer --value-deserializer org.apache.kafka.common.serialization.DoubleDeserializer --property print.key=true, --property key.separator=, --group 1
   kafka-topics --list --bootstrap-server localhost:9092
 
-  ./kafka-reassign-partitions.sh --bootstrap-server localhost:9092 --reassignment-json somefile.json --execute
-  ./kafka-consumer-groups --all-groups --all-topics --bootstrap-server sclet:9092 --describe
-  ./connect-standalone.sh worker.properties filesink.properties
-  ./connect-distributed.sh worker.properties ...
+  kafka-reassign-partitions.sh --bootstrap-server localhost:9092 --reassignment-json somefile.json --execute
+  kafka-consumer-groups --all-groups --all-topics --bootstrap-server sclet:9092 --describe
+  connect-standalone.sh worker.properties filesink.properties
+  connect-distributed.sh worker.properties ...
 
-  ./kafka-storage.sh random-uuid
-  ./kafka-storage.sh format
+  kafka-storage.sh random-uuid
+  kafka-storage.sh format
 
-  ./kafka-topics.sh --zookeeper localhost:2181 --describe --topic reassign-topic\
-  /kafka-topics.sh --zookeeper localhost:2181 --alter --topic reassign-topic --partitions 5
+  kafka-topics.sh --zookeeper localhost:2181 --describe --topic reassign-topic
+  kafka-topics.sh --zookeeper localhost:2181 --alter --topic reassign-topic --partitions 5
 
-  ./kafka-reassign-partitions.sh --zookeeper localhost:2181 --broker-list "0,1,2" --topics-to-move-json-file /tmp/topics.json --generate
-  ./kafka-reassign-partitions.sh --zookeeper localhost:2181 --reassignment-json-file /tmp/reassignment-file.json --execute
-  ./kafka-reassign-partitions.sh --zookeeper localhost:2181 --reassignment-json-file /tmp/reassignment-file.json --verify
+  kafka-reassign-partitions.sh --zookeeper localhost:2181 --broker-list "0,1,2 --topics-to-move-json-file /tmp/topics.json --generate
+  kafka-reassign-partitions.sh --zookeeper localhost:2181 --reassignment-json-file /tmp/reassignment-file.json --execute
+  kafka-reassign-partitions.sh --zookeeper localhost:2181 --reassignment-json-file /tmp/reassignment-file.json --verify
 
 #::::::::::::::::::::::::::::: aws cli ::::::::::::::::::::::::::::::
   # ==> octo cli
@@ -6370,6 +6621,10 @@
   aws configure get region --profile integ
   
   ssh -i <keypair> ubuntu@18.232.181.251
+  ssh -o ControlMaster=no murpheux@wagner
+  ssh -o IdentitiesOnly=yes murpheux@wagner
+  ssh -o PreferredAuthentications=password murpheux@wagner
+  ssh -i ~/.ssh/your_private_key murpheux@wagner
 
   aws iam list-users
   aws iam list-roles
@@ -6832,7 +7087,6 @@
   virsh snapshot-delete --domain test --snapshotname  test_vm_snapshot1
   virsh snapshot-list test
 
-
   virt-install --name=pihole --vcpus=2 --memory=2048 --description "SoftCraft pihole"
   --os-type=Linux --cdrom=/mnt/volume01/iso/ubuntu-20.10-live-server-amd64.iso --disk size=20 
   --os-variant=ubuntu20.04 --graphics none --network bridge:br0
@@ -7127,13 +7381,26 @@
   npm config -g list
   npm config -g set prefix /home/murpheux/.npm-global
   npm config list
-  npm i
+  npm i|ci
   npm i -g *
   npm i -g @angular/cli
   npm i -g npm-upgrade
+  npm install --prefix /path/to/project
   npm install -g @angular/cli@latest
   npm install --prefix ./install/here <package>
+  npm install --dry-run
+  npm install <package-name> --dry-run
+  npm uninstall <package-name> --dry-run
+  npm update --dry-run
+  npm ci --dry-run
   npm ls
+  npm ls --depth=0
+  npm ls --json
+  npm ls --depth=0 > dependencies.txt
+  npm ls --json > dependencies.json
+  npm ls --omit=dev
+  npm ls --include=dev
+  npm ls --package-lock-only 
   npm prefix
   npm prefix ls
   npm run build
@@ -7145,6 +7412,10 @@
   npm uninstall -g @angular/cli
   npm update|upgrade
   npm-upgrade
+
+  # ==> format
+  npx prettier --write jquack.json --parser json
+  # common parsers: babel, typescript, flow, css, less, scss, json, json5, html, vue, angular, yaml, markdow
 
   npx babel --version
   npx browserslist@latest --update-db
@@ -7292,18 +7563,18 @@
   git checkout dev
   git checkout dev -c check2
 
-  git config --global --list
-  git config --global list
-  git config --global --edit
-  git config --show-origin
-  git config --global alias.tree 'log --oneline --graph --decorate --all'
-
-  git config --global --unset [key]
-  git config --global --unset-all [key]
-
   git diff
   git diff c991ce9 967dd83
   git diff models/User.js
+  git difftool --tool=vimdiff --no-prompt
+  git difftool --dir-diff
+  alias dirdiff = difftool --ignore-submodules --tool=vimdiff --dir-diff --no-symlinks
+  git diff --no-index /dev/null <file_path> # windows NUL
+  git ls-files --others --exclude-standard | xargs # show untracked
+  git ls-files -o --exclude-standard
+
+  git dirdiff HEAD HEAD~1
+
   git fetch --all
   git glo
   git glo -n 10
@@ -7311,12 +7582,9 @@
   git init --bare
   git list
   git log
-  git log -n 10
-  git log -n 10 | less
-  git log -n 2
+  git log [-n 10]
   git merge origin/dev
-  git pull
-  git push
+  git pull|push
   git push -u origin $(git branch --show-current)
   git push -u origin all
   git push -u origin main dev
@@ -8405,6 +8673,10 @@
   aireplay-ng --deauth 100 -a <net mac address target> wlan0mon
   aireplay-ng -0 0 -a <net mac address target> wlan0mon
 
+  openssl rand -hex 6 | sed 's/\(..\)/\1:/g; s/:$//'
+  printf '%02x:%02x:%02x:%02x:%02x:%02x\n' $[RANDOM%256] $[RANDOM%256] $[RANDOM%256] $[RANDOM%256] $[RANDOM%256] $[RANDOM%256]
+
+
   -> crack wifi password
   aircrack-ng ~/handshake-01.cap -w /usr/share/wordlists/rockyou.txt
 
@@ -8881,6 +9153,7 @@
   systemctl --type=service --state=running
 
   systemctl edit [--force --full] ssh.service
+  systemctl edit ollama.service
   systemctl daemon-reload
 
   systemctl reload application.service
@@ -9349,8 +9622,16 @@
   grep -c "Linux" welcome.txt # count
   grep -n "Linux" welcome.txt # line number
   grep -w "opensource" welcome.txt # word
+
+  # ==> ifconfig
   ifconfig | grep -A 4 ens3 # num of lines after
   ifconfig | grep -B 4 ether
+  ifconfig bridge0 destroy
+  ifconfig bridge0 deletem en0 # delete member
+  ifconfig utun0 delete. # delete tunnel
+  ifconfig <interface> <ip_address> delete. # remove address
+  ipconfig release <interface>
+
   grep -C 2 "panic" application.log # before and after
   grep ^d file_name # start with d 
   grep x$ welcome.txt # ends with x
@@ -9704,9 +9985,70 @@
   wsh secret set OPENAI_KEY=sk-xxxxxxxxxxxxxxxx
   wsh secret set OPENROUTER_KEY=sk-xxxxxxxxxxxxxxxx
 
+  git diff | wsh ai -                          # Pipe to AI
+  wsh ai main.go -m "find bugs"                # Attach files with message
+  wsh ai $(tail -n 500 my.log) -m "review" -s  # Auto-submit with output\
+
+  # Set an image background with 50% opacity (default)
+  wsh setbg ~/pictures/background.jpg
+
+  # Set a color background (use quotes to prevent # being interpreted as a shell comment)
+  wsh setbg "#ff0000"          # hex color
+  wsh setbg forestgreen        # CSS color name
+
+  # Adjust opacity
+  wsh setbg --opacity 0.3 ~/pictures/light-pattern.png
+  wsh setbg --opacity 0.7      # change only opacity of current background
+
+  # Image positioning options
+  wsh setbg --tile ~/pictures/texture.png          # create tiled pattern
+  wsh setbg --center ~/pictures/logo.png           # center without scaling
+  wsh setbg --center --size 200px ~/pictures/logo.png  # center with specific size (px, %, auto)
+
+  # Remove background
+  wsh setbg --clear
+
+  wsh setbg --print "#ff0000"
+
+  wsh secret ui|list
+
   # ==> Ollama
+  export OLLAMA_HOST=0.0.0.0
+  export OLLAMA_CONTEXT_LENGTH=8192 ollama serve
+
   ollama
+  ollama signin|signout
+  ollama ls|list [gemma4]
+  ollama ps
+  ollama list models
+  ollama pull|rm|show <model_name>
+
   ollama launch claude
+  ollama launch droid --config # configure without launching
+  ollama launch claude --model gemma4|qwen3.5
+  ollama launch codex --model gemma4
+  ollama launch opencode --model gemma4
+  ollama launch openclaw --model gemma4
+
+  ollama run gemma4
+  ollama run gemma3 "What's in this image? <path>/smile.png"
+  ollama run embeddinggemma "Hello world"
+  echo "Hello world" | ollama run nomic-embed-text
+
+  ollama launch openclaw # personal ai
+  # coding
+  ollama launch claude|codex|opencode
+
+  #modelfile
+  FROM gemma3
+  SYSTEM """You are a happy cat."""
+
+  ollama create -f Modelfile
+
+  ollama stop gemma3
+  ollama serve
+
+  launchctl setenv OLLAMA_HOST "0.0.0.0:11434" # environment variables on mac
 
 #:::::::::::::::::::::::::::::::: aws console-2-code ::::::::::::::::::::::::::::::::
 
@@ -9722,26 +10064,3 @@ aws ec2 create-route --route-table-id 'preview-rtb-public-0' --destination-cidr-
 aws ec2 associate-route-table --route-table-id 'preview-rtb-private-2' --subnet-id 'preview-subnet-private-3' 
 aws ec2 describe-route-tables --route-table-ids   'preview-rtb-private-1' 'preview-rtb-private-2' 
 aws ec2 modify-vpc-endpoint --vpc-endpoint-id 'preview-vpce-1234' --add-route-table-ids 'preview-rtb-private-1' 'preview-rtb-private-2' 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

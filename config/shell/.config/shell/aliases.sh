@@ -78,21 +78,22 @@ alias dot=dotfiles
 alias cat="bat --style plain "
 
 alias rm="rm -i"
+alias trash='trash -i'
 alias sudo="sudo "
 
 if [[ "$OSTYPE" == darwin* ]]; then
-  alias sed="gsed"
-  alias dodo="open -a ScreenSaverEngine.app"
+    alias sed="gsed"
+    alias dodo="open -a ScreenSaverEngine.app"
 fi
 
 ip() {
-  local iface="eth0"
-  [[ "$OSTYPE" == darwin* ]] && iface="en0"
-  ifconfig "$iface" 2>/dev/null | awk '/inet / {print $2; exit}'
+    local iface="eth0"
+    [[ "$OSTYPE" == darwin* ]] && iface="en0"
+    ifconfig "$iface" 2>/dev/null | awk '/inet / {print $2; exit}'
 }
 
 ipv4() {
-  local iface="eth0"
-  [[ "$OSTYPE" == darwin* ]] && iface="en0"
-  ifconfig "$iface" 2>/dev/null | awk '/inet / {print $2; exit}'
+    local iface="eth0"
+    [[ "$OSTYPE" == darwin* ]] && iface="en0"
+    ifconfig "$iface" 2>/dev/null | awk '/inet / {print $2; exit}'
 }
