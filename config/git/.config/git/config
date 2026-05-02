@@ -379,3 +379,11 @@
 	cmd = code --wait --merge $REMOTE $LOCAL $BASE $MERGED
 [url "git@github.com:"]
 	insteadOf = https://github.com/
+[includeIf "hasconfig:remote..url:https://github.com/**"]
+	path = /Users/murpheux/.config/git/config-github
+[includeIf "hasconfig:remote..url:git@github.com"]
+	path = /Users/murpheux/.config/git/config-github
+[includeIf "hasconfig:remote.*.url:https://dev.azure.com/"]
+	path = /Users/murpheux/.config/git/config-azure
+[includeIf "hasconfig:remote.*.url:git@ssh.dev.azure.com:v3/**"]
+	path = /Users/murpheux/.config/git/config-azure

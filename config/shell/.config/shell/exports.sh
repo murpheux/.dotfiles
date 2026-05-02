@@ -33,6 +33,7 @@ export OUT_DIR="./dist"
 export NODE_ENV="development"
 export GPG_TTY="$(tty)"
 export TOTP_CLI_CREDENTIAL_FILE="$HOME/.totp-crendentials"
+export EZA_CONFIG_DIR=$HOME/.config/eza
 
 path_append "$HOME/.local/bin"
 path_append "$HOME/bin"
@@ -173,6 +174,13 @@ _zb_path_append "$ZEROBREW_PREFIX/bin"
 fdz() {
     preview="git diff $@ --color=always -- {-1}"
     git diff $@ --name-only | fzf -m --ansi --preview $preview
+}
+
+is_shell_parent() {
+    case "$(ps -p $PPID -o comm=)" in
+    zsh | bash | sh | fish | ksh) return 0 ;;
+    *) return 1 ;;
+    esac
 }
 
 export PATH

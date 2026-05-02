@@ -38,6 +38,7 @@ ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE="fg=#663399,standout"
 ZSH_AUTOSUGGEST_BUFFER_MAX_SIZE="20"
 ZSH_AUTOSUGGEST_USE_ASYNC=1
 
+ZIM_HOME=${ZDOTDIR:-${HOME}}/.zim
 
 ### Added by Zinit's installer
 if [[ ! -f $HOME/.local/share/zinit/zinit.git/zinit.zsh ]]; then
@@ -160,3 +161,5 @@ fi
 
 [[ "$TERM_PROGRAM" == "kiro" ]] && . "$(kiro --locate-shell-integration-path zsh)"
 
+
+[ -f "$HOME/.x-cmd.root/X" ] && [ -f "$HOME/.x-cmd.root/v/latest/X" ] && . "$HOME/.x-cmd.root/X" # boot up x-cmd.

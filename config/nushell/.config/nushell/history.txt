@@ -1,0 +1,34 @@
+pwd
+ls
+open demo.csv
+ls
+pwd
+ls
+lf
+ls
+nvim demo.csv
+open demo.csv
+exit
+lz
+pwd
+ls
+pwd
+ls
+ls demo.csv
+cat demo.csv
+open demo.csv
+cat demo.stats.csv
+rm demo.stats.csv
+ls
+pwd
+echo $0
+echo $SHELL
+echo $env.SHELL
+echo $env.0
+clsa
+cls
+clear
+$nu.config-path
+$nu.env-path
+ls ~/Library/Application Support/nushell/
+ls ~/Library/Application\ Support/nushell/

@@ -71,6 +71,7 @@ alias ydload='yt-dlp -U && cd "$HOME/Downloads" && yt-dlp --concurrent-fragments
 alias sz="source ~/.zshrc"
 alias h="history | tail"
 alias bup="brew update && brew upgrade"
+alias zup="zb outdated | awk '{print $1}' | xargs zb install"
 alias dotfiles="/opt/homebrew/bin/git --git-dir=$HOME/.dotfiles/.git --work-tree=$HOME/.dotfiles/"
 alias dot=dotfiles
 

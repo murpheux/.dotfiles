@@ -120,6 +120,8 @@
 
 #:::::::::::::::::::::::::::::: mac os ::::::::::::::::::::::::::::::
   installer -pkg session-manager-plugin.pkg -target /
+  
+  sudo systemsetup -setremotelogin on  # enable ssh
 
   networksetup -listallhardwareports
   networksetup -listlocations
@@ -151,7 +153,6 @@
   system_profiler SPDisplaysDataType | grep Resolution
   displayplacer list | grep Resolution
 
-
   sysctl net.ipv4.ip_local_port_range="15000 61000"
   sysctl net.ipv4.tcp_fin_timeout=30
 
@@ -167,6 +168,7 @@
   memtester 1G 5
 
   sysctl debug.lowpri_throttle_enabled=0
+  sysctl net.ipv6.conf.all.disable_ipv6 # check ipv6
 
   lm-sensors
   sensors-detect
@@ -204,7 +206,35 @@
   mdutil -s /
 
   # ==> clean mac
-  mole
+  mole --version|--help
+  mo                           # Interactive menu
+  mo clean                     # Deep cleanup + already-uninstalled app leftovers
+  mo uninstall                 # Remove installed apps + their leftovers
+  mo optimize                  # Refresh caches & services
+  mo analyze                   # Visual disk explorer (or 'mo analyse')
+  mo status                    # Live system health dashboard
+  mo purge                     # Clean project build artifacts
+  mo installer                 # Find and remove installer files
+
+  mo touchid                   # Configure Touch ID for sudo
+  mo completion                # Set up shell tab completion
+  mo update                    # Update Mole
+  mo update --nightly          # Update to latest unreleased main build, script install only
+  mo remove                    # Remove Mole from system
+  mo --help                    # Show help
+  mo --version                 # Show installed version
+
+  mo clean --dry-run
+  mo uninstall --dry-run
+  mo purge --dry-run
+
+  # Also works with: optimize, installer, remove, completion, touchid enable
+  mo clean --dry-run --debug   # Preview + detailed logs
+  mo optimize --whitelist      # Manage protected optimization rules
+  mo clean --whitelist         # Manage protected caches
+  mo purge --paths             # Configure project scan directories
+  mo analyze /Volumes          # Analyze external drives only
+
   mclean|macos-cleaner
 
   mac-cleaner-cli
@@ -308,6 +338,7 @@
 
   launchctl stop com.openssh.sshd
   launchctl start com.openssh.sshd
+  launchctl kickstart -k system/com.openssh.sshd # warm
 
   # run these commands in the Terminal: 
   # restart/Reload SSH:
@@ -315,13 +346,20 @@
   launchctl load -w /System/Library/LaunchDaemons/ssh.plist
 
   # alternative (Force restart):
-  sudo launchctl kickstart -k system/com.openssh.sshd 
+  launchctl kickstart -k system/com.openssh.sshd 
+
+  systemsetup -setremotelogin off && sudo systemsetup -setremotelogin on
 
   # other Useful Commands:
-  sudo launchctl stop com.openssh.sshd
-  sudo launchctl start com.openssh.sshd
-  sudo systemsetup -setremotelogin
+  launchctl stop com.openssh.sshd
+  launchctl start com.openssh.sshd
+  systemsetup -setremotelogin
 
+  # ==> process limits
+  launchctl limit
+  ulimit
+
+  docker run -it --privileged --pid=host debian nsenter -t 1 -m -u -n -i sh).
 
   # ==> Disable SIP on mac - run in recovery mode
   csrutil disable
@@ -363,95 +401,97 @@
 
   jp2a --output=profile_pix.txt --colors Pictures/profile_pix.jpg
 
-  #Get an ip address for en0:
+  # get an ip address for en0:
   ipconfig getifaddr en0
 
-  #Same thing, but setting and echoing a variable:
+  # same thing, but setting and echoing a variable:
   ip=`ipconfig getifaddr en0` ; echo $ip
 
-  #View the subnet mask of en0:
+  # view the subnet mask of en0:
   ipconfig getoption en0 subnet_mask
 
-  #View the dns server for en0:
+  # view the dns server for en0:
   ipconfig getoption en0 domain_name_server
 
-  #Get information about how en0 got its dhcp on:
+  # get information about how en0 got its dhcp on:
   ipconfig getpacket en1
 
-  #View some network info:
+  # view some network info:
   ifconfig en0
+  ifconfig en0 | grep inet6
 
   ip -br a
   ip -4 -o address
 
-  #Set en0 to have an ip address of 10.10.10.10 and a subnet mask of 255.255.255.0:
+  # set en0 to have an ip address of 10.10.10.10 and a subnet mask of 255.255.255.0:
   ifconfig en0 inet 10.10.10.10 netmask 255.255.255.0
 
-  #Show a list of locations on the computer:
+  # show a list of locations on the computer:
   networksetup -listlocations
 
-  #Obtain the active location the system is using:
+  # obtain the active location the system is using:
   networksetup -getcurrentlocation
 
-  #Create a network location called Work and populate it with information from the active network connection:
+  # create a network location called Work and populate it with information from the active network connection:
   networksetup -createlocation Work populate
 
-  #Delete a network location called Work:
+  # delete a network location called Work:
   networksetup -deletelocation Work
 
-  #Switch the active location to a location called Work:
+  # switch the active location to a location called Work:
   networksetup -switchlocation Work
 
-  #Switch the active location to a location called Work, but also show the GUID of that location so we can make scripties with it laters:
+  # switch the active location to a location called Work, but also show the GUID of that location so we can make scripties with it laters:
   scselect Work
 
-  #List all of the network interfaces on the system:
+  # list all of the network interfaces on the system:
   networksetup -listallnetworkservices
 
-  #Rename the network service called Ethernet to the word Wired:
+  # rename the network service called Ethernet to the word Wired:
   networksetup -renamenetworkservice Ethernet Wired
 
-  #Disable a network interface:
+  # disable a network interface:
   networksetup -setnetworkserviceenabled off
 
-  #Change the order of your network services:
+  # change the order of your network services:
   networksetup -ordernetworkservices “Wi-Fi” “USB Ethernet”
 
-  #Set the interface called Wi-Fi to obtain it if it isn’t already
+  # set the interface called Wi-Fi to obtain it if it isn’t already
   networksetup -setdhcp Wi-Fi
 
-  #Renew dhcp leases:
+  # renew dhcp leases:
   ipconfig set en1 BOOTP && ipconfig set en1 DHCP
   ifconfig en1 down && ifconfig en1 up
 
-  #Renew a dhcp lease in a script:
+  # renew a dhcp lease in a script:
   echo "add State:/Network/Interface/en0/RefreshConfiguration temporary" | sudo scutil
 
-  #Configure a manual static ip address:
+  # configure a manual static ip address:
   networksetup -setmanual Wi-Fi 10.0.0.2 255.255.255.0 10.0.0.1
 
-  #Configure the dns servers for a given network interface:
+  # configure the dns servers for a given network interface:
   networksetup -setdnsservers Wi-Fi 10.0.0.2 10.0.0.3
 
-  #Obtain the dns servers used on the Wi-Fi interface:
+  # obtain the dns servers used on the Wi-Fi interface:
   networksetup -getdnsservers Wi-Fi
 
-  #Stop the application layer firewall:
+  # stop the application layer firewall:
   launchctl unload /System/Library/LaunchAgents/com.apple.alf.useragent.plistlaunchctl unload /System/Library/LaunchDaemons/com.apple.alf.agent.plist
 
-  #Start the application layer firewall:
+  # start the application layer firewall:
   launchctl load /System/Library/LaunchDaemons/com.apple.alf.agent.plistlaunchctl load /System/Library/LaunchAgents/com.apple.alf.useragent.plist
 
-  #Allow an app to communicate outside the system through the application layer firewall:
+  # allow an app to communicate outside the system through the application layer firewall:
   socketfilterfw -t“/Applications/FileMaker Pro/FileMaker Pro.app/Contents/MacOS/FileMaker Pro”
 
-  #See the routing table of a Mac:
+  # see the routing table of a Mac:
   netstat -nr
+  netstat -rn -f inet6 | grep default
 
-  #Add a route so that traffic for 10.0.0.0/32 communicates over the 10.0.9.2 network interface:
+  # add a route so that traffic for 10.0.0.0/32 communicates over the 10.0.9.2 network interface:
   route -n add 10.0.0.0/32 10.0.9.2
 
-  #Log bonjour traffic at the packet level:
+  # log bonjour traffic at the packet level:
   killall -USR2 mDNSResponder
   killall -r "pattern*"
   killall -I -r "pattern*"
@@ -464,98 +504,101 @@
   killall ollama
   pkill -x AppName
 
-  #Stop Bonjour:
+  # stop Bonjour:
   launchctl unload -w /System/Library/LaunchDaemons/com.apple.mDNSResponder.plist
 
-  #Start Bojour:
+  # start Bojour:
   launchctl load -w /System/Library/LaunchDaemons/com.apple.mDNSResponder.plist
 
-  #Put a delay in your pings:
+  # put a delay in your pings:
   ping -i 5 192.168.210.1
 
-  #Ping the hostname 5 times and then stop the ping:
+  # ping the hostname 5 times and then stop the ping:
   ping -c 5 google.com
 
-  #Flood ping the host:
+  # flood ping the host:
   ping -f localhost
 
-  #Set the packet size during your ping:
+  # set the packet size during your ping:
   ping -s 100 google.com
 
-  #Customize the source IP during your ping:
+  # customize the source IP during your ping:
   ping -S 10.10.10.11 google.com
 
-  #View disk performance:
+  # view disk performance:
   iostat -d disk0
 
-  #Get information about the airport connection on your system:
+  # get information about the airport connection on your system:
   /System/Library/PrivateFrameworks/Apple80211.framework/Versions/A/Resources/airport -I
 
-  #Scan the available Wireless networks:
+  # scan the available Wireless networks:
   /System/Library/PrivateFrameworks/Apple80211.framework/Versions/A/Resources/airport -s
 
-  #Trace the path packets go through:
+  # trace the path packets go through:
   traceroute google.com
   nc -vw5 google.com 80
-
+  nc -zv $INSTANCE_IP 22
+  
+  Test-NetConnection -ComputerName "google.com" -Port 443
+  # trace the routes without looking up names:
   #Trace the routes without looking up names:
   traceroute -n google.com
 
-  #Trace a route in debug mode:
+  # trace a route in debug mode:
   traceroute -d google.com
 
-  #View information on all sockets:
+  # view information on all sockets:
   netstat -at
 
-  #View network information for ipv6:
+  # view network information for ipv6:
   netstat -lt
 
-  #View per protocol network statistics:
+  #.view per protocol network statistics:
   netstat -s
 
-  #View the statistics for a specific network protocol:
+  # view the statistics for a specific network protocol:
   netstat -p igmp
 
-  #Show statistics for network interfaces:
+  # show statistics for network interfaces:
   netstat -i
 
-  #View network information as it happens (requires ntop to be installed):
+  # view network information as it happens (requires ntop to be installed):
   ntop
 
-  #Scan port 80 of www.google.com
+  # scan port 80 of www.google.com
   /System/Library/CoreServices/Applications/Network\ Utility.app/Contents/Resources/stroke www.google.com 80 80
 
-  #Port scan krypted.com stealthily:
+  # port scan krypted.com stealthily:
   nmap -sS -O krypted.com/24
 
-  #Establish a network connection with www.apple.com:
+  # establish a network connection with www.apple.com:
   nc -v www.apple.com 80
 
-  #Establish a network connection with gateway.push.apple.com over port 2195
+  # establish a network connection with gateway.push.apple.com over port 2195
   /usr/bin/nc -v -w 15 gateway.push.apple.com 2195
 
-  #Establish a network connection with feedback.push.apple.com only allowing ipv4
+  # establish a network connection with feedback.push.apple.com only allowing ipv4
   /usr/bin/nc -v -4 feedback.push.apple.com 2196
 
-  #Setup a network listener on port 2196 for testing:
+  # setup a network listener on port 2196 for testing:
   /usr/bin/nc -l 2196
 
-  #Capture some packets:
+  # capture some packets:
   tcpdump -nS
 
-  #Capture all the packets:
+  # capture all the packets:
   tcpdump -nnvvXS
 
-  #Capture the packets for a given port:
+  # capture the packets for a given port:
   tcpdump -nnvvXs 548
 
-  #Capture all the packets for a given port going to a given destination of 10.0.0.48:
+  # capture all the packets for a given port going to a given destination of 10.0.0.48:
   tcpdump -nnvvXs 548 dst 10.0.0.48
 
-  #Capture the packets as above but dump to a pcap file:
+  # capture the packets as above but dump to a pcap file:
   tcpdump -nnvvXs 548 dst 10.0.0.48 -w /tmp/myfile.pcap
 
-  #Read tcpdump (cap) files and try to make them human readable:
+  # read tcpdump (cap) files and try to make them human readable:
   tcpdump -qns 0 -A -r /var/tmp/capture.pcap
 
   tcpdump -i lo0 'port 7243'
@@ -573,13 +616,13 @@
   tcpdump -i device 'port port_n0'
   tcpdump -i enp0s3 'port 9090'
 
-  #What binaries have what ports and in what states are those ports:
+  # what binaries have what ports and in what states are those ports:
   lsof -n -i4TCP
 
-  #Make an alias for looking at what has a listener open, called ports:
+  # make an alias for looking at what has a listener open, called ports:
   alias ports='lsof -n -i4TCP | grep LISTEN'
 
-  #==> wip
+  # ==> wip
   alias pathz='printf "%s\n" $PATH | awk "{ print length(\$0), \$0 }" | sort -n | cut -d" " -f2- | uniq'
   alias pathz='echo "$PATH" | tr ":" "\n" | xargs -I {} gawk '\''{ print length($0), $0 }'\'' {} | sort -n | cut -d" " -f2- | uniq'
   alias pathz="echo \$PATH | tr ':' '\n' | awk '{ print length(\$0), \$0 }' | sort -n | cut -d' ' -f2- | uniq"
@@ -587,7 +630,7 @@
 
   alias hl="rg --colors 'match:bg:red' --colors 'match:fg:white' --passthru"
 
-  #Report back the name of the system:
+  # report back the name of the system:
   hostname
 
   # flush the dns cache:
@@ -602,7 +645,7 @@
   # view how the Server app interprets your network settings:
   serveradmin settings network
 
-  #Whitelist the ip address 10.10.10.2:
+  # whitelist the ip address 10.10.10.2:
   /Applications/Server.app/Contents/ServerRoot/usr/libexec/afctl -w 10.10.10.2
 
   # ==> Mac hostname
@@ -626,6 +669,7 @@
   launchctl load /usr/local/cellar/nginx/1.17.0/homebrew.mxcl.nginx.plist 
   launchctl unload /usr/local/cellar/nginx/1.17.0/homebrew.mxcl.nginx.plist
 
+  # ==> xcode-select
   xcode-select -p
   xcode-select -version
   xcodebuild -version
@@ -712,6 +756,22 @@
   zb update|outdated
   zb outdated | awk '{print $1}' | xargs zb install
 
+  zb outdated | awk '{print $1}' | xargs -r zb install
+  zb outdated | awk '{print $1}' | xargs -n1 zb install
+  zb outdated | awk '{print $1}' | xargs -n1 --no-run-if-empty zb install
+
+  packages=$(zb outdated | awk '{print $1}')
+  if [ -n "$packages" ]; then
+      echo "$packages" | xargs zb install
+  fi
+
+  zb outdated | awk '{print $1}' | while read -r pkg; do
+      [ -n "$pkg" ] && zb install "$pkg"
+  done
+
+  zb reset # remove installed packages and reset symlinks
+
+
 #:::::::::::::::::::::::::::::: linux :::::::::::::::::::::::::::::::
   # ==> Tools
   # AI: *DeepSeek, *ChatGPT, *CoPilot, *GH Copilot, Gemini, Grok
@@ -724,11 +784,45 @@
   # Shell: sh, *bash, *zsh, fish, tcsh, pwsh, nushell, elvish, dash, rbash, ksh88|93
 
   # ==> Alt commands
-  # cat ==> bat           ls  ==> eza
-  # cd  ==> z             grep ==> rg
+  # cat  ==> bat           ls   ==> eza
+  # cd   ==> z             grep ==> rg
   # find ==> fd
 
+  #  etc info files
+  /etc/hosts
+  /etc/resolv.conf
+  /etc/hostname
+  /etc/fstab
+  /etc/default/grub
+  /etc/snmpd
+  /etc/ssh/sshd_config
+  /etc/sudoers
+  /etc/systemd/timesyncd.conf
+  /etc/passwd
+  /etc/shells
+  /sys/fs/cgroup/
+
+  /etc/docker/daemon.json
+  /etc/ansible/ansible.cfg
+
+  # multiplexers
+  tmux
+  zellij
+  3mux
+  byobu
+  screen
+
+  echo $0 | $SHELL
+  cat /etc/shells
+  lsof -p "$$" | grep -m 1 txt # mac & linux
+  readlink -f /proc/$$/exe. # linux
+
+  chsh -s /bin/zsh  # change shell to zsh
+
   bash -n ~/.bashrc
+
+  # ==> find if current shell is loaded bu another
+  ps -p $PPID -o comm=  # not - /Applications/Warp.app/Contents/MacOS/stable, login, launchd, sshd ,tmux, iTerm2, Terminal
 
   # ==> pair yubikee
   sc_auth pairing_ui -f
@@ -754,6 +848,10 @@
   zsh -xv ~/.zshrc
   zsh -i -c 'echo $SECONDS'
   source /path/to/your/file.zshrc
+
+  export ZDOTDIR=$HOME/.config/zsh # move .zshrc into this folder
+  ZDOTDIR=/path/to/custom/dir zsh
+  zsh -c "source /path/to/custom_zshrc; zsh"
 
   ZSH_HIGHLIGHT_HIGHLIGHTERS=(main brackets)
 
@@ -841,6 +939,31 @@
   
   nmcli device status
   nmcli connection show
+  
+  # ==> loops
+  for item in Apple Banana Cherry; do
+    echo "Fruit: $item"
+  done
+
+  for i in {1..5}; do
+    echo "Iteration $i"
+  done
+
+  for ((i=0; i<3; i++)); do
+    echo "Count: $i"
+  done
+  
+  count=1
+  while [ $count -le 3 ]; do
+    echo "Count is $count"
+    ((count++))
+  done
+
+  count=1
+  until [ $count -gt 3 ]; do
+    echo "Count is $count"
+    ((count++))
+  done
 
   # ==> grub
   vim /etc/default/grub
@@ -893,6 +1016,10 @@
   rename 's/^\.//' .* # not work macos
 
   seq 21
+  
+  # ==> puttygen
+  puttygen clem_onawole.ppk -O private-openssh -o ~/.ssh/clem_onawole
+  puttygen clem_onawole.ppk -O public-openssh -o ~/.ssh/clem_onawole.pub
 
   # cover command with sudo
   sudo bash -c 'command1 | command2 | command3 > /path/to/protected_file'
@@ -969,6 +1096,8 @@
   pkill -f tmux
   tmux new 'emacs ~/.tmux.conf'
   tmux new -- emacs ~/.tmux.conf
+  
+  alias ap-tmux='tmux new-session -AD -s ansible_session ansible-playbook' # -AD flags ensure it attaches if the session already exists or creates it if it doesn't.
   exit # quit current session ctrl+b x
   # command: ctrl+b :kill-session :kill-server detach-client
   # command: split-window -h split-window -v
@@ -1074,6 +1203,24 @@
   awk '/PATTERN/{while((getline line<"file2.txt")>0)print line;next}1' file1.txt > tmpfile && mv tmpfile file1.txt
 
 
+  # process affinity
+  taskset -c <cores> <command>
+  taskset -c -p <cores> <PID>
+  taskset -c 0,1,2 command # cpu 0,1,2
+  taskset -c -p 1 <PID>  # running process - 1 cpu
+  
+  taskset -p <PID>  # check current affinity
+  
+  # works on mac
+  cpulimit -p 1234 -l 50 # pid - process 1234 to 50%
+  cpulimit -e firefox -l 30 # 30%
+  cpulimit -l 30 -- ./my_script.sh # launch with limit
+  
+  nice -n 19 command  # low priority
+  renice -n 19 -p 1234 # change priority
+  
+  systemd-run --scope -p CPUQuota=20% command
+
   # Replace spaces with underscores
   rename 's/ /_/g' "$FILE"
 
@@ -1103,6 +1250,8 @@
   # view network services
   nettop
 
+  resolvectl status
+
   # task scheduling for shorter times or to automate simpler jobs.
   at
   echo "hello world" | at 1:30 AM
@@ -1117,6 +1266,11 @@
   atrm job_number
 
   # ==> dns
+  resolvectl status [| grep "DNS Servers"]
+  nmcli dev show | grep 'IP4.DNS'
+  dig google.com | grep "SERVER"
+  systemd-resolve --status
+
   dig @127.0.0.1 -p 8600 machine.node.consul
 
   # DNS
@@ -1319,6 +1473,8 @@
   osfetch
   owd
 
+  oh-my-posh init bash --config $HOME/.cache/oh-my-posh/themes/di4am0nd.omp.json --prompt-string
+
   pfetch
   pfetch | locat
   pfetch | lolcat
@@ -1371,6 +1527,15 @@
   ssh-keygen -D /usr/lib/opensc-pkcs11.so -s user-hsm-key
   ssh-keygen -D /usr/lib/opensc-pkcs11.so -e > ~/.ssh/id_hsm.pub
 
+  # clear ssh sockets
+  ssh -O exit -S ~/.ssh/%r@%h:%p <hostname>
+  ssh -O exit -S ~/.ssh/control-%C <hostname>
+  ssh -O exit murpheux@gru # manual exist
+  rm ~/.ssh/177* ~/.ssh/control-* # aggressive
+
+  ssh -f -N -i ~/.ssh/your_ssh_key_for_login -L 11434:localhost:11434 your-user@your-cloud-server-ip-or-dns-name
+  ssh -f -N -L 11434:localhost:11434 your-user@your-cloud-server-ip-or-dns-name
+
   # match private/public
   diff <(ssh-keygen -l -f ~/.ssh/id_rsa | cut -d' ' -f2) <(ssh-keygen -l -f ~/.ssh/id_rsa.pub | cut -d' ' -f2)
 
@@ -1398,10 +1563,13 @@
   ssh -T git@github.com
   ssh -T git@gitlab.com
 
+  # ==> ssh-add
   ssh-add -K /Users/you/.ssh/id_rsa
-  ssh-add -l
+  ssh-add -l # shows fingerprints
   ssh-add -d ~/murpheux
   ssh-add -D
+  ssh-add -L | grep medusa_murpheux > ~/.ssh/authorized_keys
+  ssh-keygen -y -f /path/to/private_key # pub key from private
 
   ssh -J -i .cred/kunye/dapoo.pem bastdev svr01
   ssh -L 3389:10.10.2.48:3389 scarlet
@@ -1940,6 +2108,9 @@
   # disk tool
   dust
   ncdu
+  duf
+  df
+  dutree
 
   xattr -rc Chromium.app
 
@@ -2095,6 +2266,12 @@
   # ==> mac clipboard
   pbpaste > demo.txt
   cat /path/to/your/filename.txt | pbcopy
+  
+  alias pbcopy='clip.exe'
+  alias pbpaste='powershell.exe -command "Get-Clipboard"'
+  
+  # Advanced: xclip or xsel
+  echo "text" | xclip -selection clipboard
 
   pcregrep -rMl
   pcregrep -rMl $(awk -F',' '{ for( i=1; i<=NF; i++ ) print $i }' <<< $(tail -1 .cred/kunye/kunye-iam-user-dev_accessKeys.csv))
@@ -2300,6 +2477,8 @@
   unset pbcopy
   unset pbpaste
 
+  unsetopt nomatch # avoid without quote - not good
+
   # ==> unzip
   unzip main.zip
   unzip -l main.zip
@@ -2420,6 +2599,10 @@
 
   # run after disconnection
   ssh user@host 'nohup your_command > /dev/null 2>&1 &'
+  
+  ssh -T git@github.com
+  ssh -vT git@github.com
+  cat ~/.ssh/github.pub | sha256sum | base64
 
   # ==> change username
   usermod -l login-name old-name
@@ -2447,6 +2630,8 @@
 
   # ==> user execute
   chmod u+x run_all.sh
+  chmod -h [permissions] [symlink_name] # macos & bsd
+  chown -h [user]:[group] [symlink_name]
 
   uname -[a|m]
 
@@ -2488,8 +2673,11 @@
   netstat -tulnp
 
   free -mh
+
   du -sh
+
   df -h
+  df /dev/disk3s1s1
 
   mv /var/lib/apt/lists /tmp/
   mkdir -p /var/lib/apt/lists/partial
@@ -2612,6 +2800,7 @@
   systemctl list-unit-files --type service --all
 
   ping -c 15 -i 2 google.com
+  ping6 -c 3 2606:4700:4700::1111
 
   # ==> similar to telnet
   nc -u 192.168.0.12 80
@@ -2696,9 +2885,16 @@
   kill -9 41164
   killall Safari
 
-  ln -s ../.env
+  # link to file
+  ln -s ../.env # symbolic link
   ln -s ../swagger.yaml
   ln -s /Volumes/volume01 .
+
+  ln -f [target] [link_name] # hard link
+  cp --remove-destination "$(readlink [link_name])" [link_name] # convert to actual file
+
+  dos2unix $(readlink -f ~/.bashrc)
+  dos2unix -L .bashrc 
 
   # remove symbolic link
   unlink <symlink_name>
@@ -3102,6 +3298,8 @@
   vim -d file1 file2
   vimdiff file1 file2 file3
 
+  vimdiff -c 'set diffopt=filler,context:0' file1 file2 # with min context
+
   whois app.kunyefinancial.com
   whois softcraft.ddns.net
 
@@ -3208,6 +3406,14 @@
   # file converters
   pandoc --list-output-formats
   pandoc --from=latex --to=docx resume_new_improved.tex -o resume_new_improved.docx
+  
+  pandoc input.md -o output.docx
+  pandoc input.md --toc -o output.docx # table of contents
+  pandoc input.md --dpi=300 -o output.docx # resolutions
+  pandoc input.md --metadata title="Project Report" -o output.docx # metadata
+  
+  pandoc -o custom-reference.docx --print-default-data-file reference.docx # Custom Style Template
+  pandoc input.md --reference-doc=custom-reference.docx -o output.docx
 
   # ==> jenkins core url
   http://jenkins:8080/job/JOB_NAME/lastBuild/testReport/api/json?pretty=true
@@ -3556,7 +3762,9 @@
   mongo mongodb+srv://kunyedev.00m8b.mongodb.net --tlsCertificateKeyFile mongodb/X509-cert-3957701695702940150.pem
   mongosh mongodb+srv://murpheux@kunyedev.00m8b.mongodb.net
 
-  ncdu .
+  ncdu .|~
+  ncdu /path/to/directory
+  ncdu /path/to/scan --exclude /path/to/exclude
 
   # ==> mount fstab
   mount -a
@@ -3769,6 +3977,73 @@
   jq 'recurse(.children[])'
   jq '[.items[] | {category. price}] | group_by(.category) | map({category: .[0].category, total: map(.price) | add})'
 
+  # ==> view csv as table
+  column -t -s, file.csv # table, separator
+  column -t -s, file.csv | less -S # scrollable view
+
+  vd file.csv
+
+  # ==> qsv
+  qsv stats file.csv
+  qsv cat rows file.csv
+  qsv behead file.csv
+  qsv select name,age demo.csv
+
+  # ==> nushell
+  echo $env.NU_VERSION
+  env | find NU_VERSION # confirm in nu
+
+  version
+
+  nu [--version]
+  nu -c <command>
+  nu script.nu # run scripts
+
+  $nu.config-path # config
+  $nu.env-path # config
+
+  nuit aliases.sh # convert aliases
+
+  config nu
+  config env
+  config flatten|reset|use-colors
+  config nu --doc | nu-highlight
+  onfig nu --default | nu-highlight
+  config nu --doc | nu-highlight | less -R
+
+  open file.csv
+
+  echo $env.SHELL
+
+  ^ls # bypass aliases
+  hide <alias_name>
+
+  # commands
+  ls | where size > 10kb
+  ^ps aux  # run the Unix ps command with all processes in user-oriented form
+  ps | where status == Running
+  ps | describe
+  ls      # command pipelines
+    | sort-by size
+    | reverse
+    | first
+    | get name
+    | cp $in ~
+  ls | sort-by size | reverse | first | get name | cp $in ~
+
+  # ==> csvkit
+  in2csv data.xls > data.csv # convert excel to csv
+  in2csv data.json > data.csv # convert json to csv
+  csvcut -n data.csv # Print column names
+  csvcut -c column_a,column_c data.csv > new.csv # select column subset
+  csvcut -c column_c,column_a data.csv > new.csv # reorder columns
+  csvgrep -c phone_number -r "555-555-\d{4}" data.csv > new.csv # find rows with matching cells
+  csvjson data.csv > data.json
+  csvstat data.csv # generate summary statistics
+  csvsql --query "select name from data where age > 30" data.csv > new.csv # Query with SQL
+  csvsql --db postgresql:///database --insert data.csv # import into postgreSQL
+  sql2csv --db postgresql:///database --query "select * from data" > new.csv # extract data from PostgreSQL
+
 #:::::::::::::::::::::::::::::: docker ::::::::::::::::::::::::::::::
   docker run -p 5601:5601 -p 9200:9200 -p 5044:5044 -it --name elk sebp/elk
 
@@ -3845,6 +4120,10 @@
   docker inspect -f '{{.HostConfig.Memory}}' <container_id_or_name>
   docker inspect -f '{{.HostConfig.NanoCpus}}' <container_id_or_name>
 
+  # find source files
+  docker inspect <container_name_or_id> --format '{{ index .Config.Labels "com.docker.compose.project.config_files" }}'
+
+  docker exec <container_id> ls -la
   docker exec -ti my-nginx /bin/sh  # ti - interactive -it
   docker run -it -d nginx /bin/bash
   docker exec -ti <container_id_or_name> echo "Hello from container!"
@@ -3891,12 +4170,17 @@
   docker service update --publish-add 80 mysvc
   docker service remove mysvc
   docker service --name webapp-proxy --replicas 2 --publish 8080:80/tcp --constaint "node.labels.function == production" \
-  --mount "type=bind,source=/mnt/docker/webapp-proxy/conf,target=/etc/nginx/conf.d" docker-registry.dccn.nl:5000/nginx:1.0.0
+    --mount "type=bind,source=/mnt/docker/webapp-proxy/conf,target=/etc/nginx/conf.d" docker-registry.dccn.nl:5000/nginx:1.0.0
   docker service create --replicas 6 --network nw1 -p 80:80/tcp --name nginx nginx
   docker service logs [--follow] <serviceid>
   docker network create --driver overlay --attachable mongoshard
+  docker network create --ipv6 --subnet 2001:db8:2::/64 my_ipv6_net
+
 
   docker inspect a352938ebd5c
+  docker inspect --format='{{json .Mounts}}' <container_id> | jq
+  docker inspect --format='{{.GraphDriver.Data.MergedDir}}' <container_id>
+
   docker network ls
   docker network create --driver overlay swarmnet
   docker connect j4pm0jncls3x63o -i ba
@@ -3994,10 +4278,13 @@
   docker-compose down
 
   docker stack deploy --compose-file docker-compose.yml vossibility
+  docker stack deploy -c docker-compose.yml mystack
   cat docker-compose.yml | docker stack deploy --compose-file - vossibility
   docker stack deploy --compose-file docker-compose.yml -f docker-compose.prod.yml vossibility
 
   docker network inspect my-network
+  docker network create -d ipvlan --subnet=10.10.2.0/24 --gateway=10.10.2.1 -o parent=enp3s0f0 -o ipvlan_mode=l2 pihole_ipvlan
+  docker network create -d ipvlan --subnet=10.10.2.0/24 --gateway=10.10.2.1 --subnet=fd00:10:10:2::/64 --gateway=fd00:10:10:2::1 -o parent=enp3s0f0 -o ipvlan_mode=l2 pihole_ipvlan
 
   docker run --rm -d --network host --name my_nginx  nginx:1.13.3-alpine
   docker service create --replicas 2 --name myweb --network mynet nginx
@@ -4496,7 +4783,7 @@
   ansible -m ping all
   ansible production -m ping -u murpheux
   ansible gru -m shell -a 'ls'
-  ansible -v
+  ansible -v|--version
   ansible localhost -m setup [-a filter=*ipv4*]
   ansible gru -m setup | less
   ansible gru -m ping
@@ -4650,6 +4937,9 @@
   pm2 publish
 
 #::::::::::::::::::::::::::: powershell :::::::::::::::::::::::::::::
+  echo %CMDCMDLINE%
+  Get-Process -Id $PID
+
   . $PROFILE # load powershell
 
   $env:PATH -split ';'
@@ -4681,11 +4971,25 @@
   \\wsl.localhost\Ubuntu\home\clem_onawole
   \\wsl.localhost\<DistroName>\home\<your_linux_username>
   
+  wsl --shutdown
+  Restart-Service LxssManager
+  
+  wsl -l -v to list #, then 
+  wsl -t <DistroName>
+  
   $env:Path [-split ';']
   echo %PATH%
 
   Test-Path $PROFILE
   New-Item -Type File -Path $PROFILE -Force
+  
+  $env:VariableName = "VariableValue"
+  $env:Path += ";C:\New\Path\To\Add"
+  Set-Item -Path Env:VariableName -Value "VariableValue"
+  
+  [Environment]::SetEnvironmentVariable("VariableName", "VariableValue", "User")
+  [Environment]::SetEnvironmentVariable("VariableName", "VariableValue", "Machine")
+  $env:VariableName
   
   powershell -Command "msbuild.exe /nologo project.sln |
                        Select-String 'Build succeeded|failed' -Context 0, 100"
@@ -4730,6 +5034,17 @@
   Restart-NetAdapter -Name "Ethernet", "Wi-Fi"
   Get-NetAdapter -Name "Ethernet" | Disable-NetAdapter -Confirm:$false
   Get-NetAdapter -Name "Ethernet" | Enable-NetAdapter
+  
+  # ==> iis
+  Get-Service W3SVC
+  Get-IISSite
+  
+  Import-Module WebAdministration # legacy
+  Get-Website
+  
+  Get-IISAppPool | Select-Object Name, Status
+  
+  Get-WindowsFeature -Name Web-Server  # iis installed?
 
   # ==> reach ports
 
@@ -4859,7 +5174,83 @@
   $ProgressPreference = 'Continue'
 
   (New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+  
+  # ==> cpu usage
+  (Get-Counter "\Process(chrome*)\% Processor Time").CounterSamples.CookedValue
 
+  $ProcessName = "chrome"
+  $Cores = (Get-CimInstance Win32_ComputerSystem).NumberOfLogicalProcessors
+  (Get-Counter "\Process($ProcessName*)\% Processor Time").CounterSamples | 
+    Select-Object InstanceName, @{Name="CPU %"; Expression={[Math]::Round($_.CookedValue / $Cores, 2)}} # divided by core count
+	
+  Get-CimInstance Win32_PerfFormattedData_PerfProc_Process -Filter "Name = 'chrome'" | 
+    Select-Object Name, PercentProcessorTime
+
+  $ProcessName = "chrome" # Monitoring a Process Over Time
+  Get-Counter "\Process($ProcessName*)\% Processor Time" -Continuous | 
+    ForEach-Object { $_.CounterSamples.CookedValue }
+
+  #==> reach ports
+  tnc 10.10.2.80 -Port 4444
+  
+  Stop-Process -Name "notepad" -Force
+  Stop-Process -Id 1234 -Force
+  Get-Process -Name "nonexistentprocess" -ErrorAction SilentlyContinue | Stop-Process -Force
+
+  Get-Service ssh-agent
+  
+  # Run in an elevated PowerShell prompt (as Administrator)
+  Get-Service ssh-agent | Set-Service -StartupType Automatic
+  Start-Service ssh-agent
+
+  ssh-add $env:USERPROFILE\.ssh\id_rsa
+  New-Item -ItemType File -Path $env:programdata\ssh\ssh_config | Out-Null; notepad $env:programdata\ssh\ssh_config
+  
+  Get-Service AmazonCloudWatchAgent
+  Restart-Service AmazonCloudWatchAgent
+  
+  # memory usage
+  Get-CimInstance Win32_OperatingSystem | Select-Object FreePhysicalMemory, TotalVisibleMemorySize
+
+  # memory usage percentage'
+  $OS = Get-CimInstance Win32_OperatingSystem
+  $Usage = [Math]::Round((1 - ($OS.FreePhysicalMemory / $OS.TotalVisibleMemorySize)) * 100, 2)
+  Write-Host "Memory Usage: $Usage%"
+  
+  # hardware usage
+  Get-CimInstance Win32_PhysicalMemory | Format-Table Capacity, Speed, Manufacturer
+
+  # top memory usage process
+  Get-Process | Sort-Object -Property WS -Descending | Select-Object -First 10 Name, @{Name="Mem (MB)"; Expression={ [Math]::Round($_.WS / 1MB, 2) }}
+
+  Get-Process -Name "powershell" | Select-Object Name, WorkingSet, PeakWorkingSet
+  Get-Process -Name "amazon-cloudwatch-agent" | Select-Object Name, WorkingSet, PeakWorkingSet
+
+  # cpu usages
+  Get-CimInstance -Class Win32_Processor | Select-Object -Property LoadPercentage
+
+  # top cpu 5
+  Get-Process | Sort-Object CPU -Descending | Select-Object -First 5
+  
+  # real-time CPU
+  (Get-Counter '\Processor(_Total)\% Processor Time').CounterSamples.CookedValue
+  Get-Counter '\Process(amazon-cloudwatch-agent)\% Processor Time'  # process cpu %
+  Get-Process -Name "chrome" -ErrorAction SilentlyContinue
+  Get-Process -Name "fire*"
+  
+  Get-Process -Name "fire*"
+  Get-AppxPackage -Name "*Calculator*"
+  
+  sc.exe start AmazonCloudWatchAgent
+  
+  & "C:\Program Files\Amazon\AmazonCloudWatchAgent\amazon-cloudwatch-agent-ctl.ps1" -a status
+  & "C:\Program Files\Amazon\AmazonCloudWatchAgent\amazon-cloudwatch-agent-ctl.ps1" -m ec2 -a install
+
+
+  # cpu per process
+  (Get-Counter '\Process(*)\% Processor Time').CounterSamples | Where-Object {$_.CookedValue -gt 1} | Sort-Object CookedValue -Descending
+
+  Get-Process amazon-cloudwatch-agent | Select Id,CPU,PM,WS
 
 #:::::::::::::::::::::::::::::: dotnet ::::::::::::::::::::::::::::::
   dotnet --info
@@ -5159,6 +5550,21 @@
   git config --global --unset core.editor
   git config --global -e # delete respective lines
   git config --global --edit
+  
+  # ==> separete signkey per git provider
+  git config --global --add includeIf.hasconfig:remote..url:https://github.com/**.path ~/.gitconfig-github
+  git config --global --add includeIf.hasconfig:remote..url:git@github.com:.path ~/.gitconfig-github
+  git config --global --add includeIf.hasconfig:remote.*.url:https://dev.azure.com/.path ~/.gitconfig-azure
+  git config --global --add includeIf.hasconfig:remote.*.url:git@ssh.dev.azure.com:v3/**.path ~/.gitconfig-azure
+
+  # conditional configuration
+  git config --global --add "includeIf.hasconfig:remote..url:https://github.com/**.path" ~/.config/git/config-github
+  git config --global --add "includeIf.hasconfig:remote..url:git@github.com:.path" ~/.config/git/config-github
+  
+  git config --global --add "includeIf.hasconfig:remote.*.url:https://dev.azure.com/.path" ~/.config/git/config-azure
+  git config --global --add "includeIf.hasconfig:remote.*.url:git@ssh.dev.azure.com:v3/**.path" ~/.config/git/config-azure
+
+  git config [--global] --show-origin user.signingKey
 
   git rm -r [file-name.txt]
   git commit -m "Commit message"
@@ -5184,6 +5590,8 @@
   git checkout dev
   git reset --hard HEAD~N
   git push --force origin dev
+
+  git checkout origin/<branch-name> -- <path/to/file>
 
   git branch
   git branch -a
@@ -5275,6 +5683,8 @@
 
   git tag -a v1.4 -m "my version 1.4"
   git show v1.4
+  git show origin/<branch-name>:<path/to/file>  # view
+  git show origin/<branch-name>:<path/to/file> > local_copy.txt # save to new file
   git tag v1.4w # lightweight tag
   git tag -a v1.2 9fceb02 # tag later
   git push origin <tagname>
@@ -5301,8 +5711,7 @@
   git fetch --progress "--all"
   git remote set-url --push origin no_push
 
-  -- undo changes
-  # Revert changes to modified files.
+  # Revert changes to modified files.  -- undo changes
   git reset --hard
   git reset --hard origin/master
   git reset --soft HEAD~1
@@ -5312,8 +5721,8 @@
   git reset
   git reset --hard 2823
 
-  # Remove all untracked files and directories. (`-f` is `force`, `-d` is `remove directories`)
-  git clean -fd
+  git clean -fd  # Remove all untracked files and directories. (`-f` is `force`, `-d` is `remove directories`)
+  git stash -u # "Undo Everything" Command
 
   git stash list
   git stash drop 5
@@ -5338,6 +5747,13 @@
   git rebase -i HEAD~4
   git show --name-only {commit}
   git diff --staged|cached
+
+  git diff --staged
+  git diff HEAD~1 -- path/to/your/file.ext
+  git diff <commit-hash> -- path/to/your/file.ext
+  git diff <old-hash> <new-hash> -- path/to/your/file.ext
+  git diff --name-only HEAD~1
+  
   git diff HEAD
   git bisect start
 
@@ -5423,6 +5839,10 @@
 
   # ==> tig
   git show | tig
+  git show d57d286cc [--name-only]
+  git show d57d286cc:path/to/file.ext
+  git show [hash] --stat
+  git show HEAD
 
   tig show --pretty=fuller
   tig --after="May 5th" --before="2006-05-16 15:44"
@@ -6317,7 +6737,9 @@
   brew install [--no-link] yt=dlp
   brew install font-hack-nerd-font
 
-  brew list
+  brew list [--versions]
+  brew list --versions <package_name>
+  brew list --versions --multiple
   brew outdated
   brew services list
   brew services restart grafana-agent
@@ -6343,6 +6765,12 @@
   brew ls|list
   brew kegs
   brew link --overwrite newrelic-cli
+
+  brew livecheck
+  brew developer off
+
+  brew list --formula --versions
+  brew list --cask --versions
 
   brew config
 
@@ -6626,6 +7054,13 @@
   ssh -o PreferredAuthentications=password murpheux@wagner
   ssh -i ~/.ssh/your_private_key murpheux@wagner
 
+  aws iam list-user
+  aws iam list-roles
+  aws iam create-role --role-name lambda-role --assume-role-policy-document file://role.json
+  aws iam list-users
+  aws iam list-users --output text
+  aws iam list-users --output yaml
+
   aws iam list-users
   aws iam list-roles
   aws iam list-groups
@@ -6662,6 +7097,7 @@
 
 
   # fgilter by vpc
+  aws ec2 describe-vpcs
   aws ec2 describe-vpcs --vpc-id vpc-0123456789abcdef0
   aws ec2 describe-subnets --filters "Name=vpc-id,Values=vpc-0123456789abcdef0"
   aws ec2 describe-route-tables --filters "Name=vpc-id,Values=vpc-0123456789abcdef0"
@@ -6758,15 +7194,36 @@
   aws lambda create-function --function-name hello-world --zip-file fileb://awefunc.zip --runtime nodejs24.x --role arn:aws:iam::826224894825:role/lambda-role --handler index.handler
   aws lambda invoke --function-name hello-world outfile.txt
   aws lambda delete-function --function-name hello-world
+  
+  fields @timestamp, properties.requestPayload.client_id, @message
+	# | filter @message like /(i?)AM-ACCESS-ATTEMPT/
+	# | filter @message like /18.203.46.165/
+	| filter message like 'Request: PersonalAccessTokenRequest'
+	| sort @timestamp desc
+  
+  aws logs start-query --end-time '1775677438037' --log-group-names '/aws/elasticbeanstalk/stage-api-bulkupdate-1773232052/EBDeploy-Log' --query-string 'limit 1' --start-time '1775677438037' --dry-run 
 
   aws s3 ls
   aws s3 ls --profile murpheux
   aws ssm get-parameters --names 'mongodb-cred-dev'
   aws ssm get-parameters --names 'mongodb-cred-dev' --with-decryption
+  aws ssm get-parameter --name /aws/service/ami-amazon-linux-latest/al2023-ami-kernel-6.1-x86_64 --region us-east-1
+  
+  aws ssm list-commands
+  aws ssm list-commands --command-id "0831e1a8-a1ac-4257-a1fd-c831bEXAMPLE"
+  aws ssm list-commands --filter "key=InvokedAfter,value=2024-01-01T00:00:00Z"
+  aws ssm list-commands --filter "key=Status,value=Failed"
+  aws ssm list-command-invocations --command-id "example-id" --details
+  aws ssm get-command-invocation --command-id "example-id" --instance-id "i-0123456789abcdef0"
 
   aws sts get-session-token --duration-seconds 900
 
   #v1: aws vpc describe kunye-dev-vpc
+  
+  aws sso logout --profile your-profile-name
+  aws sso logout --all
+  unset AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN
+  $env:AWS_ACCESS_KEY_ID = ""; $env:AWS_SECRET_ACCESS_KEY = ""; $env:AWS_SESSION_TOKEN = ""
 
   aws help
   aws configure list
@@ -6788,6 +7245,8 @@
   aws sns publish --topic-arn arn:aws:sns:us-east-1:546419318123:OperationsError --message "Script Failure"
   aws sqs receive-message --queue-url https://queue.amazonaws.com/546419318123/Test
 
+  aws sns subscribe --topic-arn your-topic-arn --protocol your-protocol --endpoint your-endpoint
+  
   aws s3 ls s3://sc45buck
   aws s3 cp s3://sc45buck/Vagrantfile .
   aws s3 cp ~/Documents/minions s3://new45bucket
@@ -6836,6 +7295,11 @@
   aws ec2 wait instance-terminated --instance-ids i-0123456789abcdef0 i-0123456789abcdef1
 
   aws ec2 delete-key-pair --key-name vpc-tutorial-key
+  aws ec2 describe-key-pairs --query "KeyPairs[*].{Name:KeyName, ID:KeyPairId, Type:KeyType}" --output table
+  aws ec2 describe-key-pairs --include-public-key
+  aws ec2 describe-key-pairs --key-names "MyKeyPairName"
+  aws ec2 describe-key-pairs --filters "Name=tag:Owner,Values=DevTeam"
+  
   rm vpc-tutorial-key.pem
 
   aws ec2 delete-nat-gateway --nat-gateway-id nat-0123456789abcdef0
@@ -6901,6 +7365,324 @@
 
   aws secretsmanager get-random-password --require-each-included-type
   aws secretsmanager get-random-password --password-length 16 --include-space
+
+  aws ec2 describe-security-groups --query 'SecurityGroups[*].GroupId' --output text
+  aws ec2 describe-security-groups --group-ids sg-03f985bcb6d7add7b --query 'SecurityGroups[*].{GroupName:GroupName,Description:Description,Inbound:IpPermissions,Outbound:IpPermissionsEgress}' | jq .
+
+  aws ec2 describe-vpcs --query "Vpcs[].{VPCID:VpcId, CIDR: CidrBlock, Owner: OwnerId}" --output table
+
+  aws ec2 describe-instance-types --max-results '10' --output table
+  aws ec2 describe-instance-types --max-results '10' --query "InstanceTypes[].InstanceType" --output table
+  
+  # spglobal sre-
+  aws ec2 describe-instances --filters "Name=vpc-id,Values=vpc-020f11fa0e2ca3c8c" --query "Reservations[].Instances[].{ID:InstanceId, State:State.Name, Name:Tags[?Key=='Name']|[0].Value}" --region eu-west-1 --output table
+  
+  # with regions
+  #==> find machine by private dns name across regions
+  AWS_REGIONS="us-east-1 us-west-2 eu-west-1"
+  for r in $AWS_REGIONS; do
+	echo "=== $r ==="
+	aws ec2 describe-instances --region "$r" --filters "Name=private-dns-name,Values=ip-10-235-173-70.*" --query 'Reservations[].Instances[].{Name:Tags[?Key==`Name`].Value | [0], InstanceId:InstanceId, State:State.Name, PublicIp:PrivateIpAddress, Hostname:PublicDnsName, PrivateDnsName:PrivateDnsName, Region:Placement.AvailabilityZone}' --output table
+  done
+
+  for region in $AWS_REGIONS; do
+  echo "=== $region ==="
+	aws ec2 describe-vpcs --query "Vpcs[].{VPCID:VpcId, CIDR: CidrBlock, Owner: OwnerId}" --region "$region" --output table
+  done
+  
+  for r in $AWS_REGIONS; do
+	echo "=== $r ==="
+	aws ec2 describe-instances --region "$r" --instance-ids i-0f311193b526b3683 i-0316cd256902eacf6 i-02808f72ed61592b2 i-037e0f27a4277e507 i-0604c44127c17ca0a i-0aa8addc42602ab03 i-080d896947404cef0 i-0989fb450b33bd798 i-0ed8bcc9c70b4ec4a i-01049475e2603a6f0 --query 'Reservations[].Instances[].{Name:Tags[?Key==`Name`].Value | [0], InstanceId:InstanceId, State:State.Name, PublicIp:PrivateIpAddress, Hostname:PublicDnsName, PrivateDnsName:PrivateDnsName, Region:Placement.AvailabilityZone}' --output table
+  done
+
+  aws autoscaling describe-scaling-activities --region eu-west-1 
+	--auto-scaling-group-name uat-openam-1774057324-ExternalAutoScalingGroup-jN6Tltfjaqpz --max-items 50 --query "Activities[?contains(Description, 'Terminating EC2 instance') || contains(Description, 'Launching a new EC2 instance')].[StartTime,EndTime,StatusCode,Progress,Description,Cause,StatusMessage,ActivityId]" ` --output table
+	
+  aws secretsmanager get-secret-value --secret-id MyTestSecret --version-stage AWSCURRENT|AWSPREVIOUS
+  aws secretsmanager get-secret-value --secret-id MyTestSecret --version-id a1b2c3d4-5678-90ab-cdef-EXAMPLE11111
+
+  aws secretsmanager list-secrets --query "SecretList[].Name" --output table
+  
+  aws autoscaling describe-scaling-activities --region $Region --auto-scaling-group-name $Asg --max-items 50
+	--query "Activities[?contains(Description, 'Terminating EC2 instance') || contains(Description, 'Launching a new EC2 instance')].[StartTime,EndTime,StatusCode,Progress,Description,Cause,StatusMessage,ActivityId]" ` --output table
+
+  aws autoscaling describe-scaling-activities    --region $Region
+	--auto-scaling-group-name $Asg    --max-items 50
+	--query "Activities[?contains(Description, 'Terminating EC2 instance') || contains(Description, 'Launching a new EC2 instance')].[StartTime,EndTime,StatusCode,Progress,Description,Cause,StatusMessage,ActivityId]" `
+	--output table
+
+  aws autoscaling describe-scaling-activities    --region $Region
+	--auto-scaling-group-name $Asg    --max-items 50
+	--query "Activities[?contains(Description, 'Terminating EC2 instance')][0].Description" `
+	--output text
+
+  aws cloudtrail lookup-events    --region $Region
+	--lookup-attributes AttributeKey=ResourceName,AttributeValue=$OldId    --start-time $WindowStart
+	--end-time $WindowEnd    --max-results 50
+	--query "Events[?EventName=='TerminateInstances' || EventName=='SetInstanceHealth' || EventName=='TerminateInstanceInAutoScalingGroup'].[EventTime,EventName,Username]" `
+	--output table
+
+  aws autoscaling describe-scaling-activities    --region $Region
+	--auto-scaling-group-name $Asg    --max-items 50
+	--query "Activities[?contains(Description, 'Terminating EC2 instance')][0].Description" `
+	--output text
+
+  aws cloudtrail lookup-events    --region $Region
+	--lookup-attributes AttributeKey=ResourceName,AttributeValue=$OldId    --start-time $WindowStart
+	--end-time $WindowEnd    --max-results 50
+	--query "Events[?EventName=='TerminateInstances' || EventName=='SetInstanceHealth' || EventName=='TerminateInstanceInAutoScalingGroup'].[EventTime,EventName,Username]" `
+	--output table
+
+  aws cloudtrail lookup-events    --region $Region
+	--lookup-attributes AttributeKey=ResourceName,AttributeValue=$OldId    --start-time $WindowStart
+	--end-time $WindowEnd    --max-results 20
+	--query "Events[0].CloudTrailEvent" `
+	--output text
+
+  aws autoscaling describe-auto-scaling-groups    --region $Region
+	--auto-scaling-group-names $Asg    --query "AutoScalingGroups[0].[HealthCheckType,HealthCheckGracePeriod,DefaultInstanceWarmup,TargetGroupARNs]"
+	--output table
+
+  aws autoscaling describe-auto-scaling-groups    --region $Region
+	--auto-scaling-group-names $Asg    --query "AutoScalingGroups[0].TargetGroupARNs[]"
+	--output text
+
+  aws autoscaling describe-scaling-activities \
+	  --region eu-west-1 \
+	  --auto-scaling-group-name "uat-openam-1774057324-ExternalAutoScalingGroup-jN6Tltfjaqpz" \
+	  --max-items 10 \
+	  --query "Activities[?ActivityId=='55d6746b-a4a7-c93e-4b82-c5212630b1d9'].[StatusCode,Progress,StatusMessage,Details,StartTime,EndTime]" \
+	  --output table
+  
+  aws autoscaling describe-auto-scaling-instances \
+	  --region eu-west-1 \
+	  --instance-ids i-02a7adf05393f6eb2 \
+	  --query "AutoScalingInstances[0].[LifecycleState,HealthStatus,AutoScalingGroupName]" \
+	  --output table
+  
+  # instance need to exist
+  aws ec2 describe-instance-status \
+	  --region eu-west-1 \
+	  --instance-ids i-02a7adf05393f6eb2 \
+	  --include-all-instances \
+	  --query "InstanceStatuses[0].[InstanceState.Name,SystemStatus.Status,InstanceStatus.Status]" \
+	  --output table
+	  
+  aws autoscaling describe-scaling-activities    --region $Region
+  --auto-scaling-group-name $Asg    --max-items 50
+  --query "Activities[?contains(Description, 'Terminating EC2 instance') || contains(Description, 'Launching a new EC2 instance')].[StartTime,EndTime,StatusCode,Progress,Description,Cause,StatusMessage,ActivityId]" `
+  --output table
+  
+  aws autoscaling describe-scaling-activities --region $Region --auto-scaling-group-name $Asg --max-items 50 --query "Activities[?(contains(Description, 'Terminating EC2 instance') || contains(Description, 'Launching a new EC2 instance')) && StartTime >= $WindowStart && EndTime <= $WindowEnd].[StartTime,EndTime,StatusCode,Progress,Description,Cause,StatusMessage,ActivityId]" --output table
+  
+  	aws autoscaling describe-scaling-activities    --region $Region
+  --auto-scaling-group-name $Asg    --max-items 50
+  --query "Activities[?contains(Description, 'Terminating EC2 instance')][0].Description" `--output text
+  	  
+    aws cloudtrail lookup-events \
+      --lookup-attributes AttributeKey=EventName,AttributeValue=TerminateInstances \
+      --query 'Events[].{InstanceID:Resources[0].ResourceName, User:Username, Time:EventTime}' \
+      --output table
+  
+    aws cloudtrail lookup-events \
+      --lookup-attributes AttributeKey=EventName,AttributeValue=TerminateInstances \
+      --max-results 10
+  
+    aws cloudtrail lookup-events    --region $Region
+  --lookup-attributes AttributeKey=ResourceName,AttributeValue=$OldId    --start-time $WindowStart
+  --end-time $WindowEnd    --max-results 50
+  --query "Events[?EventName=='TerminateInstances' || EventName=='SetInstanceHealth' || EventName=='TerminateInstanceInAutoScalingGroup'].[EventTime,EventName,Username]" `
+  --output table
+  
+    aws cloudtrail lookup-events    --region $Region
+  --lookup-attributes AttributeKey=ResourceName,AttributeValue=$OldId    --start-time $WindowStart
+  --end-time $WindowEnd    --max-results 20
+  --query "Events[0].CloudTrailEvent" `
+  --output text
+  
+    aws autoscaling describe-auto-scaling-groups    --region $Region
+  --auto-scaling-group-names $Asg    --query "AutoScalingGroups[0].[HealthCheckType,HealthCheckGracePeriod,DefaultInstanceWarmup,TargetGroupARNs]"
+  --output table
+  
+    aws autoscaling describe-auto-scaling-groups    --region $Region
+  --auto-scaling-group-names $Asg    --query "AutoScalingGroups[0].TargetGroupARNs[]"
+  --output text
+  
+  aws autoscaling describe-scaling-activities --region $Region --auto-scaling-group-name $Asg --max-items 50 --query "Activities[?contains(Description, 'Terminating EC2 instance') || contains(Description, 'Launching a new EC2 instance')].[StartTime,EndTime,StatusCode,Progress,Description,Cause,StatusMessage,ActivityId]" --output table
+  
+  aws autoscaling describe-auto-scaling-groups --region $Region --query "AutoScalingGroups[?contains(AutoScalingGroupName, 'openam-1774057324')].[AutoScalingGroupName,AutoScalingGroupARN]" --output table
+  aws autoscaling describe-auto-scaling-groups --region $Region --query "AutoScalingGroups[?contains(AutoScalingGroupName, 'uat-openam')].[AutoScalingGroupName]" --output text; Write-Host '=== Matching ASGs in us-east-1 (contains uat-openam) ==='; aws autoscaling describe-auto-scaling-groups --region us-east-1 --query "AutoScalingGroups[?contains(AutoScalingGroupName, 'uat-openam')].[AutoScalingGroupName]" --output text
+  
+  aws autoscaling describe-scaling-activities --profile $Profile --region $Region --auto-scaling-group-name $Asg --max-items 50 --query "Activities[?contains(Description, 'Terminating EC2 instance') || contains(Description, 'Launching a new EC2 instance')].[StartTime,EndTime,StatusCode,Progress,Description,Cause,StatusMessage,ActivityId]" --output table
+  aws autoscaling describe-scaling-activities --region $Region --auto-scaling-group-name $Asg --profile pccto --max-items 100 --query "Activities[?StartTime>=\`$WindowStart && StartTime<=\`$WindowEnd].[StartTime,EndTime,StatusCode,Progress,Description,Cause,ActivityId]" --output table
+  
+  aws autoscaling describe-scaling-activities --region $Region --auto-scaling-group-name $Asg --profile pccto --max-items 100 --output json | ConvertFrom-Json; $acts.Activities | Where-Object { ([datetime]$_.StartTime) -ge $WindowStart -and ([datetime]$_.StartTime) -le $WindowEnd } | Select-Object StartTime, EndTime, StatusCode, Progress, Description, Cause, ActivityId | Format-Table -Wrap
+  aws autoscaling describe-scaling-activities --region $Region --auto-scaling-group-name $Asg --profile pccto --max-items 100 --output json
+  
+  aws cloudtrail lookup-events --region $Region --profile pccto --lookup-attributes AttributeKey=ResourceName,AttributeValue=$OldId --start-time $WindowStart --end-time $WindowEnd --max-results 20 --query "Events[?EventName=='TerminateInstanceInAutoScalingGroup' || EventName=='TerminateInstances' || EventName=='SetInstanceHealth'].[EventTime,EventName,Username,EventId]" --output table
+  aws cloudtrail lookup-events --region $Region --profile pccto --lookup-attributes AttributeKey=ResourceName,AttributeValue=$OldId --start-time $WindowStart --end-time $WindowEnd --max-results 10 --output table
+  
+  aws autoscaling describe-scaling-activities --profile $Profile --region $Region --auto-scaling-group-name $Asg --max-items 100 --output json
+  
+  aws autoscaling describe-auto-scaling-groups --profile $Profile --region $Region --auto-scaling-group-names $Asg --query "AutoScalingGroups[0].{Name:AutoScalingGroupName,HealthCheckType:HealthCheckType,HealthCheckGracePeriod:HealthCheckGracePeriod,DefaultInstanceWarmup:DefaultInstanceWarmup,TargetGroups:TargetGroupARNs,VPCZoneIdentifier:VPCZoneIdentifier,TerminationPolicies:TerminationPolicies,DesiredCapacity:DesiredCapacity,MinSize:MinSize,MaxSize:MaxSize}" --output json
+  
+  aws ec2 describe-instances --profile $Profile --region $Region --instance-ids $Instance --query "Reservations[].Instances[].{InstanceId:InstanceId,State:State.Name,StateReason:StateReason,StateTransitionReason:StateTransitionReason,LaunchTime:LaunchTime,PrivateDnsName:PrivateDnsName,SubnetId:SubnetId,AZ:Placement.AvailabilityZone,ASG:Tags[?Key=='aws:autoscaling:groupName']|[0].Value,Name:Tags[?Key=='Name']|[0].Value}" --output json
+  
+  aws cloudtrail lookup-events --profile $Profile --region $Region --lookup-attributes AttributeKey=ResourceName,AttributeValue=$Instance --max-results 50 --output json
+  
+  aws autoscaling describe-scaling-activities --profile pccto --region eu-west-1 --auto-scaling-group-name uat-openam-1774057324-ExternalAutoScalingGroup-jN6Tltfjaqpz --max-items 100 --output json
+  aws autoscaling describe-auto-scaling-groups --profile pccto --region eu-west-1 --auto-scaling-group-names uat-openam-1774057324-ExternalAutoScalingGroup-jN6Tltfjaqpz --output json
+  aws ec2 describe-instances --profile pccto --region eu-west-1 --instance-ids i-047dda6e7f3d3595f --output json
+  
+  aws autoscaling describe-auto-scaling-groups --no-cli-pager --profile pccto --region eu-west-1 --auto-scaling-group-names uat-openam-1774057324-ExternalAutoScalingGroup-jN6Tltfjaqpz --query "AutoScalingGroups[0].{Name:AutoScalingGroupName,HealthCheckType:HealthCheckType,HealthCheckGracePeriod:HealthCheckGracePeriod,DefaultInstanceWarmup:DefaultInstanceWarmup,TargetGroups:TargetGroupARNs,TerminationPolicies:TerminationPolicies,DesiredCapacity:DesiredCapacity,MinSize:MinSize,MaxSize:MaxSize}" --output json
+  aws ec2 describe-instances --no-cli-pager --profile pccto --region eu-west-1 --instance-ids i-047dda6e7f3d3595f --query "Reservations[].Instances[].{InstanceId:InstanceId,State:State.Name,StateReason:StateReason,StateTransitionReason:StateTransitionReason,LaunchTime:LaunchTime,PrivateDnsName:PrivateDnsName,SubnetId:SubnetId,AZ:Placement.AvailabilityZone,ASG:Tags[?Key=='aws:autoscaling:groupName']|[0].Value,Name:Tags[?Key=='Name']|[0].Value}" --output json
+  
+  aws autoscaling describe-scaling-activities --no-cli-pager --profile pccto --region eu-west-1 --auto-scaling-group-name uat-openam-1774057324-ExternalAutoScalingGroup-jN6Tltfjaqpz --max-items 200 --query "Activities[?contains(Description, 'i-047dda6e7f3d3595f') || contains(Description, 'i-02a7adf05393f6eb2')].[StartTime,EndTime,StatusCode,Progress,Description,Cause,ActivityId,Details]" --output table
+  aws autoscaling describe-scaling-activities --no-cli-pager --profile pccto --region eu-west-1 --auto-scaling-group-name uat-openam-1774057324-ExternalAutoScalingGroup-jN6Tltfjaqpz --max-items 200 --query "Activities[?contains(Description, 'i-047dda6e7f3d3595f') || contains(Description, 'i-02a7adf05393f6eb2')].[StartTime,EndTime,StatusCode,Progress,Description,Cause,ActivityId,Details]" --output table
+  
+  aws autoscaling describe-auto-scaling-groups --no-cli-pager --profile pccto --region eu-west-1 --auto-scaling-group-names uat-openam-1774057324-ExternalAutoScalingGroup-jN6Tltfjaqpz --query "AutoScalingGroups[0].{Name:AutoScalingGroupName,HealthCheckType:HealthCheckType,HealthCheckGracePeriod:HealthCheckGracePeriod,DefaultInstanceWarmup:DefaultInstanceWarmup,TargetGroups:TargetGroupARNs,TerminationPolicies:TerminationPolicies,DesiredCapacity:DesiredCapacity,MinSize:MinSize,MaxSize:MaxSize,VPCZoneIdentifier:VPCZoneIdentifier}" --output json
+  aws ec2 describe-instances --no-cli-pager --profile pccto --region eu-west-1 --instance-ids i-047dda6e7f3d3595f --query "Reservations[].Instances[].{InstanceId:InstanceId,State:State.Name,StateReason:StateReason,StateTransitionReason:StateTransitionReason,LaunchTime:LaunchTime,PrivateDnsName:PrivateDnsName,SubnetId:SubnetId,AZ:Placement.AvailabilityZone,ASG:Tags[?Key=='aws:autoscaling:groupName']|[0].Value,Name:Tags[?Key=='Name']|[0].Value}" --output json
+  
+  aws cloudtrail lookup-events --no-cli-pager --profile pccto --region eu-west-1 --lookup-attributes AttributeKey=ResourceName,AttributeValue=i-047dda6e7f3d3595f --start-time $start --end-time $end --max-results 50 --query "Events[].[EventTime,EventName,Username,EventId]" --output table
+  aws cloudtrail lookup-events --no-cli-pager --profile pccto --region eu-west-1 --lookup-attributes AttributeKey=ResourceName,AttributeValue=i-047dda6e7f3d3595f --start-time $start --end-time $end --max-results 50 --query "Events[?EventName=='TerminateInstances' || EventName=='DeregisterTargets'].[EventTime,EventName,Username,Resources[0].ResourceName,Resources[1].ResourceName]" --output table
+  
+  aws elbv2 describe-load-balancers --region us-east-1 --query "LoadBalancers[?DNSName=='sam-cloudtest-2852572a1b918947.elb.us-east-1.amazonaws.com'].[LoadBalancerName,Scheme,State.Code]" --output table
+  aws elbv2 describe-target-groups --no-cli-pager --profile pccto --region eu-west-1 --target-group-arns $tg --query "TargetGroups[0].{TargetGroupName:TargetGroupName,Protocol:Protocol,Port:Port,VpcId:VpcId,HealthCheckProtocol:HealthCheckProtocol,HealthCheckPort:HealthCheckPort,HealthCheckPath:HealthCheckPath,Matcher:Matcher.HttpCode,HealthCheckIntervalSeconds:HealthCheckIntervalSeconds,HealthCheckTimeoutSeconds:HealthCheckTimeoutSeconds,HealthyThresholdCount:HealthyThresholdCount,UnhealthyThresholdCount:UnhealthyThresholdCount,TargetType:TargetType,LoadBalancerArns:LoadBalancerArns}" --output json
+  
+  aws cloudwatch describe-alarms
+  
+  aws cloudwatch put-metrxc-alarm --alarm-name MY_ALARM --metric-name CPUUti1ization \
+  --namespace AWS/EC2 --statistic Average --period 300 --threshold 80 \
+  --comparison-operator GreaterThanOrEqua1ToThresh01d --evaluation-periods 2 \
+  --alarm-actions arn:aws:sns:us-west-1:11112222133333:my-sns-topic
+  
+  aws cloudwatch disable-alarm-actions --alarm-name MY_ALARM
+  
+  aws cloudwatch list-metrics
+  
+  aws cloudwatch get-metric-statistics --no-cli-pager --profile $Profile --region $Region --namespace AWS/ApplicationELB --metric-name UnHealthyHostCount --dimensions Name=TargetGroup,Value=$($p.TG) Name=LoadBalancer,Value=$($p.LB) --start-time $Start --end-time $End --period 60 --statistics Maximum --query "Datapoints[].[Timestamp,Maximum]" --output table
+  
+  aws autoscaling describe-auto-scaling-groups --no-cli-pager --profile pccto --region eu-west-1 --auto-scaling-group-names uat-openam-1774057324-ExternalAutoScalingGroup-jN6Tltfjaqpz --query "AutoScalingGroups[0].Instances[].[InstanceId,LifecycleState,HealthStatus,AvailabilityZone,ProtectedFromScaleIn]" --output table
+  
+  aws elbv2 describe-target-health --no-cli-pager --profile pccto --region eu-west-1 --target-group-arn arn:aws:elasticloadbalancing:eu-west-1:756372377265:targetgroup/uat-openam-live-ext-tg-7324/0e76964a762e4bb8 --query "TargetHealthDescriptions[].[Target.Id,TargetHealth.State,TargetHealth.Reason,TargetHealth.Description]" --output table
+  aws cloudwatch get-metric-statistics --no-cli-pager --profile $Profile --region $Region --namespace AWS/ApplicationELB --metric-name HealthyHostCount --dimensions Name=TargetGroup,Value=$($p.TG) Name=LoadBalancer,Value=$($p.LB) --start-time $Start --end-time $End --period 60 --statistics Minimum,Maximum --query "Datapoints[].[Timestamp,Minimum,Maximum]" --output table; Write-Host "=== $($p.TG) : UnHealthyHostCount ==="
+  aws cloudwatch get-metric-statistics --no-cli-pager --profile $Profile --region $Region --namespace AWS/ApplicationELB --metric-name UnHealthyHostCount --dimensions Name=TargetGroup,Value=$($p.TG) Name=LoadBalancer,Value=$($p.LB) --start-time $Start --end-time $End --period 60 --statistics Minimum,Maximum --query "Datapoints[].[Timestamp,Minimum,Maximum]" --output table
+  
+  aws cloudwatch get-metric-statistics --no-cli-pager --profile $Profile --region $Region --namespace AWS/ApplicationELB --metric-name TargetResponseTime --dimensions Name=TargetGroup,Value=$($p.TG) Name=LoadBalancer,Value=$($p.LB) --start-time $Start --end-time $End --period 60 --statistics Average,Maximum --query "Datapoints[].[Timestamp,Average,Maximum]" --output table
+  aws elbv2 describe-load-balancer-attributes --no-cli-pager --profile pccto --region eu-west-1 --load-balancer-arn arn:aws:elasticloadbalancing:eu-west-1:756372377265:loadbalancer/app/uat-openam-ext-elb-7324/6175a2ae62850216 --output table
+  
+  aws elbv2 describe-load-balancer-attributes --no-cli-pager --profile pccto --region eu-west-1 --load-balancer-arn arn:aws:elasticloadbalancing:eu-west-1:756372377265:loadbalancer/app/uat-openam-int-elb-7324/294131c67742d528 --output table
+  aws cloudwatch get-metric-statistics --no-cli-pager --profile $Profile --region $Region --namespace AWS/ApplicationELB --metric-name HealthyHostCount --dimensions Name=TargetGroup,Value=$($p.TG) Name=LoadBalancer,Value=$($p.LB) --start-time $Start --end-time $End --period 60 --statistics Minimum Maximum --query "Datapoints[].[Timestamp,Minimum,Maximum]" --output tabl
+  aws cloudwatch get-metric-statistics --no-cli-pager --profile $Profile --region $Region --namespace AWS/ApplicationELB --metric-name UnHealthyHostCount --dimensions Name=TargetGroup,Value=$($p.TG) Name=LoadBalancer,Value=$($p.LB) --start-time $Start --end-time $End --period 60 --statistics Minimum Maximum --query "Datapoints[].[Timestamp,Minimum,Maximum]" --output table
+  aws cloudwatch get-metric-statistics --no-cli-pager --profile $Profile --region $Region --namespace AWS/ApplicationELB --metric-name HTTPCode_Target_5XX_Count --dimensions Name=TargetGroup,Value=$($p.TG) Name=LoadBalancer,Value=$($p.LB) --start-time $Start --end-time $End --period 60 --statistics Sum --query "Datapoints[].[Timestamp,Sum]" --output table; Write-Host "=== $($p.TG) : TargetResponseTime ==="
+  aws cloudwatch get-metric-statistics --no-cli-pager --profile $Profile --region $Region --namespace AWS/ApplicationELB --metric-name TargetResponseTime --dimensions Name=TargetGroup,Value=$($p.TG) Name=LoadBalancer,Value=$($p.LB) --start-time $Start --end-time $End --period 60 --statistics Average Maximum --query "Datapoints[].[Timestamp,Average,Maximum]" --output table
+  
+  aws cloudwatch list-metrics --no-cli-pager --profile pccto --region eu-west-1 --namespace AWS/ApplicationELB --metric-name HealthyHostCount --query "Metrics[?contains(Dimensions[?Name=='TargetGroup'].Value | [0], 'uat-openam-live')].[Dimensions]" --output json
+  aws cloudwatch list-metrics --no-cli-pager --profile pccto --region eu-west-1 --namespace AWS/ApplicationELB --metric-name HealthyHostCount --query "Metrics[?contains(Dimensions[?Name=='TargetGroup'].Value | [0], 'uat-openam-live')].[Dimensions]" --output json
+  
+  aws cloudwatch get-metric-data --no-cli-pager --profile $Profile --region $Region --start-time $Start --end-time $End --metric-data-queries '[{"Id":"h_ext","MetricStat":{"Metric":{"Namespace":"AWS/ApplicationELB","MetricName":"HealthyHostCount","Dimensions":[{"Name":"TargetGroup","Value":"targetgroup/uat-openam-live-ext-tg-7324/0e76964a762e4bb8"},{"Name":"LoadBalancer","Value":"app/uat-openam-ext-elb-7324/6175a2ae62850216"}]},"Period":60,"Stat":"Minimum"},"ReturnData":true},{"Id":"u_ext","MetricStat":{"Metric":{"Namespace":"AWS/ApplicationELB","MetricName":"UnHealthyHostCount","Dimensions":[{"Name":"TargetGroup","Value":"targetgroup/uat-openam-live-ext-tg-7324/0e76964a762e4bb8"},{"Name":"LoadBalancer","Value":"app/uat-openam-ext-elb-7324/6175a2ae62850216"}]},"Period":60,"Stat":"Maximum"},"ReturnData":true},{"Id":"h_int","MetricStat":{"Metric":{"Namespace":"AWS/ApplicationELB","MetricName":"HealthyHostCount","Dimensions":[{"Name":"TargetGroup","Value":"targetgroup/uat-openam-live-int-tg-7324/a3d7c107f77df2ed"},{"Name":"LoadBalancer","Value":"app/uat-openam-int-elb-7324/294131c67742d528"}]},"Period":60,"Stat":"Minimum"},"ReturnData":true},{"Id":"u_int","MetricStat":{"Metric":{"Namespace":"AWS/ApplicationELB","MetricName":"UnHealthyHostCount","Dimensions":[{"Name":"TargetGroup","Value":"targetgroup/uat-openam-live-int-tg-7324/a3d7c107f77df2ed"},{"Name":"LoadBalancer","Value":"app/uat-openam-int-elb-7324/294131c67742d528"}]},"Period":60,"Stat":"Maximum"},"ReturnData":true}]' --query "MetricDataResults[].[Id,Label,Timestamps[0],Values[0],StatusCode]" --output table
+  aws cloudwatch get-metric-data --no-cli-pager --profile $Profile --region $Region --start-time $Start --end-time $End --scan-by TimestampAscending --metric-data-queries '[{"Id":"h_ext","MetricStat":{"Metric":{"Namespace":"AWS/ApplicationELB","MetricName":"HealthyHostCount","Dimensions":[{"Name":"TargetGroup","Value":"targetgroup/uat-openam-live-ext-tg-7324/0e76964a762e4bb8"},{"Name":"LoadBalancer","Value":"app/uat-openam-ext-elb-7324/6175a2ae62850216"}]},"Period":60,"Stat":"Minimum"},"ReturnData":true},{"Id":"u_ext","MetricStat":{"Metric":{"Namespace":"AWS/ApplicationELB","MetricName":"UnHealthyHostCount","Dimensions":[{"Name":"TargetGroup","Value":"targetgroup/uat-openam-live-ext-tg-7324/0e76964a762e4bb8"},{"Name":"LoadBalancer","Value":"app/uat-openam-ext-elb-7324/6175a2ae62850216"}]},"Period":60,"Stat":"Maximum"},"ReturnData":true},{"Id":"h_int","MetricStat":{"Metric":{"Namespace":"AWS/ApplicationELB","MetricName":"HealthyHostCount","Dimensions":[{"Name":"TargetGroup","Value":"targetgroup/uat-openam-live-int-tg-7324/a3d7c107f77df2ed"},{"Name":"LoadBalancer","Value":"app/uat-openam-int-elb-7324/294131c67742d528"}]},"Period":60,"Stat":"Minimum"},"ReturnData":true},{"Id":"u_int","MetricStat":{"Metric":{"Namespace":"AWS/ApplicationELB","MetricName":"UnHealthyHostCount","Dimensions":[{"Name":"TargetGroup","Value":"targetgroup/uat-openam-live-int-tg-7324/a3d7c107f77df2ed"},{"Name":"LoadBalancer","Value":"app/uat-openam-int-elb-7324/294131c67742d528"}]},"Period":60,"Stat":"Maximum"},"ReturnData":true}]' --output json | ConvertFrom-Json; foreach($r in $json.MetricDataResults){ $vals=@($r.Values); if($vals.Count -gt 0){ $max=($vals | Measure-Object -Maximum).Maximum; $min=($vals | Measure-Object -Minimum).Minimum; $nonZero=@(); for($i=0; $i -lt $vals.Count; $i++){ if([double]$vals[$i] -gt 0){ $nonZero += "{0}={1}" -f $r.Timestamps[$i], $vals[$i] } }; Write-Host "--- $($r.Id) ---"; Write-Host "points=$($vals.Count) min=$min max=$max"; if($nonZero.Count -gt 0){ Write-Host "nonZero:"; $nonZero | Select-Object -First 10 | ForEach-Object { Write-Host $_ } } else { Write-Host "nonZero: none" } } else { Write-Host "--- $($r.Id) ---"; Write-Host 'points=0' } }
+  aws cloudwatch get-metric-data --no-cli-pager --profile $Profile --region $Region --start-time $Start --end-time $End --scan-by TimestampAscending --metric-data-queries '[{"Id":"h_ext","MetricStat":{"Metric":{"Namespace":"AWS/ApplicationELB","MetricName":"HealthyHostCount","Dimensions":[{"Name":"TargetGroup","Value":"targetgroup/uat-openam-live-ext-tg-7324/0e76964a762e4bb8"},{"Name":"LoadBalancer","Value":"app/uat-openam-ext-elb-7324/6175a2ae62850216"}]},"Period":60,"Stat":"Minimum"},"ReturnData":true},{"Id":"u_ext","MetricStat":{"Metric":{"Namespace":"AWS/ApplicationELB","MetricName":"UnHealthyHostCount","Dimensions":[{"Name":"TargetGroup","Value":"targetgroup/uat-openam-live-ext-tg-7324/0e76964a762e4bb8"},{"Name":"LoadBalancer","Value":"app/uat-openam-ext-elb-7324/6175a2ae62850216"}]},"Period":60,"Stat":"Maximum"},"ReturnData":true},{"Id":"h_int","MetricStat":{"Metric":{"Namespace":"AWS/ApplicationELB","MetricName":"HealthyHostCount","Dimensions":[{"Name":"TargetGroup","Value":"targetgroup/uat-openam-live-int-tg-7324/a3d7c107f77df2ed"},{"Name":"LoadBalancer","Value":"app/uat-openam-int-elb-7324/294131c67742d528"}]},"Period":60,"Stat":"Minimum"},"ReturnData":true},{"Id":"u_int","MetricStat":{"Metric":{"Namespace":"AWS/ApplicationELB","MetricName":"UnHealthyHostCount","Dimensions":[{"Name":"TargetGroup","Value":"targetgroup/uat-openam-live-int-tg-7324/a3d7c107f77df2ed"},{"Name":"LoadBalancer","Value":"app/uat-openam-int-elb-7324/294131c67742d528"}]},"Period":60,"Stat":"Maximum"},"ReturnData":true}]' --output json | ConvertFrom-Json; foreach($r in $json.MetricDataResults){ $vals=@($r.Values); if($vals.Count -gt 0){ $max=($vals | Measure-Object -Maximum).Maximum; $min=($vals | Measure-Object -Minimum).Minimum; $nonZero=@(); for($i=0; $i -lt $vals.Count; $i++){ if([double]$vals[$i] -gt 0){ $nonZero += ("{0}={1}" -f $r.Timestamps[$i], $vals[$i]) } }; Write-Host "--- $($r.Id) ---"; Write-Host "points=$($vals.Count) min=$min max=$max"; if($nonZero.Count -gt 0){ Write-Host "nonZero:"; $nonZero | Select-Object -First 10 | ForEach-Object { Write-Host $_ } } else { Write-Host "nonZero: none" } } else { Write-Host "--- $($r.Id) ---"; Write-Host 'points=0' } }
+  aws cloudwatch get-metric-data --no-cli-pager --profile $Profile --region $Region --start-time $Start --end-time $End --scan-by TimestampAscending --metric-data-queries '[{"Id":"e5_ext","MetricStat":{"Metric":{"Namespace":"AWS/ApplicationELB","MetricName":"HTTPCode_Target_5XX_Count","Dimensions":[{"Name":"TargetGroup","Value":"targetgroup/uat-openam-live-ext-tg-7324/0e76964a762e4bb8"},{"Name":"LoadBalancer","Value":"app/uat-openam-ext-elb-7324/6175a2ae62850216"}]},"Period":60,"Stat":"Sum"},"ReturnData":true},{"Id":"e5_int","MetricStat":{"Metric":{"Namespace":"AWS/ApplicationELB","MetricName":"HTTPCode_Target_5XX_Count","Dimensions":[{"Name":"TargetGroup","Value":"targetgroup/uat-openam-live-int-tg-7324/a3d7c107f77df2ed"},{"Name":"LoadBalancer","Value":"app/uat-openam-int-elb-7324/294131c67742d528"}]},"Period":60,"Stat":"Sum"},"ReturnData":true},{"Id":"rt_ext","MetricStat":{"Metric":{"Namespace":"AWS/ApplicationELB","MetricName":"TargetResponseTime","Dimensions":[{"Name":"TargetGroup","Value":"targetgroup/uat-openam-live-ext-tg-7324/0e76964a762e4bb8"},{"Name":"LoadBalancer","Value":"app/uat-openam-ext-elb-7324/6175a2ae62850216"}]},"Period":60,"Stat":"Maximum"},"ReturnData":true},{"Id":"rt_int","MetricStat":{"Metric":{"Namespace":"AWS/ApplicationELB","MetricName":"TargetResponseTime","Dimensions":[{"Name":"TargetGroup","Value":"targetgroup/uat-openam-live-int-tg-7324/a3d7c107f77df2ed"},{"Name":"LoadBalancer","Value":"app/uat-openam-int-elb-7324/294131c67742d528"}]},"Period":60,"Stat":"Maximum"},"ReturnData":true}]' --output json | ConvertFrom-Json; foreach($r in $json.MetricDataResults){ $vals=@($r.Values); Write-Host "--- $($r.Id) ---"; if($vals.Count -eq 0){ Write-Host 'points=0'; continue }; $max=($vals | Measure-Object -Maximum).Maximum; $min=($vals | Measure-Object -Minimum).Minimum; Write-Host "points=$($vals.Count) min=$min max=$max"; $nonZero=@(); for($i=0; $i -lt $vals.Count; $i++){ if([double]$vals[$i] -gt 0){ $nonZero += ("{0}={1}" -f $r.Timestamps[$i], $vals[$i]) } }; if($nonZero.Count -gt 0){ Write-Host 'nonZero:'; $nonZero | Select-Object -First 10 | ForEach-Object { Write-Host $_ } } else { Write-Host 'nonZero: none' } }
+  aws cloudwatch get-metric-data --no-cli-pager --profile $Profile --region $Region --start-time $Start --end-time $End --scan-by TimestampAscending --metric-data-queries '[{"Id":"u_ext","MetricStat":{"Metric":{"Namespace":"AWS/ApplicationELB","MetricName":"UnHealthyHostCount","Dimensions":[{"Name":"TargetGroup","Value":"targetgroup/uat-openam-live-ext-tg-7324/0e76964a762e4bb8"},{"Name":"LoadBalancer","Value":"app/uat-openam-ext-elb-7324/6175a2ae62850216"}]},"Period":60,"Stat":"Maximum"},"ReturnData":true},{"Id":"u_int","MetricStat":{"Metric":{"Namespace":"AWS/ApplicationELB","MetricName":"UnHealthyHostCount","Dimensions":[{"Name":"TargetGroup","Value":"targetgroup/uat-openam-live-int-tg-7324/a3d7c107f77df2ed"},{"Name":"LoadBalancer","Value":"app/uat-openam-int-elb-7324/294131c67742d528"}]},"Period":60,"Stat":"Maximum"},"ReturnData":true},{"Id":"rt_ext","MetricStat":{"Metric":{"Namespace":"AWS/ApplicationELB","MetricName":"TargetResponseTime","Dimensions":[{"Name":"TargetGroup","Value":"targetgroup/uat-openam-live-ext-tg-7324/0e76964a762e4bb8"},{"Name":"LoadBalancer","Value":"app/uat-openam-ext-elb-7324/6175a2ae62850216"}]},"Period":60,"Stat":"Maximum"},"ReturnData":true},{"Id":"rt_int","MetricStat":{"Metric":{"Namespace":"AWS/ApplicationELB","MetricName":"TargetResponseTime","Dimensions":[{"Name":"TargetGroup","Value":"targetgroup/uat-openam-live-int-tg-7324/a3d7c107f77df2ed"},{"Name":"LoadBalancer","Value":"app/uat-openam-int-elb-7324/294131c67742d528"}]},"Period":60,"Stat":"Maximum"},"ReturnData":true}]' --output json | ConvertFrom-Json; foreach($r in $json.MetricDataResults){ Write-Host "--- $($r.Id) ---"; $vals=@($r.Values); $ts=@($r.Timestamps); if($vals.Count -eq 0){ Write-Host 'no datapoints'; continue }; $max=($vals | Measure-Object -Maximum).Maximum; $maxIdx=[Array]::IndexOf($vals,$max); Write-Host ("max={0} at {1}" -f $max,$ts[$maxIdx]); for($i=0;$i -lt $vals.Count;$i++){ if([double]$vals[$i] -gt 0){ Write-Host ("{0} => {1}" -f $ts[$i],$vals[$i]) } } }
+  aws cloudwatch get-metric-data --no-cli-pager --profile $Profile --region $Region --start-time $Start --end-time $End --scan-by TimestampAscending --metric-data-queries '[{"Id":"req_ext","MetricStat":{"Metric":{"Namespace":"AWS/ApplicationELB","MetricName":"RequestCount","Dimensions":[{"Name":"TargetGroup","Value":"targetgroup/uat-openam-live-ext-tg-7324/0e76964a762e4bb8"},{"Name":"LoadBalancer","Value":"app/uat-openam-ext-elb-7324/6175a2ae62850216"}]},"Period":60,"Stat":"Sum"},"ReturnData":true},{"Id":"req_int","MetricStat":{"Metric":{"Namespace":"AWS/ApplicationELB","MetricName":"RequestCount","Dimensions":[{"Name":"TargetGroup","Value":"targetgroup/uat-openam-live-int-tg-7324/a3d7c107f77df2ed"},{"Name":"LoadBalancer","Value":"app/uat-openam-int-elb-7324/294131c67742d528"}]},"Period":60,"Stat":"Sum"},"ReturnData":true},{"Id":"tce_ext","MetricStat":{"Metric":{"Namespace":"AWS/ApplicationELB","MetricName":"TargetConnectionErrorCount","Dimensions":[{"Name":"TargetGroup","Value":"targetgroup/uat-openam-live-ext-tg-7324/0e76964a762e4bb8"},{"Name":"LoadBalancer","Value":"app/uat-openam-ext-elb-7324/6175a2ae62850216"}]},"Period":60,"Stat":"Sum"},"ReturnData":true},{"Id":"tce_int","MetricStat":{"Metric":{"Namespace":"AWS/ApplicationELB","MetricName":"TargetConnectionErrorCount","Dimensions":[{"Name":"TargetGroup","Value":"targetgroup/uat-openam-live-int-tg-7324/a3d7c107f77df2ed"},{"Name":"LoadBalancer","Value":"app/uat-openam-int-elb-7324/294131c67742d528"}]},"Period":60,"Stat":"Sum"},"ReturnData":true}]' --output json | ConvertFrom-Json; foreach($r in $json.MetricDataResults){ Write-Host "--- $($r.Id) ---"; $vals=@($r.Values); if($vals.Count -eq 0){ Write-Host 'points=0'; continue }; $sum=($vals | Measure-Object -Sum).Sum; $max=($vals | Measure-Object -Maximum).Maximum; Write-Host ("points={0} sum={1} max={2}" -f $vals.Count,$sum,$max); for($i=0;$i -lt $vals.Count;$i++){ if([double]$vals[$i] -gt 0){ Write-Host ("{0} => {1}" -f $r.Timestamps[$i],$vals[$i]) } } }
+  
+  aws ec2 describe-instances --instance-ids i-1234567890abcdef0 \
+    --query 'Reservations[0].Instances[0].[InstanceId,LaunchTime]' \
+    --output table
+  
+  aws ec2 describe-instances \
+    --filters "Name=instance-state-name,Values=running" --query 'Reservations[].Instances[].[InstanceId,Tags[?Key==`Name`].Value|[0],LaunchTime] --output table
+    
+  aws ec2 describe-instances \
+    --filters "Name=tag:Environment,Values=production" \
+    --query 'Reservations[].Instances[].[InstanceId,LaunchTime]' \
+    --output table
+    
+  aws ec2 describe-instances --instance-ids i-0f311193b526b3683 i-0316cd256902eacf6 i-02808f72ed61592b2 i-037e0f27a4277e507 i-0604c44127c17ca0a i-0aa8addc42602ab03 i-080d896947404cef0 i-0989fb450b33bd798 i-0ed8bcc9c70b4ec4a i-01049475e2603a6f0 i-016d02e1659d007e2 i-0e15274ef2bb42875 i-045bd41798030b386 i-0bf2c7bc3fe824dd3 i-03a66cabbf71c0399 i-0c65a7899dcd39ce7 i-094315b74772c5312 i-0fc853d9349d31db2 i-03fbe3c17d5ad0fbc i-0a9d3798e77f33c3d i-020cf78480d73ea70 i-05cf2da6eae25133d i-03f519a6061f8a9fe i-0e4c391aa1577ad55 i-06aa300481336347d i-0e68deb3da1011278 i-0aaca384bf1ee792b i-0426c0b86e1260e89 i-04c93912a7d199eaf i-039170ddb84d8dd49 i-073d8a902a8bb4080 i-0ba9fa52523fdefef i-07d2fcbe69b27fe0f i-0f162834304b44c52 i-0f2eefb87ffd3e42e i-05ef31f1d149977b7 i-0dfd6eb34845abe44 i-0436eb330592be31f \
+    --query 'Reservations[0].Instances[0].[InstanceId,LaunchTime]' --output table
+  
+  for id in $INSTANCE_IDS; do
+  	for region in $AWS_REGIONS; do
+  	  echo "=== $region ==="
+  	  aws ec2 describe-instances --instance-ids $id --query "Reservations[].Instances[].{InstanceId:InstanceId,Name:Tags[?Key=='Name']|[0].Value,LaunchTime:LaunchTime}" --region $region --output table
+  	done
+  done
+  
+  
+  export INSTANCE_IDS="i-0f311193b526b3683 i-0316cd256902eacf6 i-02808f72ed61592b2 i-037e0f27a4277e507 i-0604c44127c17ca0a i-0aa8addc42602ab03 i-080d896947404cef0 i-0989fb450b33bd798 i-0ed8bcc9c70b4ec4a i-01049475e2603a6f0 i-016d02e1659d007e2 i-0e15274ef2bb42875 i-045bd41798030b386 i-0bf2c7bc3fe824dd3 i-03a66cabbf71c0399 i-0c65a7899dcd39ce7 i-094315b74772c5312 i-0fc853d9349d31db2 i-03fbe3c17d5ad0fbc i-0a9d3798e77f33c3d i-020cf78480d73ea70 i-05cf2da6eae25133d i-03f519a6061f8a9fe i-0e4c391aa1577ad55 i-06aa300481336347d i-0e68deb3da1011278 i-0aaca384bf1ee792b i-0426c0b86e1260e89 i-04c93912a7d199eaf i-039170ddb84d8dd49 i-073d8a902a8bb4080 i-0ba9fa52523fdefef i-07d2fcbe69b27fe0f i-0f162834304b44c52 i-0f2eefb87ffd3e42e i-05ef31f1d149977b7 i-0dfd6eb34845abe44 i-0436eb330592be31f"
+  export INSTANCE_IDS="i-0950f8ad0e5db7998 i-054728ad56978b440 i-016417c3c47fca381 i-0b39dca5b75944718 i-0da3cf7f148fdfd41 i-05ca4d804958db23d i-0d3d8b2ceab1e8d42 i-054728ad56978b440 i-01c1eb059014811ae i-0af56de1716f5a7e9 i-0fa9096df25640b1a i-06a66e7a3bc5b405a i-020c9af7912089609 i-046c25982e90cb75f i-091cef5191430eb46 i-04deb21adfb09c298 i-0623daf17fd32a1dd"
+  
+  aws ec2 describe-instances --filters "Name=tag:Name,Values=uat-*" --query "Reservations[].Instances[].[InstanceId,Tags[?Key=='Name']|[0].Value,LaunchTime,State.Name]" --output table
+  
+  for region in $AWS_REGIONS; do
+    echo "=== $region ==="
+    aws ec2 describe-instances --filters "Name=tag:Name,Values=uat-*" --query "Reservations[].Instances[].{InstanceId:InstanceId,Name:Tags[?Key=='Name']|[0].Value,LaunchTime:LaunchTime}" --region $region --output table
+  done
+  
+  #==> outoput csv
+  aws ec2 describe-instances \
+    --filters "Name=tag:Name,Values=uat-*" \
+    --query "Reservations[].Instances[].[InstanceId,Tags[?Key=='Name']|[0].Value,LaunchTime,State.Name]" \
+    --output text | awk '{print $1","$2","$3","$4}' > instances.csv
+    
+  START_DATE="$(date -u -d '10 days ago' '+%Y-%m-%dT%H:%M:%SZ')"
+  END_DATE="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
+  
+  aws sesv2 list-suppressed-destinations \
+    --reasons BOUNCE \
+    --start-date "$START_DATE" \
+    --end-date "$END_DATE" \
+    --query 'SuppressedDestinationSummaries[].{EmailAddress:EmailAddress,Reason:Reason,LastUpdateTime:LastUpdateTime}' \
+    --output table
+    
+  START_DATE="$(date -u -d '10 days ago' '+%Y-%m-%dT%H:%M:%SZ')"
+  END_DATE="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
+  
+  {
+    echo "EmailAddress,Reason,LastUpdateTime"
+    aws sesv2 list-suppressed-destinations \
+      --reasons BOUNCE \
+      --start-date "$START_DATE" \
+      --end-date "$END_DATE" \
+      --query 'SuppressedDestinationSummaries[].[EmailAddress,Reason,LastUpdateTime]' \
+      --output text | awk 'BEGIN{OFS=","} {print $1,$2,$3}'
+  } > ses_bounces_last_10_days.csv
+
+  aws sesv2 put-account-suppression-attributes --suppressed-reasons BOUNCE COMPLAINT
+  aws sesv2 put-configuration-set-suppression-options --configuration-set-name configSet --suppressed-reasons BOUNCE COMPLAINT
+  aws sesv2 put-suppressed-destination --email-address recipient@example.com --reason BOUNCE
+
+  # examine bounce metrics
+  aws cloudwatch get-metric-statistics \
+    --namespace AWS/SES \
+    --metric-name Reputation.BounceRate \
+    --start-time "$(date -u -d '10 days ago' '+%Y-%m-%dT%H:%M:%SZ')" \
+    --end-time "$(date -u '+%Y-%m-%dT%H:%M:%SZ')" \
+    --period 86400 \
+    --statistics Average \
+    --output table
+
+  aws ssm get-parameter --name "$PARAM" --region "$REGION" --query "Parameter.Value" --output text
+
+  #PARAMS_JSON=$(cat <<'EOF'
+      {"commands":[
+      "Stop-Service AmazonCloudWatchAgent -Force",
+      "Remove-Item 'C:\\ProgramData\\Amazon\\AmazonCloudWatchAgent\\Logs\\state\\*' -Force -ErrorAction SilentlyContinue",
+      "& 'C:\\Program Files\\Amazon\\AmazonCloudWatchAgent\\amazon-cloudwatch-agent-ctl.ps1' -a fetch-config -m ec2 -c ssm:${PARAM} -s"
+      ]}
+      EOF
+    )
+  
+  aws ssm send-command --region "$REGION" --document-name "AWS-RunPowerShellScript" --instance-ids "i-00c976040b0b0df49" "i-05e3834fdd28ab963" --parameters "$PARAMS_JSON" --timeout-seconds 180 --comment "loginportal cwagent reload"
+
+
+  # ==> cloudwatch
+  aws cloudwatch list-metrics --namespace "AWS/EC2" --region us-east-1
+  aws cloudwatch describe-alarms --query "MetricAlarms[?contains(AlarmName, 'search-term')].AlarmName"
+  aws cloudwatch describe-alarms --state-value ALARM --query "MetricAlarms[*].AlarmName"
+  aws resource-explorer-2 search --query-string "service:cloudwatch"
+
 
 #::::::::::::::::::::::::::::: openssl ::::::::::::::::::::::::::::::
   # Create a new Private Key and Certificate Signing Request
@@ -7548,6 +8330,7 @@
   git clone --depth 1 --recurse-submodules --shallow-submodules <repository_URL>
   git clone /path/to/repository
   git clone username@host:/path/to/repository
+  git clone https://<username>:<PAT>@dev.azure.com/ihsmarkit/SAM/_git/ansible/  # using PAT
 
   git clone -c http.sslVerify=false https://example.com
   git clone --config core.sshCommand="ssh -i ~/location/to/private_ssh_key" git@provider.com:userName/projectName.git
@@ -7574,7 +8357,29 @@
   git ls-files -o --exclude-standard
 
   git dirdiff HEAD HEAD~1
-
+  
+  git config --global --list
+  git config --global list
+  git config --show-origin
+  git config --global alias.tree 'log --oneline --graph --decorate --all'
+  
+  # ==> powershell use notepad++
+  git config --global diff.tool npp
+  git config --global difftool.npp.cmd 'notepad++.exe -nosession -multiInst "$LOCAL" "$REMOTE"
+  
+  git difftool HEAD~1 -- filename
+  
+  git config --global diff.tool vscode
+  git config --global difftool.vscode.cmd 'code --wait --diff "$LOCAL" "$REMOTE"'
+  
+  git diff
+  git diff c991ce9 967dd83
+  git diff models/User.js
+  git diff --shortstat # uncommited changes
+  git diff --shortstat --cached # staged changes
+  git diff --shortstat <commit1> <commit2>  # btw commits
+  git diff --shortstat branch1..branch2  # btw branches
+  
   git fetch --all
   git glo
   git glo -n 10
@@ -7591,8 +8396,7 @@
   git push heroku main
   git push origin --delete feature-demo-papa
   git pwd
-  git rebase -i HEAD~
-  git rebase -i HEAD~1
+  git rebase -i HEAD~|HEAD~1
   git remote -v
   git remote add origin https://github.com/murpheux/.dotfiles.git
   git remote set-url origin git@github.com:murpheux/.dotfiles.git
@@ -7602,23 +8406,22 @@
   git reset --hard
   git reset --hard HEAD~1
   git reset --hard <commit_sha>
+
+  git reset --hard [HEAD~1]
   git reset HEAD -- apm/nodejs/*.log
   git reset eTCA/api/service/service.csproj
 
   git restore --staged
   git restore --staged *
   git restore --staged eTCA/web/Pages/NewRegistrant/Ebc-Registration.cshtml
-  git restore --staged eTCA/web/Pages/NewRegistrant/Esop-Registration.cshtml
-  git restore --staged eTCA/web/Pages/NewRegistrant/partial_forms/_business-information.cshtml
   git restore eTCA/web/Pages/NewRegistrant/Esop-Registration.cshtml
 
-  git rm -r --cached
-  git rm -r --cached .
+  git rm -r --cached [.]
   git rm -r --cached eTCA/web/Pages/NewRegistrant/Ebc-Registration.cshtml
   git rm -rf --cached .
   git rm eTCA/web/Pages/NewRegistrant/Ebc-Registration.cshtml
+  git s|st|status [.]
 
-  git s
   git sco add eTCA check.ps1
   git sco disable
   git sco eTCA check.ps1
@@ -7633,9 +8436,6 @@
   git sparse-checkout list
   git sparse-checkout reapply
   git sparse-checkout set Biz
-  git sparse-checkout set eTCA
-  git st
-  git st .
   git stash
   git stash apply
   git stash clear
@@ -7648,15 +8448,14 @@
   git tag ls
   git tags
 
+  # ==> gitinfo
   gitinfo
   gitinfo -u murpheux
-  gitinfo -u zazu
-  gitleaks
-  gitleaks .
+  
+  # ==> gitleaks
+  gitleaks [.]
   gitleaks protect --staged
-  glo
-  glog
-  glxinfo
+  glo|glog|glxinfo
 
   # ==> gitghub
   gh auth login|logout
@@ -7675,6 +8474,10 @@
   gh repo create
 
   gh browse
+  gh alias set push '!git push' # create alias
+  
+  gh alias set push '!git push' # create alias
+  gh repo create my-project --public --source=. --remote=upstream --push # create and push
 
   gh pr list
   gh pr status
@@ -7882,6 +8685,11 @@
   # ==> vimrc command config
   " Sample command W "
   command W :execute ':silent w !sudo tee % > /dev/null' | :edit!
+  
+  :vert diffsplit file2
+
+  :set diffopt=filler,context:0
+  :diffupdate
 
   # ==> unique lines with vim
   :%! uniq
@@ -8637,6 +9445,9 @@
   - Maintaining Access
   - Clearing Tracks
 
+  export|unset SSH_AUTH_SOCK
+  export|unset SSH_AGENT_PID
+  ssh -i <keypair> ubuntu@18.232.181.251
   ssh -L 8888:127.0.0.1:8888 <user>@<remote_host>
   tcpdump -U -w - 'not port 22' | nc -l -s 127.0.0.1 -p 8888
 
@@ -9902,6 +10713,7 @@
 
   op item create --category login --generate-password --title "My New Item"
   op item create --category login --generate-password='' --title "Secure Item"
+  op item create --category ssh --title "My SSH Key"
 
   op item create --title='retrievable generated password' --category=password --generate-password=20,letters,digits,symbols | #or 
   op read op://Private/'retrievable generated password'/password
@@ -9992,6 +10804,9 @@
   # Set an image background with 50% opacity (default)
   wsh setbg ~/pictures/background.jpg
 
+#::::::::::::::::::::::::::::: chrome :::::::::::::::::::::::::::::
+chrome://flags/#enable-force-dark
+
   # Set a color background (use quotes to prevent # being interpreted as a shell comment)
   wsh setbg "#ff0000"          # hex color
   wsh setbg forestgreen        # CSS color name
@@ -10052,15 +10867,17 @@
 
 #:::::::::::::::::::::::::::::::: aws console-2-code ::::::::::::::::::::::::::::::::
 
-aws ec2 create-vpc --cidr-block '10.0.0.0/16' --instance-tenancy 'default' --tag-specifications '{"resourceType":"vpc","tags":[{"key":"Name","value":"beamer-vpc"}]}' 
-aws ec2 modify-vpc-attribute --vpc-id 'preview-vpc-1234' --enable-dns-hostnames '{"Value":true}' 
-aws ec2 describe-vpcs --vpc-ids 'preview-vpc-1234' 
-aws ec2 create-vpc-endpoint --vpc-id 'preview-vpc-1234' --service-name 'com.amazonaws.us-west-1.s3' --tag-specifications '{"resourceType":"vpc-endpoint","tags":[{"key":"Name","value":"beamer-vpce-s3"}]}' 
-aws ec2 create-subnet --vpc-id 'preview-vpc-1234' --cidr-block '10.0.144.0/20' --availability-zone 'us-west-1c' --tag-specifications '{"resourceType":"subnet","tags":[{"key":"Name","value":"beamer-subnet-private2-us-west-1c"}]}' 
-aws ec2 create-internet-gateway --tag-specifications '{"ResourceType":"internet-gateway","Tags":[{"Key":"Name","Value":"beamer-igw"}]}' 
-aws ec2 attach-internet-gateway --internet-gateway-id 'preview-igw-1234' --vpc-id 'preview-vpc-1234' 
-aws ec2 create-route-table --vpc-id 'preview-vpc-1234' --tag-specifications '{"ResourceType":"route-table","Tags":[{"Key":"Name","Value":"beamer-rtb-private2-us-west-1c"}]}' 
-aws ec2 create-route --route-table-id 'preview-rtb-public-0' --destination-cidr-block '0.0.0.0/0' --gateway-id 'preview-igw-1234' 
-aws ec2 associate-route-table --route-table-id 'preview-rtb-private-2' --subnet-id 'preview-subnet-private-3' 
-aws ec2 describe-route-tables --route-table-ids   'preview-rtb-private-1' 'preview-rtb-private-2' 
-aws ec2 modify-vpc-endpoint --vpc-endpoint-id 'preview-vpce-1234' --add-route-table-ids 'preview-rtb-private-1' 'preview-rtb-private-2' 
+  aws ec2 create-vpc --cidr-block '10.0.0.0/16' --instance-tenancy 'default' --tag-specifications '{"resourceType":"vpc","tags":[{"key":"Name","value":"beamer-vpc"}]}' 
+  aws ec2 modify-vpc-attribute --vpc-id 'preview-vpc-1234' --enable-dns-hostnames '{"Value":true}' 
+  aws ec2 describe-vpcs --vpc-ids 'preview-vpc-1234' 
+  aws ec2 create-vpc-endpoint --vpc-id 'preview-vpc-1234' --service-name 'com.amazonaws.us-west-1.s3' --tag-specifications '{"resourceType":"vpc-endpoint","tags":[{"key":"Name","value":"beamer-vpce-s3"}]}' 
+  aws ec2 create-subnet --vpc-id 'preview-vpc-1234' --cidr-block '10.0.144.0/20' --availability-zone 'us-west-1c' --tag-specifications '{"resourceType":"subnet","tags":[{"key":"Name","value":"beamer-subnet-private2-us-west-1c"}]}' 
+  aws ec2 create-internet-gateway --tag-specifications '{"ResourceType":"internet-gateway","Tags":[{"Key":"Name","Value":"beamer-igw"}]}' 
+  aws ec2 attach-internet-gateway --internet-gateway-id 'preview-igw-1234' --vpc-id 'preview-vpc-1234' 
+  aws ec2 create-route-table --vpc-id 'preview-vpc-1234' --tag-specifications '{"ResourceType":"route-table","Tags":[{"Key":"Name","Value":"beamer-rtb-private2-us-west-1c"}]}' 
+  aws ec2 create-route --route-table-id 'preview-rtb-public-0' --destination-cidr-block '0.0.0.0/0' --gateway-id 'preview-igw-1234' 
+  aws ec2 associate-route-table --route-table-id 'preview-rtb-private-2' --subnet-id 'preview-subnet-private-3' 
+  aws ec2 describe-route-tables --route-table-ids   'preview-rtb-private-1' 'preview-rtb-private-2' 
+  aws ec2 modify-vpc-endpoint --vpc-endpoint-id 'preview-vpce-1234' --add-route-table-ids 'preview-rtb-private-1' 'preview-rtb-private-2' 
+
+
