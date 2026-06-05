@@ -1,24 +1,37 @@
 #!/usr/bin/env bash
 
-#                              #
-#                              #
-#  mmmmm  m   m   m mm  mmmm   # mm    mmm   m   m  m   m 
-#  # # #  #   #   #"  " #" "#  #"  #  #"  #  #   #   #m#  
-#  # # #  #   #   #     #   #  #   #  #""""  #   #   m#m  
-#  # # #  "mm"#   #     ##m#"  #   #  "#mm"  "mm"#  m" "m 
-#                       #                                 
-#                       "                                 
-#  Clement Onawole
+#  Clement Onawole - dapo.onawole@gmail.com
 #  ln/murpheux fb/murpheux tw/murpheux
-
 
 # Tools  : vi, ed, ex, vim, neovim - lazyvim, spacevim, edit
 # Editor : vscode, sublime, notepad++
-# Term   : warp, kitty, alacritty, wave, iterm, hyper, ghosty, tabby, rio, wezterm
-# AI     : github copilot, gemini, claude, ollama, deepSeek, chatGPT, grok, commet, perflexity
-# Models : claude, oz,
+# Term   : Alacritty, Black Box , Bobcat, ConEmu, Contour Terminal, Cool Retro Term, Cosmic Terminal
+#          , Extraterm, Foot, Ghostty, GNOME Terminal, Guake, iTerm2, Kitty, Konsole, LXTerminal
+#          , MATE Terminal, Mintty, mlterm, Ptyxis, PuTTY, QTerminal, Rio Terminal, ROXTerm, Suckless Terminal (st)
+#          , Tabby, Terminal.app, Terminator, Terminology, Termux, Tilda, Tilix, urxvt, Warp Terminal
+#          , Wave Terminal, Wezterm, Windows Terminal, xfce4-terminal, xterm, Cathode, Hyper
 # Sec Mgr: 1password, Bitwarden, Passwords (macos), lastpass
 # Lib Pac: brew, macports, nix, zerobrew, pkgsrc, rudix, fink
+
+#:::::::::::::::::::::::::::: homenet minions ::::::::::::::::::::::::::::
+  swarm manager         scarlet
+  swarm worker1         gru
+  swarm worker2         cassandra
+
+  pi-hole1              jon
+  pi-hole2              jim
+
+  prometheus            belle
+  grafana               bob
+  loki                  mel
+  cadvisor              chow
+  minio                 nefario
+  dynamodb              kevin
+  dynamodb_admin        gus
+  elasticsearch         otto
+  kibana                carl
+  logstash              jerry
+  filebeat              phil
 
 #:::::::::::::::::::::::::::: unix comms ::::::::::::::::::::::::::::
   ushd
@@ -83,6 +96,17 @@
   https://websploit.org - websplout lab
 
   curl -sSL https://websploit.org/install.sh | sudo bash
+  curl -LsSf https://aider.chat/install.sh | sh
+  wget -qO- https://aider.chat/install.sh | sh
+
+  wget --spider https://example.com
+  wget -q --spider https://example.com
+  wget -q --spider https://example.com
+  wget -nc https://example.com
+
+  wget --post-data="key1=value1&key2=value2" -O /dev/null "https://example.com"
+  wget -q --post-data="key1=value1" -O /dev/null "https://example.com"
+  wget --post-file="payload.json" -O /dev/null "https://example.com"
 
   https://hackthissite.org
   https://tryhackme.com
@@ -124,12 +148,18 @@
   sudo systemsetup -setremotelogin on  # enable ssh
 
   networksetup -listallhardwareports
+  networksetup -listallhardwareports | grep Wi-Fi -A 3
   networksetup -listlocations
   networksetup -listnetworkserviceorder
   networksetup -listallhardwareports
   networksetup -getcurrentlocation
   networksetup -ordernetworkservices
   networksetup -deletepppoeservice "Service Name"
+
+  # time machine snapshots
+  tmutil listlocalsnapshots /
+
+  tmutil thinlocalsnapshots / 10000000000 4 # claim snapshots used disk space
 
   sw_vers
   system_profiler | more
@@ -158,6 +188,16 @@
 
   softwareupdate --install-rosetta
 
+  # This tells macOS to trust command-line tools run from Terminal
+  sudo spctl --developer-mode --enable
+
+  # Then add Terminal explicitly
+  sudo DevToolsSecurity -enable
+
+  # nfs share on mac
+  nfsd restart
+  nfsd checkexports
+
   # ==> xcode switch/select
   xcode-select -switch /Applications/Xcode.app/
   xcode-select -switch ~/Documents/Xcode.app/
@@ -180,6 +220,9 @@
 
   sysctl -n machdep.cpu.brand_string
   system_profiler SPHardwareDataType
+
+  # cpu instructions
+  grep -o 'avx\|avx2\|sse4_2' /proc/cpuinfo | sort -u
 
   powermetrics --samplers smc -l1 -n1
 
@@ -255,6 +298,8 @@
   # ==> disable/enable wrap text
   tput rmam
   tput smam
+
+  | less -S
 
   setterm -linewrap off
 
@@ -484,9 +529,15 @@
   # allow an app to communicate outside the system through the application layer firewall:
   socketfilterfw -t“/Applications/FileMaker Pro/FileMaker Pro.app/Contents/MacOS/FileMaker Pro”
 
-  # see the routing table of a Mac:
-  netstat -nr
+  # print routing table of a Mac:
+  netstat -nr # ipv4 + ipv6
+  netstat -rn -f inet # ipv4
+  netstat -rn -f inet6 # ipv6
+
   netstat -rn -f inet6 | grep default
+
+  route -n get 8.8.8.8 # inspect route for a specific destination
+  route -n get 2001:4860:4860::8888
 
   # add a route so that traffic for 10.0.0.0/32 communicates over the 10.0.9.2 network interface:
   route -n add 10.0.0.0/32 10.0.9.2
@@ -527,6 +578,15 @@
 
   # view disk performance:
   iostat -d disk0
+  smartctl -a /dev/sda
+  nvme smart-log /dev/nvme0
+  dd if=/dev/zero of=tempfile bs=1M count=1024 conv=fdatasync # write speed
+  dd if=tempfile of=/dev/null bs=1M count=1024 # read speed
+  wmic diskdrive get status # windows
+  winsat disk -drive c # windows
+
+  # clear disk cache
+  purge
 
   # get information about the airport connection on your system:
   /System/Library/PrivateFrameworks/Apple80211.framework/Versions/A/Resources/airport -I
@@ -650,10 +710,14 @@
 
   # ==> Mac hostname
   scutil --dns | grep 'nameserver\[[0-9]*\]'
+
+  scutil --get ComputerName
+  scutil --get HostName
+  scutil --get LocalHostName
+
   scutil --set ComputerName "name"
   scutil --set LocalHostName "name"
   scutil --set HostName "name"
-  scutil --get HostName
 
   launchctl unload /System/Library/LaunchDaemons/ssh.plist
   launchctl load -w /System/Library/LaunchDaemons/ssh.plist
@@ -668,6 +732,17 @@
   launchctl unload /Library/LaunchDaemons/org.wso2.am.plist
   launchctl load /usr/local/cellar/nginx/1.17.0/homebrew.mxcl.nginx.plist 
   launchctl unload /usr/local/cellar/nginx/1.17.0/homebrew.mxcl.nginx.plist
+
+  # ssd health
+  diskutil info disk0 | grep SMART
+  sudo smartctl -a /dev/disk3s1s1
+  sudo smartctl -t short /dev/disk0 # short term test
+  sudo smartctl -t long /dev/disk0 # long term
+  sudo smartctl -l selftest /dev/disk0
+
+  system_profiler SPNVMeDataType # nvme health
+  diskutil verifyVolume /
+  sudo powermetrics --samplers smc | grep -i "SSD" # thermal throtling
 
   # ==> xcode-select
   xcode-select -p
@@ -754,11 +829,11 @@
   zb completion fish > ~/.config/fish/completions/zb.fish
 
   zb update|outdated
-  zb outdated | awk '{print $1}' | xargs zb install
+  zb outdated | cut -d '(' -f 1 | xargs zb install
 
-  zb outdated | awk '{print $1}' | xargs -r zb install
-  zb outdated | awk '{print $1}' | xargs -n1 zb install
-  zb outdated | awk '{print $1}' | xargs -n1 --no-run-if-empty zb install
+  zb outdated | cut -d '(' -f 1 | xargs -r zb install
+  zb outdated | cut -d '(' -f 1 | xargs -n1 zb install
+  zb outdated | cut -d '(' -f 1 | xargs -n1 --no-run-if-empty zb install
 
   packages=$(zb outdated | awk '{print $1}')
   if [ -n "$packages" ]; then
@@ -770,6 +845,17 @@
   done
 
   zb reset # remove installed packages and reset symlinks
+
+  # ==> empty trash
+  rm -rf ~/.Trash/*
+  osascript -e 'tell application "Finder" to empty the trash'
+
+  # ==> apps state installed on mac
+  # use system information
+  find / -mtime -1 -print # find files added in the last 24 hours
+
+  ls -la /Applications # find apps added to the /Applications folder recently
+  brew list -1t 2> /dev/null | head -n 40 # see the last 40 items installed via Homebrew
 
 
 #:::::::::::::::::::::::::::::: linux :::::::::::::::::::::::::::::::
@@ -787,6 +873,19 @@
   # cat  ==> bat           ls   ==> eza
   # cd   ==> z             grep ==> rg
   # find ==> fd
+
+  (( ${+VAR} )) # variable is defined (includes empty strings)
+  [[ -v VAR ]] # variable name is set
+  [[ -n "$VAR" ]] # variable has at least one character
+  [[ -z "$VAR" ]] # variable is unset OR is an empty string
+  (( ${+GJL_ZASS} )) && echo "It actually exists"
+
+  sudo # interactive
+  sudo -n # non-interactive
+
+  setopt no_bang_hist # allows ! in command args double quoted ""
+
+  umask 77 # mask file creation :rw attribs
 
   #  etc info files
   /etc/hosts
@@ -812,13 +911,61 @@
   byobu
   screen
 
+  #==> linux errors
+  command 2> /dev/null # hide only errors
+  command > /dev/null 2>&1 # hide both normal output and errors
+  command1 -arg > everything.txt 2>&1
+  command1 > everything.txt 2>&1
+  command > out 2>error
+  command >out 2>&1
+  command &> out
+  command 2> errors.log
+  command 2>> errors.log # append
+  command &> all_output.log # both output and errors to one file
+  command > output.log 2> errors.log # different files
+  command 1> hello.txt 2> error.txt
+  command2 -f -z -y > out.txt 2> err.txt
+  command > file 2>&1 # redirect errors to the same place as standard output
+
+  # 0 stdin - keyboard
+  # 1 represents standard output (stdout - display) and 
+  # 2 represents standard error (stderr - display or printer)
+  # 3 First extra FD (file, pipe, or socket)
+  # 4-9 Additional user-defined FDs
+  # 10-255  Possible range for custom FDs (shell dependent)
+  # -1  Invalid / error return from open()
+  # -2  AT_FDCWD – special value meaning "current working directory" (for *at() syscalls)
+  # 2>&1  Redirect stderr (2) to stdout (1)
+  # 3> file Open FD 3 for writing to file
+  # 4< file Open FD 4 for reading from file
+  # 5<> file  Open FD 5 for read/write
+  # {fd}>&- Close a dynamically assigned FD (bash 4.1+)
+
+  command1 |& tee log.txt # or
+  command1 -arg |& tee log.txt ## or
+  command1 2>&1 | tee log.txt
+
+  # resource limits
+  ulimit -a # get properties of all the user limits
+  ulimit -n # soft
+  ulimit -Hn # hard
+  ulimit -H -n
+  ulimit -S -n
+  ulimit -u 30 # set max per process limits
+
+  # SELinux
+  sestatus
+  getenforce
+  setenforce 0 # temporarily disable SELinux
+
+  env -i # run commands with a clean environment
+
   echo $0 | $SHELL
   cat /etc/shells
   lsof -p "$$" | grep -m 1 txt # mac & linux
   readlink -f /proc/$$/exe. # linux
 
   chsh -s /bin/zsh  # change shell to zsh
-
   bash -n ~/.bashrc
 
   # ==> find if current shell is loaded bu another
@@ -855,10 +1002,36 @@
 
   ZSH_HIGHLIGHT_HIGHLIGHTERS=(main brackets)
 
+  # ==> zhs auto complete
+  export ZSH_COMPDUMP="$ZSH_CACHE_DIR/.zcompdump-$HOST"
+  export ZSH_COMPDUMP="${ZSH_CACHE_DIR:-$HOME/.cache}/zcompdump" # move to another dir
+  rm -f ~/.zcompdump* # clear zsh_compdumnp
+
+  autoload -Uz compinit
+  compinit -d /path/to/your/custom_dump_file
+
+  # ==> perf
+  perf top # like ps
+
+  # ==> gdm issues often force a sleep
+  sudo -u gdm dbus-run-session gsettings set org.gnome.settings-daemon.plugins.power sleep-inactive-ac-type 'nothing'
+  sudo -u gdm dbus-run-session gsettings set org.gnome.settings-daemon.plugins.power sleep-inactive-battery-type 'nothing'
+
+  # Create the sleep directory
+  sudo mkdir -p /etc/systemd/sleep.conf.d/
+
+  # Disable all sleep modes
+  echo -e "[Sleep]\nAllowSuspend=no\nAllowHibernation=no" | sudo tee /etc/systemd/sleep.conf.d/nosuspend.conf
+
   # ==> zinit
-  zinit
+  zinit|zi
   zinit load|update|light|snippet|delete [--all]
   zinit ice wait; zinit load zsh-users/zsh-autosuggestions #turbo
+
+  zinit snippet OMZ::plugins/macos/macos.plugin.zsh # OMZP::macos
+  zinit snippet OMZ::plugins/brew/brew.plugin.zsh   # OMZP::brew
+  zinit snippet OMZ::plugins/aws/aws.plugin.zsh     # OMZP::aws
+
   # bash 
   zinit ice wait
   zinit load zdharma-continuum/fast-syntax-highlighting zsh-users/zsh-autosuggestions
@@ -889,6 +1062,13 @@
   zinit ice wait lucid
   zinit load zdharma-continuum/history-search-multi-word
 
+  zinit plugins
+  zinig snippets
+
+  zinit report [--all]
+  zinit times
+  zinit completions
+
   cat [-n|-A] <filename>
 
   chvt 3 # change to a specific tty
@@ -916,6 +1096,24 @@
   findmnt
 
   netstat
+
+  # ==> trash/trash-cli/rip2
+  trash
+
+  trash-put
+  trash-list
+  trash-empty
+
+  rip file.txt
+  rip -u [/path/to/item/in/graveyard] # undo
+  rip -su # restore everything
+  rip -d # empty
+  rip -i # show few content of delete files
+  rip -s # shows files deleted under current directory
+  rip graveyard
+  rip --graveyard ~/.local/share/Trash # custom graveyard
+  export RIP_GRAVEYARD=~/.local/share/Trash
+  rip completions
 
   # ==> indent files
   sed 's/^/    /' yourfile.txt > tempfile.txt && mv tempfile.txt yourfile.txt
@@ -1042,6 +1240,14 @@
   ps -fu murpheux
   ps -u murpheux or
   pgrep -lU inioluwa
+
+  # ==> pgrep
+  pgrep process_name
+  pgrep -l process_name
+  pgrep -f "prcess_name parameter"
+  pgrep -fl "process_name"
+  pgrep -u username process_name
+  pgrep -n process_name
 
   ps aux --sort=-%mem | head -20
   ps aux --sort=-%cpu | head -20
@@ -1182,7 +1388,7 @@
   sed 's/old-text/new-text/' input.txt
   sed 's/old-text/new-text/g' input.txt
   sed -i 's/old-text/new-text/g' input.txt
-  sed 's@old-text@new-text@g' input.txt #use a different delimiter (useful if your pattern or replacement contains slashes)
+  sed 's@old-text@new-text@g' input.txt # use a different delimiter (useful if your pattern or replacement contains slashes)
 
   sed -n '/pattern/p' filename # print match
   sed -n '/pattern1/,/pattern2/p' filename
@@ -1230,6 +1436,8 @@
   # ==> linux performance
   top [-u username]
   top -l 1 -n 10 -s 0 -o cpu
+  top -l 1 -n 10 -o gpu -stats pid,command,gpu,cpu,mem
+
   bpytop
   bashtop
   htop [-u username]
@@ -1244,8 +1452,30 @@
   vmstat
   glances
 
+  macmon
+  macmon pipe | jq
+  macmon pipe -s 10 -i 500 | jq
+
+  macmon serve            # default port 9090, interval 1000ms
+  macmon serve -p 8080    # custom port
+  macmon serve -i 500     # sampling interval 500ms
+  macmon serve &          # run in background
+
+  macmon serve --install              # install and start (default port 9090)
+  macmon serve --port 8080 --install  # with custom port
+  macmon serve --uninstall            # stop and remove
+
   cpuinfo
   ctop
+
+  # ==> gpu usage
+  powermetrics --samplers tasks --show-process-gpu -i 1000
+  powermetrics -n 1 -i 1000 --samplers tasks --show-process-gpu
+  powermetrics -n 20 -i 1000 --samplers tasks --show-process-gpu 2>/dev/null | awk '/^\*\*\* Running tasks \*\*\*/{in=1;next} /^\*\*\*/{in=0} in && $0 !~ /^Name[[:space:]]+ID/ {if (match($0,/^(.+)[[:space:]]+(-?[0-9]+)([[:space:]]+[0-9.]+){6}[[:space:]]+([0-9.]+)[[:space:]]*$/,m)) {name=m[1]; sub(/[[:space:]]+$/,"",name); pid=m[2]+0; gpu=m[4]+0; if (pid>0) sum[pid "\t" name]+=gpu}} END {for (k in sum) print sum[k] "\t" k}' | sort -nr | awk -F'\t' 'NR<=10 {printf "%2d) GPU ms/s(sum)=%.2f  PID=%s  %s\n", NR, $1, $2, $3}'
+  powermetrics -s ane_power  # neural engine
+  asitop
+  macmon
+  pmset -g rawlog | grep -i "GPU"
 
   # view network services
   nettop
@@ -1273,12 +1503,26 @@
 
   dig @127.0.0.1 -p 8600 machine.node.consul
 
-  # DNS
   dig @localhost -p 8600 b4307b7392b9.node.consul # node
   dig @localhost -p 8600 consul.service.consul    # service
   dig AAAA google.com
   dig -6 google.com
   dig -x 2001:4860:4860::8888
+
+  dig @127.0.0.1 www.example.com
+  getdns_query -s @127.0.0.1 www.example.com
+
+  dnsdist -v # verbose logging
+  dnsdist -c # if controlSocket is configured
+  dnsdist --check-config -C /etc/dnsdist/dnsdist.conf # check configuration file for errors
+  dnsdist -l 127.0.0.1:5300 --new-server 8.8.8.8 # run dns proxy
+
+  dscacheutil -flushcache; sudo killall -H processes
+
+  # query list of dns
+  resolvectl status
+  cat /etc/resolv.conf
+  nmcli dev show | grep DNS
 
   doggo google.com A AAAA MX --time
 
@@ -1312,6 +1556,7 @@
   echo $((10 + 5))
 
   awk 'BEGIN {print 6 * 2.5}'
+  awk 'seen[$0]++ == 1' file.txt. # uniq lines using awk
 
   factor 100
 
@@ -1473,6 +1718,20 @@
   osfetch
   owd
 
+  # refresh zsh
+  exec zsh # more effective than source
+  source ~/.zshrc
+
+  # ==> oh-mh-zsh
+  omz reload
+  omz update
+  omz changelog
+  omz plugin list [--enabled]
+  omz plugin enable|disable plugin
+  omz theme list
+  omz theme set theme
+  omz theme use eastwood # theme. load
+
   oh-my-posh init bash --config $HOME/.cache/oh-my-posh/themes/di4am0nd.omp.json --prompt-string
 
   pfetch
@@ -1612,6 +1871,8 @@
   macchanger -r eth0 : random
   macchanger -p eth0 : reverse
 
+  ethtool -i eth0
+
   # ==> rsync
   rsync Zend Zend1
   rsync -zvh go-pear.phar Zend
@@ -1626,6 +1887,9 @@
 
   rsync -av --remove-source-files /path/to/source/ /path/to/destination/
   rsync -avzh --progress --stats --remove-source-files /path/to/source/ /path/to/destination/
+
+  rsync -avz --rsync-path="sudo rsync" user@remote_host:/remote/path/to/folder/ /local/path/
+  ssh -t user@remote_host "sudo tar -czf - /remote/path/to/folder" | tar -xzf - -C /local/path/
 
   parallel -j 7 rsync A/{} /dest-dir/
   msrsync -p 4 /sender /destination
@@ -1653,6 +1917,7 @@
   find / -size +250M
   find <directory> -type f -size +N<Unit Type>
   find /path -name "*.txt" -mtime -10
+  find . -name "*.tmp" -exec rm {} +
 
   rm -rf /tmp/*
   find /tmp -type f -atime +7 -delete
@@ -1669,6 +1934,10 @@
   find . \\( -path "./dir1" -o -path "./dir5" \\) -prune -o -print
   find . -not -path "./dir1/*" -not -path "./dir5/*"
   find . -name "node_modules" -prune -o -print
+
+  find . -mmin -10 | xargs rg "search_pattern" # list all files modified in last 10 minutes
+  find . -type f -newermt "yesterday" # list recently created/modified files only
+  find . -type f -newermt "today" -print0 | xargs -0 rg "pattern" # search for text in files modified today:
 
   # ==> grep
   grep -P $CREDARR
@@ -1711,14 +1980,15 @@
   zgrep "critical" log.txt.gz | grep "error"
 
   grep 'word1\|word2\|word3' /path/to/file
-  ### Search all text files ###
+  
+  # search all text files ###
   grep 'word*' *.txt
-  ### Search all python files for 'wordA' or 'wordB' ###
+  # Search all python files for 'wordA' or 'wordB' ###
   grep 'wordA*'\''wordB' *.py
   grep -E 'word1|word2' *.doc
   grep -e string1 -e string2 *.pl
   grep -E "word1|word2" *.c
-  ### Show all the lines that do not match given pattern/words/strings ###
+  # Show all the lines that do not match given pattern/words/strings ###
   grep -v 'bar\|foo' /dir1/dir2/file1
   grep -E -v 'pattern1|pattern2' /path/to/file
 
@@ -1911,19 +2181,28 @@
   cut -d ' ' -f 1 logfile.log
   cut -d ' ' -f 2 system.log
   grep "ERROR" system.log | cut -d ' ' -f 1,2 
-  cut -d ' ' -f 1,2,3 system.log 
+  cut -d ' ' -f 1,2,3 system.log
+  cut -c 21- file.txt # or
+  sed 's/^.{20}//' # or
+  awk '{print substr($0, 21)}'
+  python3 -c "import sys; [print(line[20:], end='') for line in sys.stdin]" < file.txt
+
+  sed 's/...$//' file.txt # cut off last 3 characters ...
+  rev file.txt | cut -c4- | rev
+  awk '{print substr($0, 1, length($0)-3)}' file.txt
+  echo -n "yourstring" | head -c-3
 
   # ==> duplicates in file
   sort [options] [file]
   sort -[n|r|k|u] 
-  sort yourfile.txt | uniq -c
-  sort yourfile.txt | uniq -c | grep -v " 1 "
-  sort yourfile.txt | uniq -c | sort -nr # order desc
-  sort yourfile.txt | uniq -cd # show only dups
-  sort yourfile.txt | uniq -ci # unique
-  sort firstnames.txt | uniq -u # only the rows that appear only once
-  sort firstnames.txt | uniq -d # only the lines that appear at least twice in the file
-  sort firstnames.txt | uniq -D # delete lines that appear only once
+  sort file.txt | uniq -c
+  sort file.txt | uniq -c | grep -v " 1 "
+  sort file.txt | uniq -c | sort -nr # order desc
+  sort file.txt | uniq -cd # show only dups
+  sort file.txt | uniq -ci # unique
+  sort file.txt | uniq -u # only the rows that appear only once
+  sort file.txt | uniq -d # only the lines that appear at least twice in the file
+  sort file.txt | uniq -D # delete lines that appear only once
 
   # remove duplicate lines keeping first
   awk '!seen[$0]++' filename > output_filename
@@ -1948,6 +2227,8 @@
   du -sh Documents/TuroBusReceipt
   du -sh VirtualBox\ VMs
   du -sh dist
+
+  du -sh * | sort -h
 
   du -sh * | sort -nr | head
   du --max-depth=1 -x -h
@@ -2076,6 +2357,10 @@
 
   pacman -S tesseract-data-{eng,fra,deu}
 
+  # ==> image view on terminal
+  catimg profile.jpg
+  jp2a --colors|invert|term-fit|width=80 profile.jpg
+
   # ==> exif tool
   # remove metadata like location information from photos
   exiftool image1.jpg image2.jpg ...|*.jpg
@@ -2105,13 +2390,31 @@
   # manipulate images programmatically
   imagemagick
 
-  # disk tool
-  dust
+  # ==> disk tool
+  dust[-d 1|-r] # r- reverse
+  dust -i -D -d 1 # exclude dot files and limit to folders
+  dust -v "\." # use regex
   ncdu
-  duf
-  df
-  dutree
 
+  # duf
+  duf [/]
+  duf --output mountpoint,size,used,avail,usage,type,filesystem
+  duf --all
+  duf --only local,network
+  duf --inodes # inode information instead of block usage
+  duf --width $COLUMNS
+  duf --style ascii  # or --style unicode (default)
+  duf --sort size
+
+  pydf [/]
+  vizex [Data] # name of drive
+  dfrs
+  df [-H --output=source,size,used,avail]
+  dutree
+  di
+  gdu
+
+  # display and manipulate extended attributes
   xattr -rc Chromium.app
 
   # split files size vs number
@@ -2256,7 +2559,7 @@
   parcel build --no-source-maps --no-cache
 
   # ==> netplan
-  ### /etc/netplan/config.yaml
+  # /etc/netplan/config.yaml
   network:
     version: 2
     ethernets:
@@ -2467,15 +2770,18 @@
   tr ',' '\n' < $(tail -1 .cred/kunye/kunye-iam-user-dev_accessKeys.csv)
   tr ',' '\n' < (tail -1 .cred/kunye/kunye-iam-user-dev_accessKeys.csv)
 
-  traceroute www.google.com
-
-  uname -a
-  uname -m
+  # os info
+  uname -a|-m
+  lsb_release # ubuntu
+  mhwd-kernel -li
 
   # ==> unset var
   unset $AWS_ACCESS_KEY_ID
   unset pbcopy
   unset pbpaste
+  unset "${!TF_VAR_@}" # zsh treats ! as reserved
+  unset -m 'TF_VAR_*'
+  for var in $(env | awk -F= '/^TF_VAR_/ {print $1}'); do unset "$var"; done
 
   unsetopt nomatch # avoid without quote - not good
 
@@ -2537,6 +2843,8 @@
   nslookup -type=[A|MX] example.com
   nslookup -type=ptr 10.10.2.82
 
+  traceroute www.google.com
+
   ifconfig en0 | grep 'inet' | awk 'NR== 2 { print substr($2, 1) }'
 
   # ==> fzf
@@ -2544,7 +2852,6 @@
   fzf --preview 'bat {-1} --color=always'
 
   tail -f /var/log/pacman.log | bat --paging=never -l log
-
 
   awk '/pattern1/ || /pattern2/ || /pattern3/' filename
   awk '/pattern1|pattern2|pattern3/' filename
@@ -2565,21 +2872,19 @@
     END { print "--- End of Report ---" }
   ' filename
 
-
   ffmpeg -i input.mp4 -vn -acodec libmp3lame -q:a 4 output.mp3
   toilet -f mono12 --metal "Colorful Text"
-
 
   grep "Failed password" /var/log/auth.log
   egrep "Failed|Failure" /var/log/auth.log
   grep "Failed password" /var/log/secure
   journalctl -u sshd | grep "Failed password"
+  journalctl -xu docker.service # show real service error
 
   ubuntu: journalctl -u ssh | grep "Failed password"
 
   faillock
   faillock --user <username>
-
 
   ssh user@target-ip 'sudo -l'
 
@@ -2675,6 +2980,7 @@
   free -mh
 
   du -sh
+  du -h --max-depth=2 | grep '/$' # see a directory tree with sizes without files getting in the way
 
   df -h
   df /dev/disk3s1s1
@@ -2728,13 +3034,11 @@
   find . -name "net_stats" -type f -print0 | xargs -0 /bin/rm -v -rf "{}"
   echo ./Templates/ ./Documents/ | xargs -n 1 cp -v ./Downloads/SIC_Templates
 
-
   find Documnets -depth | xargs -n 1 rename -v 's/(.*)\/([^\/]*)/$1\/\L'
   find . -type f -not -name '*gz' -print0 | xargs -0 -I {} rm -v {}
   xargs -a rss_links.txt
   find Downloads -name "DomTerm" -type d -print0 | xargs -0 -t /bin/rm
   echo ./Templates/ ./Documents/ | xargs -p -n 1 cp -v ./Downloads/SIC_Templates
-
 
   echo 'one two three' | xargs mkdir
   find . -name '*.txt' | xargs -d '\n' rm
@@ -2853,9 +3157,13 @@
   ip sclet
 
   ipconfig
+  ipconfig getpacket en0 # Show routing table via ipconfig
   ip -br a
   ip addr
   ip addr show docker0
+
+  ifconfig # all interface + routes
+  netstat -rn
 
   ip addr show or ip a 
   ip addr show eth0
@@ -2930,6 +3238,14 @@
   find /usr/local/lib/ -maxdepth 1 -follow  -type l
   find /usr/local/lib/ -maxdepth 1 -follow  -type l -delete
 
+  # ==> rg
+  rg -g '*.txt' "pattern"
+  rg --files | rg "pattern"
+  rg --files | rg "\.js$"
+  rg -l "search_term"
+  rg "pattern" -g "README.md"
+  rg --files -uu | rg "pattern"
+
   loadtest --version
   loadtest -c 10 --rps 200 https://localhost:8443/api/v1/ping
 
@@ -2937,13 +3253,13 @@
   lsd
   lsdisk
   lsgpu
+  lspci #or 
+  nvidia-smi
 
   lsof -i :8080
-  ls Library/Safari/
+  lsof -i -P
+
   lshw -C display
-  lsof -i -P
-  lsof -i :8080
-  lsof -i -P
 
   find . \( -name "*.py" -o -name "*.html" \)
   find . -type d -name .git
@@ -2963,7 +3279,6 @@
   curl -d "data-as-query-parameters" -i -X POST http://username:password@site-uri/path
   curl -d "token=job-token&anotherparam=value" -i -X POST http://username:myJobToken@myjenkins:8080/job/my-job/buildWithParameters
   curl -d "param=value" -i -X POST http://username:myApiKey@myjenkins:8080/job/my-job/buildWithParameters
-
 
   curl -X GET 
        -H "Authorization: Bearer <Access Token>" 
@@ -2994,6 +3309,9 @@
 
   mount.cifs //192.168.1.98/Data /mnt/tcapsule -o user=murpheux,sec=ntlm,vers=1.0,[gid=$(id -g),uid=$(id -u),forcegid,forceuid
   mount -t nfs -o nfsvers=3 gru:/mnt/volume01 ~/mnt/volume01
+
+  # mount time machine snapshots
+  mount_apfs -s com.apple.TimeMachine.2026-05-28-142031.local / ~/Desktop/Snapshot_Mount
 
   umount -l /mtn/tcapsule
 
@@ -3035,8 +3353,11 @@
   # ==> change username
   su -  
   su - ${USER}. # log out of the server and back in
-  sudo su [-] # substitute user: similar to sudo [change home]
-  sudo su ec2-user
+  su [-] # substitute user: similar to sudo [change home]
+  su username
+  su - username
+  runuser -l username -c 'command_to_run'
+  sudo -u username command_to_run
 
   usermod -l murpheux -d /home/murpheux -m user
   groupmod -n murpheux user
@@ -3084,6 +3405,18 @@
   history -E -10
   history -i
 
+  history | sed 's/^[ ]*[0-9]*[ ]*//' # no number or 
+  history | awk '{$1=""; print $0}'
+
+  history -p
+  history -p \!-{10..1}
+
+  history -n # zsh - omit numbers
+
+  setopt | grep history
+
+  history | sed 's/^[ ]*[0-9]*[ ]*//' | sed 's/\* //' | sed 's/\\//g' | sort | uniq > .dotfiles/common.sh
+
   fc -l
   fc -l 4 7
   fc -E -l -10
@@ -3100,6 +3433,15 @@
 
   /usr/share/xgreeters/lightdm-gtk-greeter.desktop
   Exec=env GTK_THEME=Adwaita:dark lightdm-gtk-greeter
+
+  # block cli command execution
+  badcmd() {
+    echo "This command is blocked on this machine."
+  } # or
+
+  alias badcmd="echo 'This command is blocked on this machine.'" # User can bypass with: command badcmd or
+  mv /usr/local/bin/badcmd /usr/local/bin/badcmd.disabled # Does not work for SIP‑protected paths (/usr/bin, /bin, /sbin), break updates
+  chmod 000 /usr/local/bin/badcmd # root can undo this
 
   # ==> aria
   aria --version
@@ -3189,12 +3531,16 @@
   stress-ng --cpu 1 --cpu-method fft -t 1m
   stress-ng --vm 1 --vm-bytes 2G --verify -v
 
-
   stress
   stress -c 4
   stress -i 2
   stress -c 2 -i 1 -m 1 --vm-bytes 128M -t 10s
   stress --cpu 4 --timeout 300s
+
+  # ==> loadtest
+  loadtest -c 10 --rps 200 http://localhost:8000/api
+  loadtest -c 10 --rps 200 insecure https://localhost:8000/api
+  ab -n 1000 -c 4 http://sclet:3000/customer/1
 
   time curl https://nissan-qa-iwa-qa.nissan-qa.cognitran-cloud.com/vehicles/SJNFCAJ10U2247149
   time dig cnn.com
@@ -3247,8 +3593,7 @@
   buildah
   cmatrix
 
-  compgen
-  compgen -a
+  compgen [-a]
   conda
   confluent --version
 
@@ -3258,15 +3603,36 @@
   diff check check2
 
   dotnet --version
+
   diskutil list
+  diskutil apfs list
+  diskutil apfs listSnapshots disk3s1s1
 
   dkps
+
+  # dns performance
+  time dig www.google.com @dns
+
   dnsperf
   dnsperf -a sclet
   dnsperf -a www.google.com
   dnsperf -s 10.10.2.9 -a sclet
   dnsperf -s 10.10.2.9 sclet
   dnsperf -s sclet
+
+  # queryfile.txt file
+  # telus: dns24.telus.com - 209.171.203.24
+
+  example.com A
+  example.com AAAA
+  google.com MX
+  www.example.com A
+
+  dnsperf -s 192.168.1.10 -d queryfile.txt -l 30
+  dnsperf -s 192.168.1.10 -d queryfile.txt -c 20 -l 60 # high-load testing
+  dnsperf -s 192.168.1.10 -d queryfile.txt -t -l 30
+  dnsperf -s 192.168.1.10 -p 5353 -d queryfile.txt -S 1 # specifc port
+
   do printf "%s:\t" "$dir"; find "$dir" -type f | wc -l; done
 
   docklls
@@ -3298,7 +3664,8 @@
   vim -d file1 file2
   vimdiff file1 file2 file3
 
-  vimdiff -c 'set diffopt=filler,context:0' file1 file2 # with min context
+  vimdiff -c 'set diffopt=filler,context:0' file1 file2 # with min context 
+  vimdiff -c "set diffopt+=context:0" file1 file2 # show only diff
 
   whois app.kunyefinancial.com
   whois softcraft.ddns.net
@@ -3356,7 +3723,7 @@
   lvm
   vgdisplay
   lvextend -l +100%FREE /dev/ubuntu-vg/ubuntu-lv
-  sudo lvextend -r -l +100%FREE /dev/ubuntu-vg/ubuntu-lv  # extension and resizing steps
+  lvextend -r -l +100%FREE /dev/ubuntu-vg/ubuntu-lv  # extension and resizing steps
   resize2fs /dev/ubuntu-vg/ubuntu-lv # ext4
   xfs_growfs / # xfs
   df -h /
@@ -3383,11 +3750,23 @@
   scp -r dist ec2-user@3.97.7.88:~
   scp .cred/kunye/dapoo.pem ec2-user@15.222.2.113:~/.cred/
 
+  # maintain ownershop and attributes
+  scp -p /path/to/local/file user@remote:/path/to/destination/
+  sudo rsync -azp --numeric-ids /path/to/local/dir/ user@remote:/path/to/destination/
+  sudo rsync -azp --rsync-path="sudo rsync" /src/dir/ user@remote:/dest/dir/
+  sudo rsync -azp --numeric-ids --rsync-path="sudo rsync -t" HomeNet murpheux@cass:~/HomeNet_backup
+  sudo rsync -azp --numeric-ids --rsync-path="ssh -t murpheux@cass sudo rsync -t" HomeNet murpheux@cass:~/HomeNet_backup
+
+  rsync -rltzp /src/dir/ user@remote:/dest/dir/ # Drop the strict attribute flags
+  rsync -azp --no-perms --no-owner --no-group /src/dir/ user@remote:/dest/dir/ # want to keep using -a for its other benefits but want to explicitly mute the errors regarding ownership and permissions, append these exclusion flags
+
+
   snmpwalk -v2c -c public softctaftprn sysName
 
   screen
   setterm -linewrap off
 
+  # ==> nfs
   showmount -a
   showmount -e
   showmount -e gru
@@ -3395,6 +3774,7 @@
   sidxindex
   skopeo
 
+  # disk performance
   smartctl
   smartctl --info disk0
   smartctl -a disk0
@@ -3621,7 +4001,6 @@
   git reset HEAD -- path/to/file
   git reset HEAD -- .
 
-
   /var/lib/kubelet/pki/kubelet-client-current.pem
   kubectl exec carts-787dc77557-p6d8r -n sock-shop -- env
 
@@ -3633,7 +4012,6 @@
   fontforge -script font-patcher -c --no-progressbars Delugia.ttf
 
   java -jar jenkins-cli.jar -s http://my.jenkins.host delete-builds myproject '1-7499' --username $user --password $password
-
 
   mail
   mailq
@@ -3762,25 +4140,23 @@
   mongo mongodb+srv://kunyedev.00m8b.mongodb.net --tlsCertificateKeyFile mongodb/X509-cert-3957701695702940150.pem
   mongosh mongodb+srv://murpheux@kunyedev.00m8b.mongodb.net
 
+  # ==> ncdu
   ncdu .|~
   ncdu /path/to/directory
   ncdu /path/to/scan --exclude /path/to/exclude
+  ncdu --exclude '.*'
+  ncdu --exclude '.*' --exclude 'node_modules'
+  ncdu -X my_excludes.txt # from a file
+  ncdu --exclude "*.mp4" --exclude "*.log" --exclude "*.zip"
 
-  # ==> mount fstab
-  mount -a
-
-  # ==> Reload nfs
-  exportfs -arv
-
-  # ==> View nfs share
-  showmount -e gru
-
-  # ==> mount iso
-  mount -t iso9660 -o loop TinyCore-current.iso /mnt/isomnt
+  # ==> mount drives
+  mount -a # ==> mount fstab
+  exportfs -arv # ==> reload nfs
+  showmount -e gru # ==> view nfs share
+  mount -t iso9660 -o loop TinyCore-current.iso /mnt/isomnt # ==> mount iso
   mount -t cifs //10.10.2.99/Data /mnt/backup -o sec=ntlm,uid=murpheux,vers=1.0
 
-  # ==> Un-mount
-  umount /mnt
+  umount /mnt # ==> un-mount
 
   mount_smbfs //user@SERVER/folder ./mntpoint
   mount_smbfs -W workgroup //user@SERVER/folder ./mntpoint
@@ -4044,8 +4420,101 @@
   csvsql --db postgresql:///database --insert data.csv # import into postgreSQL
   sql2csv --db postgresql:///database --query "select * from data" > new.csv # extract data from PostgreSQL
 
+  # ==> iptables
+  iptables -L | -L -v | -S | -F
+  iptables -L | grep policy
+  service iptables save
+  iptables -F && sudo /sbin/iptables-save
+  iptables -t nat -L -v -n
+  iptables -S TCP | UDP
+
+  iptables INPUT -j DROP
+  iptables -A INPUT -s 10.10.2.5 -j DROP
+  iptables -A INPUT -p tcp -s xxx.xxx.xxx.xxx -j DROP
+  iptables -D INPUT -s 10.10.2.0/24 -j DROP
+  iptables -A INPUT -p tcp -s xxx.xxx.xxx.0/24 -j DROP
+  iptables -A OUTPUT -p tcp --dport 111 -j DROP
+  iptables -A INPUT -p tcp --dport xxx -j DROP
+  iptables -A INPUT -p tcp -s xxx.xxx.xxx.0/24 --dport 80 -j ACCEPT
+  iptables -A INPUT -p tcp -s xxx.xxx.xxx.0/24 --dport 80 -j DROP
+  iptables -A INPUT -p udp -s xxx.xxx.xxx.0/24 --dport 80 -j DROP
+  iptables -A INPUT -p tcp -s xxx.xxx.xxx.0/24 --dport ssh -j DROP
+  iptables -A OUTPUT -p tcp --dport ssh -j ACCEPT
+  iptables -A INPUT -p tcp --dport ssh -j DROP
+  iptables -A INPUT -i eth0 -p tcp --dport 22 -m state --state NEW,ESTABLISHED -j ACCEPT
+  iptables -A OUTPUT -o eth0 -p tcp --dport 22 -m state --state NEW,ESTABLISHED -j ACCEPT
+  iptables -A INPUT -p tcp -m multiport --dports 22,80,110 -j ACCEPT
+  iptables -A OUTPUT -p tcp -m multiport --sports 22,80,110 -j ACCEPT
+  iptables -A OUTPUT -p tcp -d xxx.xxx.xxx.0/24 --dport 22 -j ACCEPT
+  iptables -A INPUT -p tcp -s xxx.xxx.0.0/24 --dport 22 -j DROP
+  iptables -A INPUT -p tcp --dport 80 -m limit --limit 50/minute --limit-burst 100 -j ACCEPT
+  iptables -A INPUT -pr icmp -i eth0 -j DROP
+  iptables -A INPUT -i eth0 -j LOG --log-prefix "IPtables dropped packets:"
+  iptables -A INPUT -i eth0 -s xxx.xxx.xxx.0/24 -j DROP
+
+  port forwarding
+  iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 25 -j REDIRECT --to-port 3535
+
+  loopback access
+  iptables -A INPUT -i lo -j ACCEPT
+  iptables -A OUTPUT -o lo -j ACCEPT
+
+  iptables -A INPUT -m mac --mac-source 00:00:00:00:00:00 -j DROP
+  iptables -A INPUT -p tcp --syn --dport 22 -m connlimit --connlimit-above 3 -j REJECT
+  iptables -L $table -v -n | grep $string
+  iptables-save > ~/iptables.rules
+  iptables-restore < ~/iptables.rules
+  iptables -A OUTPUT -p tcp --dports 25,465,587 -j REJECT
+  iptables -Z
+
+  allow internal and ext connection
+  iptables -A FORWARD l-i eth1 -o eth0 -j ACCEPT
+
+  iptables -A INPUT -p tcp --dport 22 -j ACCEPT
+
+  iptables -A INPUT -p icmp --icmp-type timestamp-request -j DROP
+  iptables -A OUTPUT -p icmp --icmp-type timestamp-reply -j DROP
+  iptables-save > /etc/iptables/rules.v4
+  iptables -L
+
+  # ==> jp2a
+  jp2a --output=ascii.txt --colors Pictures/profile_full.JPG
+  jp2a --output=ascii.txt --colors Pictures/profile_pix.jpg
+  jp2a --output=ascii.txt --colors Pictures/profile_pix2.jpg
+  jp2a --output=ascii.txt --colors input.png
+
+  kitty icat profile.jpg
+
+  catimg profile.jpg
+  viu profile.jpg
+  timg [-g80x40] profile.jpg
+
+  # ==> neomutt
+  neomutt
+  neomutt -F .config/mutt/clemgmail/
+  neomutt -F .config/mutt/clemgmail/muttrc
+  neomutt -F mutt/clemgmail/muttrc
+  neomutt -F mutt/dapolive/muttrc
+
+  neomutt -f MAILBOX -e 'tag-pattern ~f SENDER; delete-message; sync-mailbox'
+
+  # ==> md2term
+
+  md2term README.md # Convert a markdown file
+  cat README.md | md2term # Read from stdin
+  curl -s https://raw.githubusercontent.com/user/repo/main/README.md | md2term # Pipe from other commands
+  llm 'tell me long a story about cheesecakes using markdown formatting' | md2term # Or commands with slow output
+  md2term --width 100 README.md # Override terminal width
+  md2term --version # Show version
+  md2term --help # Show help
+
 #:::::::::::::::::::::::::::::: docker ::::::::::::::::::::::::::::::
   docker run -p 5601:5601 -p 9200:9200 -p 5044:5044 -it --name elk sebp/elk
+  docker run -d --name ollama-proxy -p 11434:11434 -e OPENROUTER_API_KEY="YOUR_KEY_HERE" marknefedov/ollama-openrouter-proxy
+
+  # ==> tools
+  lazydocker
+  DOCKER_HOST=tcp://sclet:2375 ctop # ctop on direct host
 
   DOCKER_HOST=tcp://sclet:2375 ctop [-i]
   DOCKER_HOST=tcp://192.168.1.100:2376
@@ -4062,7 +4531,7 @@
   DOCKER_CERT_PATH="/Users/murpheux/.docker/machine/machines/default"
   DOCKER_MACHINE_NAME="default"
 
-  docker ps --size
+  docker ps [--size]
   docker system df
   docker system df -v
   docker container stats
@@ -4078,6 +4547,7 @@
 
   docker ps --format '{{.ID}}'
 
+  # remove exited container
   docker container prune 
   docker rm $(docker ps -a -q -f status=exited)\
 
@@ -4117,8 +4587,10 @@
   docker stop my-nginx or 87a77be6a8e4
 
   docker inspect <container_id_or_name>
+  docker inspect --size <container_id_or_name>
   docker inspect -f '{{.HostConfig.Memory}}' <container_id_or_name>
   docker inspect -f '{{.HostConfig.NanoCpus}}' <container_id_or_name>
+  docker inspect --format='{{.LogPath}}' <container_name> | xargs du -h # log sizes
 
   # find source files
   docker inspect <container_name_or_id> --format '{{ index .Config.Labels "com.docker.compose.project.config_files" }}'
@@ -4131,6 +4603,19 @@
   docker exec -it dbc48077448e /bin/bash
   docker run -it -d nginx /bin/bash # if stopped
 
+  docker exec -it -u 1000 softcraftdns2 /bin/bash
+  docker exec -it --user 1000 softcraftdns2 /bin/bash
+
+  # docker check limit
+  docker inspect --format 'CPUs: {{.HostConfig.NanoCpus}} | Quota: {{.HostConfig.CpuQuota}} | Period: {{.HostConfig.CpuPeriod}}' <container_id>
+  docker stats <container_id_or_name>
+  cat /sys/fs/cgroup/cpu.max # run in container
+  cat /sys/fs/cgroup/cpu/cpu.cfs_quota_us # older systems - cgroup v1
+
+  docker inspect -f '{{ .State.StartedAt }}' <container_id_or_name> # uptime
+  docker ps --format "table {{.Names}}\t{{.Status}}" # relative uptime
+  stat /proc/1 # inside container
+
   docker swarm init [--listen-addr 10.10.2.90:2377  --advertise-addr 10.10.2.90]
   docker swarm leave [-f]
   docker swarm join-token manager|worker
@@ -4138,11 +4623,17 @@
   docker swarm join-token  --rotate worker1
   docker swarm join --token <token> gru:2377
 
+  docker stack deploy -c swarm-cleaner.yml cleanup
+  docker swarm update --task-history-limit 0
+
   docker container ls/list
   docker container rm 67hdjdh34
+  docker container prune -f
+
   docker node ls/list
   docker node remove sclinux01
   docker node inspect self --pretty
+  docker node inspect --pretty <NODE-ID>
   docker node promote node-3 node-2
   docker node demote node-3 node-2
   docker node rm/remove node-2
@@ -4152,6 +4643,7 @@
   docker node ps moby
   docker node update --availability drain moby
   docker node update --availability active moby
+
   docker service update --publish-rm 8080 cadvisor
   docker service update --publish-add mode-host,published=8080,target=8080 cadvisor 
   docker service update --image nginx:v2 [--update-delay=10s] [--update-parallelism=2] nginxweb
@@ -4159,7 +4651,7 @@
   docker service ls/list
   docker service remove lucid_mclean
   docker service update
-  docker service ps mysvc
+  docker service ps [<service_name>]
   docker service create nginx
   docker service list
   docker service remove lucid_mclean
@@ -4173,9 +4665,11 @@
     --mount "type=bind,source=/mnt/docker/webapp-proxy/conf,target=/etc/nginx/conf.d" docker-registry.dccn.nl:5000/nginx:1.0.0
   docker service create --replicas 6 --network nw1 -p 80:80/tcp --name nginx nginx
   docker service logs [--follow] <serviceid>
+  docker service logs cadvisor --tail 50
+  docker service ps softcraftxandy --no-trunc
+
   docker network create --driver overlay --attachable mongoshard
   docker network create --ipv6 --subnet 2001:db8:2::/64 my_ipv6_net
-
 
   docker inspect a352938ebd5c
   docker inspect --format='{{json .Mounts}}' <container_id> | jq
@@ -4204,6 +4698,7 @@
 
   docker scout quickview [image name]
   docker scout cves local://nodeapi:1.0.0
+  docker scout quickview pihole/pihole
 
   # save container to tar file
   docker save -o nodeapi.tar nodeapi:1.0.0
@@ -4227,11 +4722,22 @@
   docker network create --driver bridge isolated_nw
 
   docker build -t kunye-test .
+
+  export DOCKER_BUILDKIT=0 # not use buildx
+
   docker container run --name c1 --rm --it python
   docker container run --name c1 --rm -it --runtime=runc python
   docker container run --name c1 --rm -it python
   docker context
   docker context list
+
+  docker context create <CONTEXT_NAME> --docker "host=<ENDPOINT>"
+  docker context create my-remote-server --docker "host=ssh://user@remote-host"
+  docker context create remote-tcp --docker "host=tcp://192.168.1.100:2375"
+  docker context create local-custom --docker "host=unix:///var/run/docker-custom.sock"
+  docker context create new-context --from existing-context
+  docker context create murpheux-gru --docker "host=ssh://murpheux@gru"
+
   docker context use murpheux-scarlet
   docker images
   docker node ls
@@ -4255,6 +4761,21 @@
   docker container prune
   docker container prune --force --filter "until=2017-01-04T13:10:00"
   docker system prune
+
+  docker volume ls --filter name=minio --format "table {{.Driver}}\t{{.Name}}"
+
+  mount -t nfs -o rw medusa:/Users/murpheux/nfs_share /mnt
+
+mount -t nfs -o resvport,rw medusa:/Users/murpheux/nfs_share /mnt/meme
+
+sudo mount -t nfs -o rw 192.168.1.100:/remote/share /mnt/local_mount_point
+
+docker run --rm -v my_volume_name:/data alpine ls -la /data
+
+docker run --rm -it -v my_volume_name:/data alpine sh
+
+docker volume inspect my_volume_name
+
 
   docker ps -aq
   docker ps --no-trunc -aq
@@ -4373,16 +4894,23 @@
   docker-compose up --scale vault=3 -d
   docker-compose up --scale vault=3 --scale consul-worker=6 -d
 
-  # ==> docker-machine 
-  dm create --driver virtualbox|vmwarefusuion|hyperv|google aManager
-  dm env aManager
-  dm ip aManager
-  dm ssh aManager
-  dm ls
-  dm rm aWorker1
-  dm env --unset
+  docker system prune -a -f
 
-  dm create worker-2015-01 --driver google --google-machine-type f1-micro --google-tags myswarm --google-project goopro-178706
+  # docker service force redistribute
+  docker service update --force <service_name>
+  docker stack services -q <stack_name> | xargs -I {} docker service update --force {}
+  docker stack services -q <stack_name> | xargs -I {} docker service update --force {}
+
+  # ==> docker-machine - deprecated
+  docker-machine create --driver virtualbox|vmwarefusuion|hyperv|google aManager
+  docker-machine env aManager
+  docker-machine ip aManager
+  docker-machine ssh aManager
+  docker-machine ls
+  docker-machine rm aWorker1
+  docker-machine env --unset
+
+  docker-machine create worker-2015-01 --driver google --google-machine-type f1-micro --google-tags myswarm --google-project goopro-178706
 
   docker-machine create -d generic --generic-ip-address <ip> --generic-ssh-key <keypath> --generic-ssh-user <user> --generic-ssh-port 22 <vm name>
   docker-machine create --driver generic --generic-ip-address=10.10.2.80 --generic-ssh-key ~/.ssh/id_rsa --generic-ssh-user=murpheux vm
@@ -4762,10 +5290,12 @@
 
   apt-mark hold kubelet kubeadm kubectl
 
-#::::::::::::::::::::::::::::: loadtest :::::::::::::::::::::::::::::
-  loadtest -c 10 --rps 200 http://localhost:8000/api
-  loadtest -c 10 --rps 200 insecure https://localhost:8000/api
-  ab -n 1000 -c 4 http://sclet:3000/customer/1
+  # ==> helm
+  helm --version
+  helm repo list
+  helm update
+  helm upgrade
+  helm version
 
 #::::::::::::::::::::::::::::: ansible ::::::::::::::::::::::::::::::
   ANSIBLE_DEBUG=true -vvvv ansible-playbook deploy/ansible/deploy.yml
@@ -4841,101 +5371,6 @@
   swift package show-dependencies
   swift package init
 
-#::::::::::::::::::::::::::::::: pm2 ::::::::::::::::::::::::::::::::
-  pm2 list
-  pm2 start app.js
-  pm2 start app.js -i 16
-  pm2 start app.yml
-  pm2 stop <app name>
-  pm2 delete <app name>
-  pm2 scale <app name> +/-16
-  pm2 restart all
-  pm2 reload server
-  pm2 monit
-  pm2 jlist
-  pm2 prettylist
-  pm2 describe <service name>
-
-  pm2 link  7374lm74 63734k334
-  pm2 interact stop
-  pm2 interact delete
-
-  pm2 start proc.yml
-  pm2 start proc.json
-  pm2 gracefulReload all
-
-  pm2 start app.js -i 0 --name "api"
-  pm2 restart api
-  pm2 stop api
-  pm2 restart api
-  pm2 delete api
-  pm2 kill
-  npm install pm2@latest -g ; pm2 update
-  pm2 deploy help
-
-  pm2 start echo --interpreter=python
-  pm2 start api_v1.py --interpreter=python3 -instance 4
-  pm2 start api_v1.py --interpreter=python3 --instances=4
-  pm2 scale api_v1 +1
-
-  npm install pm2 -g            # Install PM2
-  pm2 start app.js              # Start, Daemonize and auto-restart application (Node)
-  pm2 start app.py              # Start, Daemonize and auto-restart application (Python)
-  pm2 start npm -- start        # Start, Daemonize and auto-restart Node application
-
-  # Cluster Mode (Node.js only)
-  pm2 start app.js -i 4         # Start 4 instances of application in cluster mode
-                                  # it will load balance network queries to each app
-  pm2 reload all                # Zero Second Downtime Reload
-  pm2 scale [app-name] 10       # Scale Cluster app to 10 process
-
-  # Process Monitoring
-  pm2 list                      # List all processes started with PM2
-  pm2 list --sort=<field>       # Sort all processes started with PM2
-  pm2 monit                     # Display memory and cpu usage of each app
-  pm2 show [app-name]           # Show all information about application
-
-  # Log management
-  pm2 logs                      # Display logs of all apps
-  pm2 logs [app-name]           # Display logs for a specific app
-  pm2 logs --json               # Logs in JSON format
-  pm2 flush
-  pm2 reloadLogs
-
-  # Process State Management
-  pm2 start app.js --name="api" # Start application and name it "api"
-  pm2 start app.js -- -a 34     # Start app and pass option "-a 34" as argument
-  pm2 start app.js --watch      # Restart application on file change
-  pm2 start script.sh           # Start bash script
-  pm2 start app.json            # Start all applications declared in app.json
-  pm2 reset [app-name]          # Reset all counters
-  pm2 stop all                  # Stop all apps
-  pm2 stop 0                    # Stop process with id 0
-  pm2 restart all               # Restart all apps
-  pm2 gracefulReload all        # Gracefully reload all apps in cluster mode
-  pm2 delete all                # Kill and delete all apps
-  pm2 delete 0                  # Delete app with id 0
-
-  # Startup/Boot management
-  pm2 startup                   # Detect init system, generate and configure pm2 boot on startup
-  pm2 save                      # Save current process list
-  pm2 resurrect                 # Restore previously saved processes
-  pm2 unstartup                 # Disable and remove startup system
-
-  pm2 update                    # Save processes, kill PM2 and restore processes
-  pm2 init                      # Generate a sample js configuration file
-
-  # Deployment
-  pm2 deploy app.json prod setup    # Setup "prod" remote server
-  pm2 deploy app.json prod          # Update "prod" remote server
-  pm2 deploy app.json prod revert 2 # Revert "prod" remote server by 2
-
-  # Module system
-  pm2 module:generate [name]    # Generate sample module with name [name]
-  pm2 install pm2-logrotate     # Install module (here a log rotation system)
-  pm2 uninstall pm2-logrotate   # Uninstall module
-  pm2 publish
-
 #::::::::::::::::::::::::::: powershell :::::::::::::::::::::::::::::
   echo %CMDCMDLINE%
   Get-Process -Id $PID
@@ -4946,6 +5381,63 @@
 
   cls|Clear-Host
   ls|Set-Location
+
+  # ==> win tools
+  diskpart # manage disks, partitions & storage
+  dism /online /clean--image /startcomponentcleanup | /checkhealth | /scanhealth | /RestoreHealth
+  fsutil resource setautoreset true c:/
+  fsutil dirty query c:
+  driverquery [/v /fo list] # list all drivers
+  powercfg /batteryreport
+  powercfg /energy
+  findstr /c:"error" %windir%\logs\cbs\cbs.log # find error in cbs sys log files 
+  wmic memorychip get banklabel, capacity, speed # show ram details
+  sfc /verifyonly # scasn sys files, no changes
+  net user # list users accounts
+  w32tm /resync
+  wevutil cl system # clears systems event logs
+  sc query
+  sc config wuauserv start=auto
+  net start wuauserv
+  shutdown /r /o /f /t 0 # boot into advanced recovery options
+  ipconfig /flushdns | /release | /renew | /registerdns
+  netsh int ip reset
+  netsh advfirewall reset
+  taskkill /IM explorer.exe /F
+  start explorer.exe
+  cleanmgr
+  rstrui.exe
+  sfc /scannow
+  chkdsk c: /f /r
+  bootrec /fixmbr | /fixboot | /rebuildbcd
+  bcdboot c:\Windows /l en-us /s c: /f ALL
+  netsh. winsock reset
+  systemreset -cleanpc
+  msconfig # sys config tool
+  perfmon /report # full sys health report
+  mdsched.exe # win memory diagnostics
+  eventvmr # event viewer
+  resmon # resource monitor
+  taskmgr
+  services.msc
+  devmgmt.msc
+  diskmgmt.msc
+  control printers. # printers and device panel
+  optionalfeatures # enable of disable features
+  mrt # malicious software removal
+  netstat -ano # show active network connections
+  getmac # mac address of adapters
+  pathping google.com
+  route print # display routing table
+  netshe wlan show profiles # show saved wifi profile
+  cleanmgr sageset:1 # adv disk options
+  cleammgr sagerun:1 # adv disk clean up
+  defrag c: /0 # optimize and defrag drive
+  fsutil fsinfo drives # show all available drives
+  fsutil volume diskfree c: # check free disk space
+  chkdsk c: # scan drive for errors
+  mountvol # manage volume mount points
+  diskpart # list disks/volumes
   
   # ==> system info and arch
   msinfo32
@@ -5135,13 +5627,15 @@
   Set-WUSettings #: Configures the Windows Update client’s settings.
   Reset-WUComponents #: Resets the Windows Update agent to its default state.
 
-  # elevated rights
-  sudo netstat -ab
+  (Get-History).CommandLine
+
+  # elevated rights - sudo
+  netstat -ab
   Start-Process powershell -Verb RunAs
   runas /user:admin
   Start-Process powershell -Verb RunAs -ArgumentList "-Command Write-Output 'Hello Admin'"
   winget install gsudo # older windows
-  sudo runas /user:admin Get-WindowsUpdate -MicrosoftUpdate -Install
+  runas /user:admin Get-WindowsUpdate -MicrosoftUpdate -Install
 
   Get-WindowsCapability -Online | Where-Object Name -like 'OpenSSH.Server*'
   New-NetFirewallRule -Name "AllowSSH" -DisplayName "Allow SSH Port 22" -Enabled True -Direction Inbound -Protocol TCP -LocalPort 22 -Action Allow
@@ -5461,6 +5955,14 @@
   update-alternatives --config java
   update-alternatives --install /usr/bin/java java /usr/local/java/jre1.7.0_09/bin/java 1085
 
+  xattr -r -d com.apple.quarantine /Library/Java/JavaVirtualMachines/
+  codesign --force --deep --sign - /Library/Java/JavaVirtualMachines/<your_jdk_folder_name> # manually Re-sign the Binary
+
+  xattr -cr /Applications/AppName.app
+  xattr -d com.apple.quarantine /Library/Java/JavaVirtualMachines/jdk-26.jdk
+  xattr -rc /Library/Java/JavaVirtualMachines/jdk-26.jdk
+  codesign --force --deep --sign - /Library/Java/JavaVirtualMachines/jdk-26.jdk
+
   jar xf <file>.jsr - extract
   java -jar build/jar/Hello.jar
 
@@ -5487,6 +5989,12 @@
 
 #::::::::::::::::::::::::::::::: git ::::::::::::::::::::::::::::::::
   git init [-bare]
+
+  gmtl=git mergetool --no-prompt
+  gmtlvim=git mergetool --no-prompt --tool=vimdiff
+  gl=git pull
+  grba=git rebase --abort
+  ga=git add
 
   git add <filename>
   git add *|-
@@ -5571,9 +6079,13 @@
   git commit -a -S -m "Signed commit"
   git commit -a
   git push origin master
+  
   git status [-C|-git-dir <path/to/other/directory>]
   git status -vv
   git status -b -s
+  git status .
+  git status -s .
+
   git remote add origin <server>
   git remote set-url origin <server>
   git remote -v
@@ -5624,6 +6136,8 @@
 
   git merge master
   git merge-file <current-file> <base-file> <other-file>
+  git checkout --merge <branch_name> <path/to/file> # alternatives
+  git checkout --patch <branch_name> <path/to/file>
 
   # ==> git imerge
   git imerge merge <branch>
@@ -5634,6 +6148,7 @@
 
   # ==> diff
   git diff
+  git diff HEAD
   git diff --staged
   git diff --name-only
   git diff --name-status
@@ -5642,6 +6157,11 @@
   git diff --base <filename>
   git diff origin/main HEAD
   git diff <sourcebranch> <targetbranch>
+
+  git diff --staged -- path/to/file.ext
+  git diff --no-index path/to/file1 path/to/file2
+
+  git diff origin/master dev -- commands.sh
 
   fdz
   fdz master .
@@ -5711,7 +6231,7 @@
   git fetch --progress "--all"
   git remote set-url --push origin no_push
 
-  # Revert changes to modified files.  -- undo changes
+  # revert changes to modified files.  -- undo changes
   git reset --hard
   git reset --hard origin/master
   git reset --soft HEAD~1
@@ -5800,6 +6320,7 @@
   git diff -- . ":!folder1" ":!folder2"
 
   git diff HEAD@{1} addcard.py
+  git ls-remote --heads origin # list remote branches
   git ls-remote -h murpheux@gru:/projects.git/projects/seisewa HEAD
   git log --pretty=oneline -S"blame_usage"
   git blame <file>
@@ -6016,10 +6537,28 @@
   curl -s https://php-osx.liip.ch/install.sh | bash -s 7.3
 
 #:::::::::::::::::::::::::::: terraform :::::::::::::::::::::::::::::
+  export TF_CLI_ARGS_plan="-out=/path/to/secret.tfplan"
+  export TF_CLI_ARGS_apply="/path/to/secret.tfplan"
+  TF_VAR_zzzzz=""
+
   terraform
   terraform version
   terraform init [-upgrade]
   terraform plan [-out=tfplan] [-var-file='../terraform.tfvars']
+  terraform init -migrate-state
+  terraform init -reconfigure
+  terraform plan -refresh-only
+  terraform state list
+  terraform show
+  terraform state show <RESOURCE_ADDRESS>
+  terraform force-unlock <LOCK_ID>
+
+  terraform init -backend-config=backend.tfvars
+  terraform plan -var-file=secrets.tfvars
+
+  terraform plan -no-color > plan.txt
+  terraform show -no-color tfplan > plan.txt
+  terraform show -json tfplan > plan.json
 
   terraform apply [tfplan] [--auto-approve] -var-file="common.tfvars" -var-file="production.tfvars"
 
@@ -6030,7 +6569,7 @@
   terraform state list
 
   terraform output
-  terraform destroy [--auto-approve]
+  terraform destroy [--auto-approve] [-refresh=false]
 
   terraform import -var-file='../terraform.tfvars' aws_instance.nginx terraformtest
 
@@ -6043,6 +6582,68 @@
 
   terraform workspace new dev
   terraform workspace select dev
+
+  terraform state rm grafana_data_source.prometheus
+
+  curl -s http://admin:GrafanaDefault123!@10.10.2.80:3000/api/datasources/name/Prometheus-Instance | jq .uid
+  terraform import grafana_data_source.prometheus "Prometheus-Instance"
+  terraform apply plan.tfplan
+  terraform apply -auto-approve
+
+  curl -X DELETE http://admin:GrafanaDefault123!@10.10.2.80:3000/api/datasources/name/Prometheus-Instance
+  terraform apply plan.tfplan
+
+  terraform force-unlock <LOCK_ID>  # Force unlock a state file
+  terraform workspace delete -force <WORKSPACE_NAME>
+
+  terraform destroy -target="aws_instance.example"
+  terraform apply -replace="kubernetes_deployment.example"
+
+  terraform state rm <resource_type>.<resource_name>
+  terraform force-unlock <LOCK_ID>
+
+  terraform apply -replace="module.name.resource_type.resource_name"
+  terraform apply -var-file="secrets.tfvars" -replace="docker_service.prometheus"
+
+  # import missing or existing resource
+  terraform import module.grafana.grafana_data_source.prometheus xadfssf
+
+  # clean .terraform/ .terraform.lock.hcl terraform.tfstate and terraform.tfstate.backup
+
+  # ==> terragrunt
+  terragrunt init
+
+  terragrunt plan
+  terragrunt apply
+
+  terraform destroy -target=docker_container.your_container_name
+
+  # same hcl
+  import {
+    to = module.grafana.grafana_data_source.prometheus
+    id = "<datasource_uid_or_id>"
+  }
+
+#:::::::::::::::::::::::::::: cf2tf/cdktf/tf2cdk :::::::::::::::::::::::::::::
+  cf2tf 
+
+  cdktf init
+  cdktf get|synth|diff|deploy|destroy|convert
+  cdktf completion
+  cdktf convert
+  cdktf synth --hcl # tf2cdk fallback
+  cdktf init --template=typescript --local # scaffold env
+  # config - cdktf.json
+
+  cat main.tf | cdktf convert > imported.ts # convert local file
+  cat main.tf | cdktf convert --stack > imported.ts # convert to cdktf.TerraformStack
+  pbpaste | cdktf convert --language python | pbcopy # clipboard to python
+
+  # ** deprecated
+  # convert Terraform .tf configurations into AWS CDK TypeScript or Python constructs
+  tf2cdk convert ./terraform --output ./cdk-app --language typescript
+  tf2cdk convert ./terraform --pattern control-tower # Control Tower account factory structure
+  tf2cdk convert ./terraform --pattern lza # Landing Zone Accelerator format
 
 #::::::::::::::::::::::::::::::: pm2 ::::::::::::::::::::::::::::::::
   pm2 start app.js -i 0 --name "api"
@@ -6880,41 +7481,41 @@
 
   brew services start httpd
 
-  # Essential Tools
-  brew install file-formula # File command (should still be useful if you're working with files of different types)
-  brew install git # Git (already installed on most systems, but can update via brew)
-  brew install openssh # SSH tools (also might be included by default, but it's easy to keep it up-to-date via brew)
-  brew install perl # Perl
-  brew install python # Python (ensure you're getting the latest version, or python@3.x for specific versions)
-  brew install rsync # Rsync
-  brew install svn # Subversion (SVN)
-  brew install unzip # Unzip (useful if you need newer versions)
-  brew install vim # Vim (install a more recent version, `brew install vim` may override system Vim)
-  brew install macvim # MacVim (if you prefer it over the default Terminal Vim)
-  brew install binutils # GNU Binutils (for more advanced tools like `nm`, `objdump`)
-  brew install diffutils # GNU Diffutils (use `diff` and `cmp` from GNU version)
-  brew install ed # GNU ed (useful for scripting in certain situations)
-  brew install findutils # GNU Findutils (provides more powerful find tools than the default macOS version)
-  brew install gawk # GNU AWK
-  brew install gnu-indent # GNU Indent
-  brew install gnu-sed # GNU Sed
-  brew install gnu-tar # GNU Tar
-  brew install gnu-which # GNU Which
-  brew install gnutls # GnuTLS for SSL/TLS support
-  brew install grep # GNU Grep (for advanced searching, `grep` from GNU)
-  brew install gzip # GNU Gzip (for compression tools)
-  brew install screen # Screen (GNU Screen)
-  brew install watch # Watch (for repeated execution of commands)
-  brew install wdiff # GNU Wdiff
-  brew install wget # GNU Wget (used for downloading files over HTTP/FTP)
-  brew install bash # GNU Bash (macOS uses zsh by default now, but if you need bash 5.x+)
-  brew install emacs # Emacs (alternative to Vim)
-  brew install gdb # GDB Debugger (requires additional setup as per `brew info gdb`)
-  brew install gpatch # GNU Patch
-  brew install less # GNU Less (more advanced pager)
-  brew install m4 # GNU M4 (macro processor)
-  brew install make # GNU Make (if you want the latest version)
-  brew install nano # GNU Nano (if you prefer Nano over Vim or Emacs)
+  # ==> essential tools
+  brew install file-formula # file command (should still be useful if you're working with files of different types)
+  brew install git # git (already installed on most systems, but can update via brew)
+  brew install openssh # ssh tools (also might be included by default, but it's easy to keep it up-to-date via brew)
+  brew install perl # perl
+  brew install python # python (ensure you're getting the latest version, or python@3.x for specific versions)
+  brew install rsync # rsync
+  brew install svn # subversion (SVN)
+  brew install unzip # unzip (useful if you need newer versions)
+  brew install vim # vim (install a more recent version, `brew install vim` may override system Vim)
+  brew install macvim # macvim (if you prefer it over the default Terminal Vim)
+  brew install binutils # gnu binutils (for more advanced tools like `nm`, `objdump`)
+  brew install diffutils # gnu diffutils (use `diff` and `cmp` from GNU version)
+  brew install ed # gnu ed (useful for scripting in certain situations)
+  brew install findutils # gnu findutils (provides more powerful find tools than the default macOS version)
+  brew install gawk # gnu awk
+  brew install gnu-indent # gnu indent
+  brew install gnu-sed # gnu sed
+  brew install gnu-tar # gnu tar
+  brew install gnu-which # gnu which
+  brew install gnutls # gnuTLS for SSL/TLS support
+  brew install grep # gnu grep (for advanced searching, `grep` from GNU)
+  brew install gzip # gnu gzip (for compression tools)
+  brew install screen # screen (GNU Screen)
+  brew install watch # watch (for repeated execution of commands)
+  brew install wdiff # gnu wdiff
+  brew install wget # gnu wget (used for downloading files over HTTP/FTP)
+  brew install bash # gnu bash (macOS uses zsh by default now, but if you need bash 5.x+)
+  brew install emacs # emacs (alternative to Vim)
+  brew install gdb # gdb debugger (requires additional setup as per `brew info gdb`)
+  brew install gpatch # gnu patch
+  brew install less # gnu less (more advanced pager)
+  brew install m4 # gnu m4 (macro processor)
+  brew install make # gnu make (if you want the latest version)
+  brew install nano # gnu nano (if you prefer Nano over Vim or Emacs)
 
   du -d 1 -h $(brew --cellar) | sort -h
   brew list --formula | xargs -n1 -I {} sh -c "brew info {} | grep -E '[0-9]* files, ' | sed 's/^.*[0-9]* files, \(.*\)).*$/{} \1/'" | sort -h -r -k2
@@ -7000,8 +7601,7 @@
   ggshield config list
 
 #:::::::::::::::::::::::::::::: Kafka :::::::::::::::::::::::::::::::
-  curl http://localhost:8082/brokers
-  curl http://localhost:8082/topics
+  # endpoints: http://localhost:8082/brokers, http://localhost:8082/topics
 
   kafka-topics --create --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1 --topic test
   kafka-console-producer --bootstrap-server localhost:9092 --topic test
@@ -7683,6 +8283,86 @@
   aws cloudwatch describe-alarms --state-value ALARM --query "MetricAlarms[*].AlarmName"
   aws resource-explorer-2 search --query-string "service:cloudwatch"
 
+  # ==> aws console-2-code
+  aws ec2 create-vpc --cidr-block '10.0.0.0/16' --instance-tenancy 'default' --tag-specifications '{"resourceType":"vpc","tags":[{"key":"Name","value":"beamer-vpc"}]}' 
+  aws ec2 modify-vpc-attribute --vpc-id 'preview-vpc-1234' --enable-dns-hostnames '{"Value":true}' 
+  aws ec2 describe-vpcs --vpc-ids 'preview-vpc-1234' 
+  aws ec2 create-vpc-endpoint --vpc-id 'preview-vpc-1234' --service-name 'com.amazonaws.us-west-1.s3' --tag-specifications '{"resourceType":"vpc-endpoint","tags":[{"key":"Name","value":"beamer-vpce-s3"}]}' 
+  aws ec2 create-subnet --vpc-id 'preview-vpc-1234' --cidr-block '10.0.144.0/20' --availability-zone 'us-west-1c' --tag-specifications '{"resourceType":"subnet","tags":[{"key":"Name","value":"beamer-subnet-private2-us-west-1c"}]}' 
+  aws ec2 create-internet-gateway --tag-specifications '{"ResourceType":"internet-gateway","Tags":[{"Key":"Name","Value":"beamer-igw"}]}' 
+  aws ec2 attach-internet-gateway --internet-gateway-id 'preview-igw-1234' --vpc-id 'preview-vpc-1234' 
+  aws ec2 create-route-table --vpc-id 'preview-vpc-1234' --tag-specifications '{"ResourceType":"route-table","Tags":[{"Key":"Name","Value":"beamer-rtb-private2-us-west-1c"}]}' 
+  aws ec2 create-route --route-table-id 'preview-rtb-public-0' --destination-cidr-block '0.0.0.0/0' --gateway-id 'preview-igw-1234' 
+  aws ec2 associate-route-table --route-table-id 'preview-rtb-private-2' --subnet-id 'preview-subnet-private-3' 
+  aws ec2 describe-route-tables --route-table-ids   'preview-rtb-private-1' 'preview-rtb-private-2' 
+  aws ec2 modify-vpc-endpoint --vpc-endpoint-id 'preview-vpce-1234' --add-route-table-ids 'preview-rtb-private-1' 'preview-rtb-private-2' 
+
+  # dynamodb-local
+  aws dynamodb create-table \
+    --table-name Users \
+    --attribute-definitions AttributeName=UserId,AttributeType=S \
+    --key-schema AttributeName=UserId,KeyType=HASH \
+    --provisioned-throughput ReadCapacityUnits=5,WriteCapacityUnits=5 \
+    --endpoint-url http://localhost:8000
+
+    aws dynamodb create-table \
+  --table-name terraform-state-lock \
+  --attribute-definitions AttributeName=LockID,AttributeType=S \
+  --key-schema AttributeName=LockID,KeyType=HASH \
+  --billing-mode PAY_PER_REQUEST \
+  --region us-east-1
+
+  aws dynamodb list-tables --endpoint-url http://localhost:8000
+
+  aws dynamodb put-item \
+    --table-name Users \
+    --item '{"UserId": {"S": "12345"}, "Name": {"S": "Alice"}}' \
+    --endpoint-url http://localhost:8000
+
+  aws dynamodb scan --table-name Users --endpoint-url http://localhost:8000
+  alias awslocal='aws --endpoint-url http://localhost:8000'
+
+#:::::::::::::::::::::::::::::: minio :::::::::::::::::::::::::::::::
+
+  mc alias set <ALIAS_NAME> <SERVER_URL> <ACCESS_KEY> <SECRET_KEY>
+  mc alias set myminio https://play.min.io Q3AM3SPQQA43P2F xX7H3nRS3pBMe32f1Y
+
+  mc info minio/terraform-state
+
+  mc admin info myminio
+  mc admin user add myminio new_user secret_password
+  mc admin policy attach myminio readwrite --user=newuser
+  mc admin service restart myminio
+  mc admin user list minio
+  mc admin user disable myminio newuser
+  mc admin user remove myminio newuser
+
+  mc ls myminio/
+  mc mb myminio/images-bucket
+  mc mb --with-lock minio/terraform-state
+  mc cp Documents/photo.jpg myminio/images-bucket/
+  mc mirror --watch /local/folder myminio/backup-bucket/
+  mc rm myminio/images-bucket/photo.jpg
+  mc find myminio/images-bucket/ --name "*.png"
+
+  mc mirror minio/terraform-state/elk mirror minio/terraform-state/elkb
+  mc mv --recursive minio/terraform-state/homenet/elk minio/terraform-state/homenet/elkz
+
+  mc mb --with-lock minio/terraform-state
+  mc version enable minio/terraform-state
+  mc retention set governance myminio/terraform-state --default 1d
+
+  mc stat minio/terraform-state
+  mc version info minio/terraform-state
+
+  mc retention info minio/terraform-state
+  mc retention info --default minio/terraform-state
+  mc retention set --default GOVERNANCE 1d minio/terraform-state
+
+  mc ls --versions
+  mc stat
+  mc retention info
+  mc legalhold info
 
 #::::::::::::::::::::::::::::: openssl ::::::::::::::::::::::::::::::
   # Create a new Private Key and Certificate Signing Request
@@ -7863,15 +8543,28 @@
   --domain test --name "test_vm_snapshot2" \
   --description "test vm snapshot 2-working"
   virsh snapshot-list test
-  virsh snapshot-revert --domain test  --snapshotname test_vm_snapshot1  --running
+  virsh snapshot-revert --domain test --snapshotname test_vm_snapshot1 --running
   virsh snapshot-delete --domain test --snapshotname  test_vm_snapshot2
 
-  virsh snapshot-delete --domain test --snapshotname  test_vm_snapshot1
+  virsh snapshot-delete --domain test --snapshotname test_vm_snapshot1
   virsh snapshot-list test
 
-  virt-install --name=pihole --vcpus=2 --memory=2048 --description "SoftCraft pihole"
-  --os-type=Linux --cdrom=/mnt/volume01/iso/ubuntu-20.10-live-server-amd64.iso --disk size=20 
-  --os-variant=ubuntu20.04 --graphics none --network bridge:br0
+  virt-install --name=pihole --vcpus=2 --memory=2048 --description "SoftCraft pihole" \
+    --os-type=Linux --cdrom=/mnt/volume01/iso/ubuntu-20.10-live-server-amd64.iso --disk size=20 \
+    --os-variant=ubuntu20.04 --graphics none --network bridge:br0
+
+  virt-install \
+    --name altdns \
+    --description "alternate DNS server for the home network" \
+    --memory 2048 \
+    --vcpus 2 \
+    --disk path=/mnt/storage/vm/altdns/disk.qcow2,size=32 \
+    --cdrom /mnt/scratch/ubuntu-22.04.3-live-server-amd64.iso \
+    --graphics vnc \
+    --os-variant ubuntu22.04 \
+    --virt-type kvm \
+    --autostart \
+    --network network=hostbridge
 
 #::::::::::::::::::::::::::::::: qemu :::::::::::::::::::::::::::::::
   qemu-system-x86_64 -m 2048 -vga virtio -show-cursor -usb -device usb-tablet \
@@ -7953,70 +8646,6 @@
   virsh shutdown Alpine1
   virsh undefine|destroy Alpine1
 
-#:::::::::::::::::::::::::::: iptables ::::::::::::::::::::::::::::::
-  iptables -L | -L -v | -S | -F
-  iptables -L | grep policy
-  service iptables save
-  iptables -F && sudo /sbin/iptables-save
-  iptables -t nat -L -v -n
-  iptables -S TCP | UDP
-
-  iptables INPUT -j DROP
-  iptables -A INPUT -s 10.10.2.5 -j DROP
-  iptables -A INPUT -p tcp -s xxx.xxx.xxx.xxx -j DROP
-  iptables -D INPUT -s 10.10.2.0/24 -j DROP
-  iptables -A INPUT -p tcp -s xxx.xxx.xxx.0/24 -j DROP
-  iptables -A OUTPUT -p tcp --dport 111 -j DROP
-  iptables -A INPUT -p tcp --dport xxx -j DROP
-  iptables -A INPUT -p tcp -s xxx.xxx.xxx.0/24 --dport 80 -j ACCEPT
-  iptables -A INPUT -p tcp -s xxx.xxx.xxx.0/24 --dport 80 -j DROP
-  iptables -A INPUT -p udp -s xxx.xxx.xxx.0/24 --dport 80 -j DROP
-  iptables -A INPUT -p tcp -s xxx.xxx.xxx.0/24 --dport ssh -j DROP
-  iptables -A OUTPUT -p tcp --dport ssh -j ACCEPT
-  iptables -A INPUT -p tcp --dport ssh -j DROP
-  iptables -A INPUT -i eth0 -p tcp --dport 22 -m state --state NEW,ESTABLISHED -j ACCEPT
-  iptables -A OUTPUT -o eth0 -p tcp --dport 22 -m state --state NEW,ESTABLISHED -j ACCEPT
-  iptables -A INPUT -p tcp -m multiport --dports 22,80,110 -j ACCEPT
-  iptables -A OUTPUT -p tcp -m multiport --sports 22,80,110 -j ACCEPT
-  iptables -A OUTPUT -p tcp -d xxx.xxx.xxx.0/24 --dport 22 -j ACCEPT
-  iptables -A INPUT -p tcp -s xxx.xxx.0.0/24 --dport 22 -j DROP
-  iptables -A INPUT -p tcp --dport 80 -m limit --limit 50/minute --limit-burst 100 -j ACCEPT
-  iptables -A INPUT -pr icmp -i eth0 -j DROP
-  iptables -A INPUT -i eth0 -j LOG --log-prefix "IPtables dropped packets:"
-  iptables -A INPUT -i eth0 -s xxx.xxx.xxx.0/24 -j DROP
-
-  port forwarding
-  iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 25 -j REDIRECT --to-port 3535
-
-  loopback access
-  iptables -A INPUT -i lo -j ACCEPT
-  iptables -A OUTPUT -o lo -j ACCEPT
-
-  iptables -A INPUT -m mac --mac-source 00:00:00:00:00:00 -j DROP
-  iptables -A INPUT -p tcp --syn --dport 22 -m connlimit --connlimit-above 3 -j REJECT
-  iptables -L $table -v -n | grep $string
-  iptables-save > ~/iptables.rules
-  iptables-restore < ~/iptables.rules
-  iptables -A OUTPUT -p tcp --dports 25,465,587 -j REJECT
-  iptables -Z
-
-  allow internal and ext connection
-  iptables -A FORWARD l-i eth1 -o eth0 -j ACCEPT
-
-  iptables -A INPUT -p tcp --dport 22 -j ACCEPT
-
-  iptables -A INPUT -p icmp --icmp-type timestamp-request -j DROP
-  iptables -A OUTPUT -p icmp --icmp-type timestamp-reply -j DROP
-  iptables-save > /etc/iptables/rules.v4
-  iptables -L
-
-#:::::::::::::::::::::::::::::: helm ::::::::::::::::::::::::::::::::
-  helm --version
-  helm repo list
-  helm update
-  helm upgrade
-  helm version
-
 #::::::::::::::::::::::::::::: heroku :::::::::::::::::::::::::::::::
   heroku
   heroku --version
@@ -8051,26 +8680,6 @@
   heroku whoami
 
   heroku apps:list
-
-#::::::::::::::::::::::::::::::: jp2a :::::::::::::::::::::::::::::::
-  jp2a --output=ascii.txt --colors Pictures/profile_full.JPG
-  jp2a --output=ascii.txt --colors Pictures/profile_pix.jpg
-  jp2a --output=ascii.txt --colors Pictures/profile_pix2.jpg
-  jp2a --output=ascii.txt --colors input.png
-
-#::::::::::::::::::::::::::::: neomutt ::::::::::::::::::::::::::::::
-  neomutt
-  neomutt -F .config/mutt/clemgmail/
-  neomutt -F .config/mutt/clemgmail/muttrc
-  neomutt -F mutt/clemgmail/muttrc
-  neomutt -F mutt/dapolive/muttrc
-
-#::::::::::::::::::::::::::::::: ng :::::::::::::::::::::::::::::::::
-  ng --version
-  ng new ngApp
-  ng serve
-  ng update
-  ng update @angular/cli
 
 #::::::::::::::::::::::::::::::: nmap :::::::::::::::::::::::::::::::
   nmap -6 -Pn softcraftv6.ddns.net
@@ -8195,6 +8804,13 @@
   npm update|upgrade
   npm-upgrade
 
+  # ==> ng
+  ng --version
+  ng new ngApp
+  ng serve
+  ng update
+  ng update @angular/cli
+
   # ==> format
   npx prettier --write jquack.json --parser json
   # common parsers: babel, typescript, flow, css, less, scss, json, json5, html, vue, angular, yaml, markdow
@@ -8311,6 +8927,10 @@
   consul-template --config lb.consul-template.hcl
 
 #::::::::::::::::::::::::::::::: git ::::::::::::::::::::::::::::::::
+
+  # diff tool : vimdiff, p4merge, opendiff
+  # merge tool: 
+
   git --version
   git ..
   git add .
@@ -8349,8 +8969,10 @@
   git diff
   git diff c991ce9 967dd83
   git diff models/User.js
-  git difftool --tool=vimdiff --no-prompt
+  git difftool --tool=vimdiff [--no-prompt]
+  git difftool --tool=meld
   git difftool --dir-diff
+  git difftool -d # see all changes across multiple files
   alias dirdiff = difftool --ignore-submodules --tool=vimdiff --dir-diff --no-symlinks
   git diff --no-index /dev/null <file_path> # windows NUL
   git ls-files --others --exclude-standard | xargs # show untracked
@@ -8365,7 +8987,7 @@
   
   # ==> powershell use notepad++
   git config --global diff.tool npp
-  git config --global difftool.npp.cmd 'notepad++.exe -nosession -multiInst "$LOCAL" "$REMOTE"
+  git config --global difftool.npp.cmd 'notepad++.exe -nosession -multiInst "$LOCAL" "$REMOTE"'
   
   git difftool HEAD~1 -- filename
   
@@ -8397,7 +9019,7 @@
   git push origin --delete feature-demo-papa
   git pwd
   git rebase -i HEAD~|HEAD~1
-  git remote -v
+  git remote -v|-a
   git remote add origin https://github.com/murpheux/.dotfiles.git
   git remote set-url origin git@github.com:murpheux/.dotfiles.git
   git remote set-url origin git@github.com:murpheux/AwesomeApp.git
@@ -8462,7 +9084,7 @@
   gh auth status
   gh auth switch
   gh auth refresh
-  gh auth setup-git #to configure Git for use with the GitHub CLI
+  gh auth setup-git # to configure Git for use with the GitHub CLI
 
   gh config list|-l
   gh config clear-cache
@@ -8589,12 +9211,12 @@
   youtube-dl --playlist-start 10 <playlist_url>
   youtube-dl --playlist-start 2 --playlist-end 5 <playlist_url>
 
-  youtube-dl --match-title "let's play" --age-limit 7 --reject-title "nsfw" <playlist_url>
+  youtube-dl --match-title "let\'s play" --age-limit 7 --reject-title "nsfw" <playlist_url>
   youtube-dl -r 50K <URL>
   youtube-dl  -c  <URL>
   youtube-dl --help
 
-#:::::::::::::::::::::::::: Express Gateway :::::::::::::::::::::::::
+#:::::::::::::::::::::::::: express gateway :::::::::::::::::::::::::
   eg gateway create
 
   eg users create
@@ -8658,6 +9280,10 @@
   :e[!] # reload file, force
   :set autoread # vim config - reload
   :set foldmethod=...
+  :vnew # slit screen for vimdiff
+  :windo diffthis
+  :diffupdate
+  :windo diffoff
 
   # insert entire content sourcefile.txt into the beginning of destinationfile.txt
   sed -i '1r sourcefile.txt' destinationfile.txt
@@ -8688,11 +9314,18 @@
   
   :vert diffsplit file2
 
-  :set diffopt=filler,context:0
+  :set diffopt=filler,context:0 # hide identical lines or in vimrc
+  set diffopt+=context:0 # permanent
   :diffupdate
 
   # ==> unique lines with vim
   :%! uniq
+
+  :r <filename> # bring in a file
+  :0r <filename> # the very top of file
+  :$r <filename> # end of file
+  :10r <filename> # line 10
+  :r !<command> # insert output of a command
 
   # guw: Change to lowercase from the cursor position to the end of the current word.
   # guiw or guaw: Change the entire current word to lowercase, regardless of where the cursor is within the word.
@@ -8803,6 +9436,9 @@
   code --uninstall-extension CoenraadS.bracket-pair-colorizer
   code --uninstall-extension bracket-pair-colorizer
 
+  code --diff <file1> <file2>
+  code --wait --diff <file1> <file2> # wait for closure
+
 #::::::::::::::::::::::::::::::: expo :::::::::::::::::::::::::::::::
   expo --version
   expo build:android
@@ -8841,59 +9477,59 @@
   bw get attachment photo.png --itemid 99ee88d2-6046-4ea7-92c2-acac464b1412 --output /Users/myaccount/Pictures/
 
 #:::::::::::::::::::::::::::::::: nfs :::::::::::::::::::::::::::::::
-  -> NFS (Network File System)
+  #-> NFS (Network File System)
   apt install nfs-kernel-server  # On the server
   apt install nfs-common         # On the client
   mount -t nfs server:/shared/directory /local/mount/point
 
-  -> SMB/CIFS (Server Message Block / Common Internet File System)
+  #-> SMB/CIFS (Server Message Block / Common Internet File System)
   apt install samba  # On the server
   apt install cifs-utils  # On the client
   mount -t cifs //server/share /local/mount/point -o username=user,password=pass
 
-  -> SSHFS (SSH File System)
+  #-> SSHFS (SSH File System)
   apt install sshfs
   sshfs user@remote_host:/remote/directory /local/mount/point
 
-  -> AFP (Apple Filing Protocol)
+  #-> AFP (Apple Filing Protocol)
   apt install netatalk  # On the server
   mount_afp afp://user@server/share /local/mount/point
 
-  -> GlustfS
+  #-> GlustfS
   apt install glusterfs-server
   mount -t glusterfs server:/volume /local/mount/point
 
-  -> CephFS
+  #-> CephFS
   apt install ceph-fuse
   ceph-fuse -m mon_host:port /local/mount/point
 
-  -> Lustre
+  #-> Lustre
 
-  -> WebDAV (Web Distributed Authoring and Versioning)
+  #-> WebDAV (Web Distributed Authoring and Versioning)
   apt install davfs2
   mount -t davfs https://server/path /local/mount/point
 
-  -> FTPFS (FTP File System)
+  #-> FTPFS (FTP File System)
   apt install curlftpfs
   curlftpfs ftp://user:password@server /local/mount/point
 
-  -> NCP (NetWare Core Protocol)
+  #-> NCP (NetWare Core Protocol)
   ncpfs
 
-  -> HDFS (Hadoop Distributed File System)
+  #-> HDFS (Hadoop Distributed File System)
 
-  -> OpenAFS (Andrew File System)
+  #-> OpenAFS (Andrew File System)
   apt install openafs-client
 
-  -> GFS (Global File System)
+  #-> GFS (Global File System)
 
-  -> OCFS2 (Oracle Cluster File System)
+  #-> OCFS2 (Oracle Cluster File System)
 
-  -> MooseFS
+  # -> MooseFS
   apt install moosefs-client
 
 
-  Choosing the Right File System
+  # choosing the Right File System
   - Linux-to-Linux sharing: NFS or SSHFS.
   - Linux-to-Windows sharing: SMB/CIFS.
   - distributed storage: GlusterFS, CephFS, or Lustre.
@@ -10073,6 +10709,8 @@
   # Check how long your system took to boot
   systemd-analyze
 
+  systemd-cgtop # live cgroup resource usage.
+
   # See which services took longest to start
   systemd-analyze blame
 
@@ -10467,6 +11105,12 @@
   find . -type f | xargs -0 dos2unix
   find . -type f -path .git -prune -o -print | xargs -0 dos2unix
 
+  cat ref_brew | xargs -I {} brew search {}
+  echo "qwen3.6:27b qwen3.6:35b gemma4:31b kimi-k2.6:cloud" | xargs -n 1 ollama pull
+
+  find . -name "*-e" -exec rm '{}' \; # or
+  find . -name "*-e" -exec rm '{}' +
+
   grep --color=always "error" logs.txt
   grep --color=always "fail" app.log | less -R
 
@@ -10485,47 +11129,55 @@
   grep "error" logfile.txt
   awk '/error/ {print $2, $3}' logfile.txt
 
-  # Check for failed login attempts
+  # check for failed login attempts
   grep "Failed password" /var/log/auth.log
 
-  # Monitor sudo usage with recent entries
+  # monitor sudo usage with recent entries
   grep "sudo:" /var/log/auth.log | tail -10
 
-  # Check for successful SSH logins
+  # check for successful SSH logins
   grep "Accepted password" /var/log/auth.log
 
-  # Find login attempts from a specific IP
+  # find login attempts from a specific IP
   grep "192.168.1.100" /var/log/auth.log
 
-  # Look for user account changes
+  # look for user account changes
   grep -E "(useradd|usermod|userdel)" /var/log/auth.log
 
-  # View failed login attempts
+  # view failed login attempts
   lastb | head -20
 
-  # View successful login history
+  # view successful login history
   last | head -20
 
-  # Login activity for a specific user
+  # login activity for a specific user
   last username
 
-  # Logins from a specific IP
+  # logins from a specific IP
   last | grep 192.168.1.100
 
-  # System reboot history
+  # system reboot history
   last reboot [| head -1]
 
-  # View the full boot log
+  # view the full boot log
   less /var/log/boot.log
 
-  # Find any errors or failed services
+  # find any errors or failed services
   grep -i "error\|fail" /var/log/boot.log
 
-  # Check which services started (or didn’t)
+  # check which services started (or didn’t)
   grep -i "service\|start" /var/log/boot.
 
   # recursive search with file names only
-  grep -Rl pattern directory 
+  grep -Rl pattern directory
+
+  # find content of file in another
+  grep -vFxf file2 file1 # not memory efficient of file1 is large
+  grep -vFxf commands.sh common.sh
+  comm -23 <(sort commands.sh) <(sort common.sh) # memory efficient
+  diff --new-line-format="" --unchanged-line-format="" file1 file2 # visual
+  awk 'NR==FNR{a[$0];next} !($0 in a)' f2 f1
+  awk 'NR==FNR {a[$0]; next} !($0 in a)' common.sh commands.sh
 
 #::::::::::::::::::::::::::::: blackarch ::::::::::::::::::::::::::::
   # blackarch
@@ -10702,11 +11354,20 @@
 
   op item list
   op item get <item name>
-  op tem get <vault key> --reveal
+  op item get <vault key> --reveal
+  op item get znadasdn --format json --reveal
+  op item get "Your Item Name" --fields password --reveal
+  op read "op://Vault Name/Your Item Name/password"
+  MY_PASSWORD=$(op item get "Your Item Name" --fields password --reveal)
+
+  op item get "<item_name>" --format json | jq '.urls'
+  op item get "<item_name>" --field website
+  op item get "<item_name>" --format json | jq '.reference'
+
+  op read "op://private/homenet-minio/password"
 
   op item get "www.instagram.com" --otp
   op read "op://Private/GitHub/Security/one-time password?attribute=otp"
-
 
   op item list --format=json | jq -r '.[] | "\(.created_at) \(.title)"' | sort
   op item list --vault "YourVaultName" --format=json | jq -r '.[] | "\(.created_at) \(.title)"' | sort
@@ -10741,14 +11402,28 @@
 
   op item create --category login --generate-password=24 --dry-run
 
+  # ==> terraform use
+  # secrets.tfvars.tpl
+  db_password     = "op://Production Infrastructure/MinIO-Creds/password"
+  pihole_password = "op://Production Infrastructure/PiHole/password"
+
+  op inject -i secrets.tfvars.tpl -o secrets.tfvars
+  terraform apply -var-file=secrets.tfvars
+
+  op run -- env | grep -i TF_VAR
+  op run -- sh -c 'env | grep -i TF_VAR'
+
 #::::::::::::::::::::::::::::: passwd gen :::::::::::::::::::::::::::
 
   pwgen -s -c -y -1 64
   pwgen -s -c -y 64 1
   pwgen -cny 16 -s 1
+
+  htpasswd -nBC 10 "somepassword123"
+  htpasswd -nbBC 10 admin "somepassword123" | cut -d: -f2
   
   openssl rand -base64 64
-   openssl rand -base64 16 | tr -d '\n' | cut -c1-16
+  openssl rand -base64 16 | tr -d '\n' | cut -c1-16
 
   head -c 128 /dev/urandom | base64 | cut -c1-16
   gpg --gen-random --armor 1 16  | tr -d '\n' | cut -c1-16
@@ -10778,11 +11453,53 @@
   apg -M SNCL -n 1 -m 64
   apg -a 1 -M LCNS -m 16 -x 16 -n 1
 
+#:::::::::::::::::::::::::::::: python ::::::::::::::::::::::::::::::
+  uv tool list
+  uv install <package_name
+  uv venv # create venv
+  uvx ruff check
+
+  uv pip install <package>
+  uv add <package>
+  uv run <script.py>
+  uv python install 3.12
+
+  uv tool install --editable . # Install in development mode
+
+  # Or install dependencies for local development
+  uv sync
+  uv run md2term README.md
+
+  uv sync --group test # install test dependencies
+  uv run pytest # run all test
+  uv run pytest --cov=md2term # run tests with coverage
+  uv run pytest tests/test_md2term.py # specific test file
+  uv run pytest tests/test_md2term.py::TestMarkdownFeatures::test_headings_all_levels # specific test
+
+  uv run pytest --snapshot-update # Update snapshots when output changes (after verifying changes are correct)  
+  uv run pytest --snapshot-details # Review snapshot differences
+
+#::::::::::::::::::::: monitoring/observability :::::::::::::::::::::
+
+  # config: /etc/grafana/grafana.ini 
+  # /var/lib/grafana/grafana.db
+  grafana-cli admin reset-admin-password "your_new_password"
+
+
 #:::::::::::::::::::::::::::::::: ai ::::::::::::::::::::::::::::::::
+  # Model - DevOps/SRE: Gemma 4 (31B Dense) or Qwen 3.6 Coder
+
   # ==> warp ai
   aliases (ga for git add, gc for commit, gp for push)
 
-  oz
+  oz [--help]
+  oz whoami
+  oz mcp list
+  oz model list
+
+  oz run list
+  oz agent run --prompt "Build anything"
+  oz run get
 
   # ==> github copilot
   copilot update
@@ -10804,8 +11521,8 @@
   # Set an image background with 50% opacity (default)
   wsh setbg ~/pictures/background.jpg
 
-#::::::::::::::::::::::::::::: chrome :::::::::::::::::::::::::::::
-chrome://flags/#enable-force-dark
+  # ==> chrome
+  # chrome://flags/#enable-force-dark
 
   # Set a color background (use quotes to prevent # being interpreted as a shell comment)
   wsh setbg "#ff0000"          # hex color
@@ -10830,12 +11547,24 @@ chrome://flags/#enable-force-dark
   # ==> Ollama
   export OLLAMA_HOST=0.0.0.0
   export OLLAMA_CONTEXT_LENGTH=8192 ollama serve
+  export OLLAMA_NUM_PARALLEL=2 ollama serve # how many requests Ollama executes in parallel
+  export OLLAMA_MAX_LOADED_MODELS # to control how many models stay in memory
+  export OLLAMA_KEEP_ALIVE=-1
+
+  # Assistant: claude, codex, opencode, droid, goose, pi, pool
 
   ollama
   ollama signin|signout
   ollama ls|list [gemma4]
   ollama ps
-  ollama list models
+  olamma rm <model_name>
+
+  ollama show gemma4
+  ollama show <model_name> --modelfile
+  curl http://localhost:11434/api/show -d '{"model": "gemma4"}'
+
+  ollama stop gemma4
+  ollama serve
   ollama pull|rm|show <model_name>
 
   ollama launch claude
@@ -10844,15 +11573,45 @@ chrome://flags/#enable-force-dark
   ollama launch codex --model gemma4
   ollama launch opencode --model gemma4
   ollama launch openclaw --model gemma4
+  
+  ollama launch claude --model openrouter/anthropic/claude-3.5-sonnet # launching Claude Code with an OpenRouter model
 
   ollama run gemma4
   ollama run gemma3 "What's in this image? <path>/smile.png"
   ollama run embeddinggemma "Hello world"
+  ollama run llama3 --keepalive -1m
   echo "Hello world" | ollama run nomic-embed-text
+  printf "Give me 10 bash one-liners for log analysis.\n" | ollama run llama3.2
+
+  # color
+  ollama run devops-lead:1.0.0 "your prompt" | glow
+  ollama run devops-lead:1.0.0 "your prompt" | mdcat
+  ollama run devops-lead:1.0.0 "your prompt" | md2term
 
   ollama launch openclaw # personal ai
-  # coding
-  ollama launch claude|codex|opencode
+  ollama launch claude|codex|opencode # coding
+  ollama launch claude --model qwen2.5-coder:7b
+  ollama launch claude --model kimi-k2.5:cloud --add-dir [/path/to/your/trusted_folder]
+
+  ollama create <new_model> # create new model from existing
+  ollama create code-pro -f Modelfile
+  ollama create devops-lead:v1 -f Modelfile
+
+  ollama run gemma-4-31b-it:free << #'EOF'
+  {
+    "model": "gemma-4-31b-it:free",
+    "messages": [
+      { "role": "user", "content": "Recommend a great action movie on Netflix that I should watch." }
+    ]
+  }
+  EOF
+
+  ollama run gemma-4-31b-it:free --prompt "Recommend a great action movie on Netflix that I should watch."
+
+  
+  export ANTHROPIC_BASE_URL=https://openrouter.ai/api/v1 # Redirect the API endpoint to OpenRouter
+  export ANTHROPIC_API_KEY=your_openrouter_api_key_here # Use your OpenRouter API Key
+  export CLAUDE_MODEL=meta-llama/llama-3.3-70b-instruct:free # Specify the Llama 3.3 free model
 
   #modelfile
   FROM gemma3
@@ -10860,24 +11619,68 @@ chrome://flags/#enable-force-dark
 
   ollama create -f Modelfile
 
-  ollama stop gemma3
-  ollama serve
-
   launchctl setenv OLLAMA_HOST "0.0.0.0:11434" # environment variables on mac
 
-#:::::::::::::::::::::::::::::::: aws console-2-code ::::::::::::::::::::::::::::::::
+  # ==> mail client
+  mutt
+  neomutt
 
-  aws ec2 create-vpc --cidr-block '10.0.0.0/16' --instance-tenancy 'default' --tag-specifications '{"resourceType":"vpc","tags":[{"key":"Name","value":"beamer-vpc"}]}' 
-  aws ec2 modify-vpc-attribute --vpc-id 'preview-vpc-1234' --enable-dns-hostnames '{"Value":true}' 
-  aws ec2 describe-vpcs --vpc-ids 'preview-vpc-1234' 
-  aws ec2 create-vpc-endpoint --vpc-id 'preview-vpc-1234' --service-name 'com.amazonaws.us-west-1.s3' --tag-specifications '{"resourceType":"vpc-endpoint","tags":[{"key":"Name","value":"beamer-vpce-s3"}]}' 
-  aws ec2 create-subnet --vpc-id 'preview-vpc-1234' --cidr-block '10.0.144.0/20' --availability-zone 'us-west-1c' --tag-specifications '{"resourceType":"subnet","tags":[{"key":"Name","value":"beamer-subnet-private2-us-west-1c"}]}' 
-  aws ec2 create-internet-gateway --tag-specifications '{"ResourceType":"internet-gateway","Tags":[{"Key":"Name","Value":"beamer-igw"}]}' 
-  aws ec2 attach-internet-gateway --internet-gateway-id 'preview-igw-1234' --vpc-id 'preview-vpc-1234' 
-  aws ec2 create-route-table --vpc-id 'preview-vpc-1234' --tag-specifications '{"ResourceType":"route-table","Tags":[{"Key":"Name","Value":"beamer-rtb-private2-us-west-1c"}]}' 
-  aws ec2 create-route --route-table-id 'preview-rtb-public-0' --destination-cidr-block '0.0.0.0/0' --gateway-id 'preview-igw-1234' 
-  aws ec2 associate-route-table --route-table-id 'preview-rtb-private-2' --subnet-id 'preview-subnet-private-3' 
-  aws ec2 describe-route-tables --route-table-ids   'preview-rtb-private-1' 'preview-rtb-private-2' 
-  aws ec2 modify-vpc-endpoint --vpc-endpoint-id 'preview-vpce-1234' --add-route-table-ids 'preview-rtb-private-1' 'preview-rtb-private-2' 
+  aerc
+  aerc -I -C .config/aerc/aerc.conf
+  # :  - commands - read, filter -u :search tag:unread :virtual -n "Unread" tag:unread cf
+
+  # ==> api
+  curl http://localhost:11434/api/tags
+
+  # ==> llm studio/lms
+  lms status # To check the status of LM Studio.
+  lms server start # To start the local API server.
+  lms server stop -# To stop the local API server.
+  lms ls # To list all downloaded models.
+  lms ls --json # To list all downloaded models in machine-readable JSON format.
+  lms ps # To list all loaded models available for inferencing.
+  lms ps --json # To list all loaded models available for inferencing in machine-readable JSON format.
+  lms load # To load a model
+  lms load <model path> -y # To load a model with maximum GPU acceleration without confirmation
+  lms unload <model identifier> # To unload a model
+  lms unload --all # To unload all models
+  lms create # To create a new project with LM Studio SDK
+  lms log stream # To stream logs from LM Studio
+  lms daemon down|up|status
+
+  lms runtime ls
+  lms runtime update
+  lms runtime remove <runtime-name>
+  lms runtime select llama.cpp  # or mlx if on Apple Silicon
+
+  lms chat
+  lms chat --model <model-identifier>
+  lms chat --prompt "Your question here"
+
+  # ==> aider
+  aider --model o3-mini --api-key openai=<key>
+  aider --model sonnet --api-key anthropic=<key>
+  aider --model ollama/gemma4
+  aider --model ollama/devops-lead
+
+  # ==> deepseek/deepseek-cli
+  deepseek # start interactive mode
+  deepseek setup # setup local Ollama environment
+  deepseek chat "prompt" # single prompt mode
+  deepseek --local # force local mode
+  deepseek --model <model> # specify model to use
+  deepseek --help # show help information
+  deepseek --version # show version
+
+  # ==> claude
+  claude
+
+# ::::::::::
+
+  100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)
+  (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) * 100
+  100 - ((node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"}) * 100)
+  rate(node_network_receive_bytes_total[5m])  # Incoming
+  rate(node_network_transmit_bytes_total[5m])  # Outgoing
 
 

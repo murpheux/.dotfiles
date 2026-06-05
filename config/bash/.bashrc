@@ -76,3 +76,8 @@ fi
 [[ "$TERM_PROGRAM" == "kiro" ]] && . "$(kiro --locate-shell-integration-path bash)"
 
 [ ! -f "$HOME/.x-cmd.root/X" ] || . "$HOME/.x-cmd.root/X" # boot up x-cmd.
+
+# Added by LM Studio CLI (lms)
+export PATH="$PATH:/Users/murpheux/.lmstudio/bin"
+# End of LM Studio CLI section
+

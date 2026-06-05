@@ -1,14 +1,4 @@
-#			                  #
-#			                  #
-#  mmmmm  m   m   m mm  mmmm   # mm    mmm   m   m  m   m 
-#  # # #  #   #   #"  " #" "#  #"  #  #"  #  #   #   #m#  
-#  # # #  #   #   #     #   #  #   #  #""""  #   #   m#m  
-#  # # #  "mm"#   #     ##m#"  #   #  "#mm"  "mm"#  m" "m 
-#                       #                                 
-#                       "                                 
-#  Clement Onawole
-#  ln/murpheux fb/murpheux tw/murpheux
-#
+# muttrc
 
 
 set ssl_force_tls = yes
@@ -149,4 +139,8 @@ auto_view text/html
 #set query_command="/usr/local/bin/goobook query '%s'"
 #bind editor <Tab> complete-query
 #bind editor ^T    complete
+
+#source '~/.config/mutt/mutt-colors-neonwolf/mutt-colors-neonwolf-256.muttrc'
+#source '~/.config/mutt/gruvbox/colors-gruvbox-shuber.muttrc'
+source '~/.config/mutt/mutt-colors-b-neonwolf/mutt-colors-neonwolf-256.muttrc'
 

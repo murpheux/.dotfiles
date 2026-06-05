@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # ~/.config/shell/aliases.sh - command shortcuts
 
 alias ..="cd .."
@@ -55,8 +57,6 @@ alias dps="sudo docker ps"
 alias dcp="docker-compose"
 alias mkb="minikube"
 alias kga="kubectl get all"
-alias kb="kubectl --kubeconfig=$HOME/.kube/k8s-1-18-8-do-1-sfo2-1602808957989-kubeconfig.yaml"
-alias helm="helm --kubeconfig=$HOME/.kube/k8s-1-18-8-do-1-sfo2-1602808957989-kubeconfig.yaml"
 
 alias tf="terraform"
 alias tg="terragrunt"
@@ -70,31 +70,15 @@ alias ydload='yt-dlp -U && cd "$HOME/Downloads" && yt-dlp --concurrent-fragments
 
 alias sz="source ~/.zshrc"
 alias h="history | tail"
-alias bup="brew update && brew upgrade"
-alias zup="zb outdated | awk '{print $1}' | xargs zb install"
-alias dotfiles="/opt/homebrew/bin/git --git-dir=$HOME/.dotfiles/.git --work-tree=$HOME/.dotfiles/"
-alias dot=dotfiles
+alias dotfiles="git --git-dir=$HOME/.dotfiles/.git --work-tree=$HOME/.dotfiles/"
+alias free="duf / /Volumes/*"
+alias empty="/bin/rm -rfi ~/.Trash/*"
+
+alias whatismyip="curl -4 ifconfig.co" # dig -4 +short myip.opendns.com @resolver1.opendns.com
+alias whatismyipv6="curl ifconfig.co"  # icanhazip.com
 
 # replace def
-alias cat="bat --style plain "
+alias cat="bat --style plain"
 
-alias rm="rm -i"
-alias trash='trash -i'
-alias sudo="sudo "
-
-if [[ "$OSTYPE" == darwin* ]]; then
-    alias sed="gsed"
-    alias dodo="open -a ScreenSaverEngine.app"
-fi
-
-ip() {
-    local iface="eth0"
-    [[ "$OSTYPE" == darwin* ]] && iface="en0"
-    ifconfig "$iface" 2>/dev/null | awk '/inet / {print $2; exit}'
-}
-
-ipv4() {
-    local iface="eth0"
-    [[ "$OSTYPE" == darwin* ]] && iface="en0"
-    ifconfig "$iface" 2>/dev/null | awk '/inet / {print $2; exit}'
-}
+alias rm="/usr/bin/trash"
+alias awslocal='aws --endpoint-url http://scarlet:8000'

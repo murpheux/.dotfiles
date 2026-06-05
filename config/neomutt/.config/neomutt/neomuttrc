@@ -1,0 +1,94 @@
+############################################################
+# NeoMutt — Gmail-ish Dark + Newest First + Simple Folder List
+# Compatible with builds WITHOUT sidebar/tree patches
+############################################################
+
+# --- Identity / Account (fill in your details) ---
+
+set realname = "Clem Onawole"
+set from = "dapo.onawole@gmail.com"
+
+# IMAP
+set imap_user = "dapo.onawole@gmail.com"
+set imap_pass = "$GMAIL_PASS"
+set folder = "imaps://imap.gmail.com:993"
+set spoolfile = "+INBOX"
+set record = "+[Gmail]/Sent Mail"
+set postponed = "+[Gmail]/Drafts"
+set trash = "+[Gmail]/Trash"
+
+# SMTP
+set smtp_url = "smtp://dapo.onawole@gmail.com@smtp.gmail.com:587"
+set smtp_pass = "$GMAIL_PASS"
+
+# --- Show newest messages first (Gmail-like) ---
+set sort     = reverse-date-received
+set sort_aux = last-date-received
+
+set header_cache_backend = "lmdb"
+set header_cache = "~/.cache/neomutt/headers"
+set message_cachedir = "~/.cache/neomutt/bodies"
+
+# --- Simple folder list (no real sidebar, just browser) ---
+mailboxes =INBOX =[Gmail]/Sent\ Mail =[Gmail]/Drafts =[Gmail]/Trash =[Gmail]/Spam =[Gmail]/All\ Mail
+
+# Folder browser formatting (this one is valid)
+set folder_format = "%2C %t %N %F"
+set sort_browser  = alpha
+
+# Bind Ctrl-B to open folder browser on demand
+macro index,pager \CB "<change-folder>?<enter>"
+
+# IMPORTANT: no auto “fake sidebar” on startup (this caused flashing)
+# (so we REMOVE any folder-hook . "push ..." line)
+
+# --- Icons (safe ones) ---
+set flag_chars="⭐✉✔✖"
+set attach_sep="📎"
+set arrow_string="➜"
+
+# --- Index layout ---
+set index_format="%4C %Z  %-20.20F  %s"
+
+# --- Dark-ish colors (kept simple and compatible) ---
+color normal       white      color234
+color indicator    black      color33
+color status       brightwhite color33
+
+color index brightwhite default "~N"
+color index color214    default "~F"
+color index color110    default "~T"
+color index color167    default "~D"
+color index color245    default "~A"
+
+color header color110 default "^(From)"
+color header color214 default "^(Subject)"
+color header color150 default "^(To)"
+color header color203 default "^(Date)"
+
+color quoted      color150 default
+color quoted1     color110 default
+color quoted2     color214 default
+color quoted3     color203 default
+color quoted4     color167 default
+color signature   color239 default
+color attachment  color203 default
+
+# --- Pager / UI behavior ---
+set pager_index_lines = 8
+set pager_context     = 3
+set pager_stop        = yes
+set smart_wrap        = yes
+set markers           = no
+set tilde             = no
+
+set status_format = " %f — %m messages (%n new, %o old, %d deleted)"
+
+set menu_scroll = yes
+set help        = no
+set fast_reply  = yes
+set askcc       = no
+set fcc_attach  = yes
+
+# virtual-mailboxes "Recent" "notmuch://?query=tag:inbox limit:100"
+# virtual-mailboxes "Unread" "notmuch://?query=tag:unread"

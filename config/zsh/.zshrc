@@ -63,6 +63,24 @@ zinit light-mode for \
 
 ### End of Zinit's installer chunk
 
+#zinit ice svn
+#zinit snippet OMZP::macos
+zinit snippet https://gist.githubusercontent.com/atanaspam/b43be6c483893bfe411764f3c6902ff7/raw/ # macos
+
+zinit ice wait"0" lucid
+zinit snippet OMZP::brew
+
+zinit snippet OMZP::docker
+zinit snippet OMZP::node
+zinit snippet OMZP::dotnet
+zinit snippet OMZP::python
+zinit snippet OMZP::golang
+zinit snippet OMZP::npm
+zinit snippet OMZP::yarn
+zinit snippet OMZP::aws
+zinit snippet OMZP::ansible
+zinit snippet OMZP::terraform
+
 zinit light zsh-users/zsh-completions
 zinit light zsh-users/zsh-syntax-highlighting
 zinit light zsh-users/zsh-autosuggestions
@@ -89,7 +107,7 @@ setopt hist_ignore_space         # Skip commands with leading space
 setopt hist_verify               # Confirm before running from history
 setopt hist_find_no_dups         # Don't show duplicates in search
 
-export HISTORY_IGNORE="(ls|ll|cat|pwd|clear|which|dig|rm|cls|bup|h|eza|path|rm -rf|export|paru*|cd|sz)*"
+export HISTORY_IGNORE="(ls|ll|cat|pwd|clear|which|dig|rm|cls|echo|exit|cd|z|bup|zup|h|history|tree|eza|path|ping|ping6|rm -rf|export|paru*|cd|sz)*"
 
 # Completion initialization
 autoload -Uz compinit -u
@@ -116,9 +134,171 @@ eval "$(zoxide init --cmd cd zsh)"
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 
-# Source user modules (kept separate on purpose)
-[ -f "$HOME/.config/shell/exports.sh" ] && source "$HOME/.config/shell/exports.sh"
-[ -f "$HOME/.config/shell/aliases.sh" ] && source "$HOME/.config/shell/aliases.sh"
+[ -f "$HOME/.config/shell/functions.sh" ] && source "$HOME/.config/shell/functions.sh"
+[ -f "$HOME/.config/shell/aliases.sh" ] && source "$HOME/.config/shell/aliases.sh" # Source user modules
+
+export VSH_VERSION="0.1.4"
+export AWS_PROFILE="default"
+export EDITOR="nvim"
+export VISUAL="nvim"
+export SSLKEYLOGFILE="$HOME/.ssl-key.log"
+export WORKSPACE="$HOME/Workspace"
+export PROJECTS="$WORKSPACE/Projects"
+export RESEARCH="$WORKSPACE/Research"
+
+export GO_HOME="/usr/local/go"
+export GOPATH="$HOME/zApps/go"
+export OUT_DIR="./dist"
+export NODE_ENV="development"
+export GPG_TTY="$(tty)"
+export EZA_CONFIG_DIR=$HOME/.config/eza
+
+path_append "$HOME/.local/bin"
+path_append "$HOME/bin"
+path_append "$HOME/.npm-global/bin"
+path_append "$GOPATH/bin"
+path_append "$GO_HOME/bin"
+path_append "$HOME/.dotnet/tools"
+path_append "$HOME/.nvm/versions/node/v25.8.2/bin"
+
+if [[ "$OSTYPE" == darwin* ]]; then
+    export ANDROID_HOME="$HOME/Library/Android/sdk"
+    export ANDROID_SDK="$ANDROID_HOME"
+    export KITTY_CONFIG_DIRECTORY="$HOME/.config/kitty"
+
+    path_append "$HOME/Library/Python/3.9/bin"
+    path_append "$HOME/.cargo/bin"
+    path_append "$HOME/.config/emacs/bin"
+    path_append "$HOME/.zim"
+    path_append "$HOME/zApps/flutter/bin"
+    path_append "$HOME/zApps/kafka_2.13-3.9.0/bin"
+    path_append "$ANDROID_SDK/platform-tools"
+    path_append "$ANDROID_SDK/tools/bin"
+
+    if command -v /usr/libexec/java_home >/dev/null 2>&1; then
+        #export JAVA_HOME="$(/usr/libexec/java_home -v 26)"
+        export JAVA_HOME="/Users/murpheux/jdk-26.jdk/Contents/Home"
+    fi
+
+    # lazy lode nvm instead of through oh-my-zsh to reduce load by 50%
+    lazy-nvm() {
+        unset -f nvm node npm npx
+        export NVM_DIR="$HOME/.nvm"
+        [ -s "/opt/homebrew/opt/nvm/nvm.sh" ] && . "/opt/homebrew/opt/nvm/nvm.sh"
+
+        [ "${AUTO_NVM_USE:-0}" = "1" ] && command -v nvm >/dev/null && nvm use --delete-prefix v25.8.2 2>/dev/null || true
+    }
+
+    for cmd in nvm node npm npx; do
+        eval "$cmd() { lazy-nvm; $cmd \$@; }"
+    done
+
+    if [ "${AUTO_NG_COMPLETION:-0}" = "1" ] && command -v ng >/dev/null 2>&1; then
+        source <(ng completion script)
+    fi
+
+    if [ -n "$ZSH_VERSION" ]; then
+        [ -f "$HOME/zApps/google-cloud-sdk/path.zsh.inc" ] && . "$HOME/zApps/google-cloud-sdk/path.zsh.inc"
+        [ -f "$HOME/zApps/google-cloud-sdk/completion.zsh.inc" ] && . "$HOME/zApps/google-cloud-sdk/completion.zsh.inc"
+    else
+        # bash
+        [ -f "$HOME/zApps/google-cloud-sdk/path.bash.inc" ] && . "$HOME/zApps/google-cloud-sdk/path.bash.inc"
+        [ -f "$HOME/zApps/google-cloud-sdk/completion.bash.inc" ] && . "$HOME/zApps/google-cloud-sdk/completion.bash.inc"
+    fi
+
+    HOMEBREW_PREFIX=$(brew --prefix)
+    path_prepend "$HOMEBREW_PREFIX/bin"
+    path_prepend "$HOMEBREW_PREFIX/sbin"
+    path_prepend "$HOMEBREW_PREFIX/anaconda3/bin"
+    path_prepend "$HOMEBREW_PREFIX/opt/libpq/bin"
+    path_prepend "$HOMEBREW_PREFIX/opt/util-linux/bin"
+    path_prepend "$HOMEBREW_PREFIX/opt/util-linux/sbin"
+    path_prepend "$(brew --prefix findutils)/libexec/gnubin"
+
+    path_prepend "$HOMEBREW_PREFIX/opt/icu4c@77/bin"
+    path_prepend "$HOMEBREW_PREFIX/opt/icu4c@77/sbin"
+
+    export HOMEBREW_NO_REQUIRE_TAP_TRUST=1
+    export HOMEBREW_NO_AUTO_UPDATE=1
+
+    export SSH_AUTH_SOCK="$HOME/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
+
+    # mac aliases
+    alias sed="gsed"/op
+    alias dodo="open -a ScreenSaverEngine.app"
+    alias dotfiles="/opt/homebrew/bin/git --git-dir=$HOME/.dotfiles/.git --work-tree=$HOME/.dotfiles/"
+    alias git=/opt/homebrew/bin/git
+    alias zup="zb outdated | cut -d ' ' -f 1 | xargs -r zb install"
+    alias bup="brew update && brew upgrade"
+    alias bdump="brew bundle dump --file .dotfiles/packages/Brewfile --force"
+    alias zdump="zb bundle dump -f .dotfiles/packages/Zerofile --force"
+
+else
+    export KAFKA_HOME="$HOME/zApps"
+    export KAFKA_BIN="$KAFKA_HOME/kafka_2.13-3.9.0/bin"
+    export ANDROID_HOME="${ANDROID_HOME:-$HOME/Android/Sdk}"
+
+    path_prepend "/home/linuxbrew/.linuxbrew/bin"
+    path_append "/snap/bin"
+    path_append "$HOME/lib/apps/bin"
+    path_append "$KAFKA_BIN"
+
+    if command -v kitty >/dev/null 2>&1; then
+        kitty + complete setup bash | source /dev/stdin
+    fi
+
+    [ -f "$HOME/lib/azure-cli/az.completion" ] && source "$HOME/lib/azure-cli/az.completion"
+    [ -f "/usr/share/nvm/init-nvm.sh" ] && source /usr/share/nvm/init-nvm.sh
+
+    if [ -S "$HOME/.1password/agent.sock" ]; then
+        export SSH_AUTH_SOCK="$HOME/.1password/agent.sock"
+    fi
+
+    [ -t 1 ] && command -v setterm >/dev/null 2>&1 && setterm -linewrap on
+fi
+
+#THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
+export SDKMAN_DIR="$HOME/.sdkman"
+[[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"
+
+# >>> zerobrew >>>
+# zerobrew
+export ZEROBREW_DIR=/Users/murpheux/.zerobrew
+export ZEROBREW_BIN=/Users/murpheux/.zerobrew/bin
+export ZEROBREW_ROOT=/opt/zerobrew
+export ZEROBREW_PREFIX=/opt/zerobrew
+export PKG_CONFIG_PATH="$ZEROBREW_PREFIX/lib/pkgconfig:${PKG_CONFIG_PATH:-}"
+
+# SSL/TLS certificates (only if ca-certificates is installed)
+if [ -z "${CURL_CA_BUNDLE:-}" ] || [ -z "${SSL_CERT_FILE:-}" ]; then
+    if [ -f "$ZEROBREW_PREFIX/opt/ca-certificates/share/ca-certificates/cacert.pem" ]; then
+        [ -z "${CURL_CA_BUNDLE:-}" ] && export CURL_CA_BUNDLE="$ZEROBREW_PREFIX/opt/ca-certificates/share/ca-certificates/cacert.pem"
+        [ -z "${SSL_CERT_FILE:-}" ] && export SSL_CERT_FILE="$ZEROBREW_PREFIX/opt/ca-certificates/share/ca-certificates/cacert.pem"
+    elif [ -f "$ZEROBREW_PREFIX/etc/ca-certificates/cacert.pem" ]; then
+        [ -z "${CURL_CA_BUNDLE:-}" ] && export CURL_CA_BUNDLE="$ZEROBREW_PREFIX/etc/ca-certificates/cacert.pem"
+        [ -z "${SSL_CERT_FILE:-}" ] && export SSL_CERT_FILE="$ZEROBREW_PREFIX/etc/ca-certificates/cacert.pem"
+    elif [ -f "$ZEROBREW_PREFIX/etc/openssl/cert.pem" ]; then
+        [ -z "${CURL_CA_BUNDLE:-}" ] && export CURL_CA_BUNDLE="$ZEROBREW_PREFIX/etc/openssl/cert.pem"
+        [ -z "${SSL_CERT_FILE:-}" ] && export SSL_CERT_FILE="$ZEROBREW_PREFIX/etc/openssl/cert.pem"
+    elif [ -f "$ZEROBREW_PREFIX/share/ca-certificates/cacert.pem" ]; then
+        [ -z "${CURL_CA_BUNDLE:-}" ] && export CURL_CA_BUNDLE="$ZEROBREW_PREFIX/share/ca-certificates/cacert.pem"
+        [ -z "${SSL_CERT_FILE:-}" ] && export SSL_CERT_FILE="$ZEROBREW_PREFIX/share/ca-certificates/cacert.pem"
+    fi
+fi
+
+if [ -z "${SSL_CERT_DIR:-}" ]; then
+    if [ -d "$ZEROBREW_PREFIX/etc/ca-certificates" ]; then
+        export SSL_CERT_DIR="$ZEROBREW_PREFIX/etc/ca-certificates"
+    elif [ -d "$ZEROBREW_PREFIX/etc/openssl/certs" ]; then
+        export SSL_CERT_DIR="$ZEROBREW_PREFIX/etc/openssl/certs"
+    elif [ -d "$ZEROBREW_PREFIX/share/ca-certificates" ]; then
+        export SSL_CERT_DIR="$ZEROBREW_PREFIX/share/ca-certificates"
+    fi
+fi
+
+_zb_path_append "$ZEROBREW_BIN"
+_zb_path_append "$ZEROBREW_PREFIX/bin"
+# <<< zerobrew <<<
 
 unalias kitty 2>/dev/null || true
 
@@ -147,11 +327,6 @@ if [[ ${NECESSARY_RUN:-RUN} == "RUN" ]]; then
   NECESSARY_RUN='DONE'
 fi
 
-# Utility function
-random-string() {
-  cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w ${1:-32} | head -n 1
-}
-
 # Keep command line but avoid loading bash script under zsh.
 if [[ -n "$BASH_VERSION" && -f "$HOME/.config/broot/launcher/bash/br" ]]; then
   source "$HOME/.config/broot/launcher/bash/br"
@@ -163,3 +338,33 @@ fi
 
 
 [ -f "$HOME/.x-cmd.root/X" ] && [ -f "$HOME/.x-cmd.root/v/latest/X" ] && . "$HOME/.x-cmd.root/X" # boot up x-cmd.
+
+# Added by LM Studio CLI (lms)
+export PATH="$PATH:/Users/murpheux/.lmstudio/bin"
+# End of LM Studio CLI section
+
+# OpenClaw Completion
+source "/Users/murpheux/.openclaw/completions/openclaw.zsh"
+
+# compilers
+# Merged LDFLAGS for both MySQL Client and ICU4C
+export LDFLAGS="-L/opt/homebrew/Cellar/mysql-client/9.6.0/lib -L/opt/homebrew/opt/icu4c@77/lib"
+
+# sensitive - using op as secrets manager
+[[ -v STEALTH_MODE ]] && export GMAIL_PASS=$(op item get kz64g775ufoodnld46so5xz6bi --fields password --reveal)
+[[ -v STEALTH_MODE ]] && export MINIO_PASS=$(op item get mlrqdvddkl2tfcwlpnlzg7jdiu --fields password --reveal)
+
+# terraform keys
+export TF_VAR_access_key="op://private/homenet-minio/username"
+export TF_VAR_secret_key="op://private/homenet-minio/password"
+
+export TF_VAR_minio_user="op://private/homenet-minio/username"
+export TF_VAR_minio_password="op://private/homenet-minio/password"
+
+export TF_VAR_pihole_password="op://private/homenet-pihole/password"
+
+#export TF_VAR_prometheus_admin_password="op://private/homenet-prometheus/password"
+#export TF_VAR_grafana_admin_password="op://private/homenet-grafana/password"
+#export TF_VAR_grafana_auth_token="op://private/homenet-grafana-apitoken/password"
+
+export PATH="/opt/homebrew/bin:$PATH"
