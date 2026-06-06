@@ -177,7 +177,7 @@ if [[ "$OSTYPE" == darwin* ]]; then
 
     if command -v /usr/libexec/java_home >/dev/null 2>&1; then
         #export JAVA_HOME="$(/usr/libexec/java_home -v 26)"
-        export JAVA_HOME="/Users/murpheux/jdk-26.jdk/Contents/Home"
+        export JAVA_HOME="$HOME/jdk-26.jdk/Contents/Home"
     fi
 
     # lazy lode nvm instead of through oh-my-zsh to reduce load by 50%
@@ -233,13 +233,84 @@ if [[ "$OSTYPE" == darwin* ]]; then
     alias bdump="brew bundle dump --file .dotfiles/packages/Brewfile --force"
     alias zdump="zb bundle dump -f .dotfiles/packages/Zerofile --force"
 
+    # >>> zerobrew >>>
+    # zerobrew
+    export ZEROBREW_DIR=$HOME/.zerobrew
+    export ZEROBREW_BIN=$HOME/.zerobrew/bin
+    export ZEROBREW_ROOT=/opt/zerobrew
+    export ZEROBREW_PREFIX=/opt/zerobrew
+    export PKG_CONFIG_PATH="$ZEROBREW_PREFIX/lib/pkgconfig:${PKG_CONFIG_PATH:-}"
+
+    # SSL/TLS certificates (only if ca-certificates is installed)
+    if [ -z "${CURL_CA_BUNDLE:-}" ] || [ -z "${SSL_CERT_FILE:-}" ]; then
+        if [ -f "$ZEROBREW_PREFIX/opt/ca-certificates/share/ca-certificates/cacert.pem" ]; then
+            [ -z "${CURL_CA_BUNDLE:-}" ] && export CURL_CA_BUNDLE="$ZEROBREW_PREFIX/opt/ca-certificates/share/ca-certificates/cacert.pem"
+            [ -z "${SSL_CERT_FILE:-}" ] && export SSL_CERT_FILE="$ZEROBREW_PREFIX/opt/ca-certificates/share/ca-certificates/cacert.pem"
+        elif [ -f "$ZEROBREW_PREFIX/etc/ca-certificates/cacert.pem" ]; then
+            [ -z "${CURL_CA_BUNDLE:-}" ] && export CURL_CA_BUNDLE="$ZEROBREW_PREFIX/etc/ca-certificates/cacert.pem"
+            [ -z "${SSL_CERT_FILE:-}" ] && export SSL_CERT_FILE="$ZEROBREW_PREFIX/etc/ca-certificates/cacert.pem"
+        elif [ -f "$ZEROBREW_PREFIX/etc/openssl/cert.pem" ]; then
+            [ -z "${CURL_CA_BUNDLE:-}" ] && export CURL_CA_BUNDLE="$ZEROBREW_PREFIX/etc/openssl/cert.pem"
+            [ -z "${SSL_CERT_FILE:-}" ] && export SSL_CERT_FILE="$ZEROBREW_PREFIX/etc/openssl/cert.pem"
+        elif [ -f "$ZEROBREW_PREFIX/share/ca-certificates/cacert.pem" ]; then
+            [ -z "${CURL_CA_BUNDLE:-}" ] && export CURL_CA_BUNDLE="$ZEROBREW_PREFIX/share/ca-certificates/cacert.pem"
+            [ -z "${SSL_CERT_FILE:-}" ] && export SSL_CERT_FILE="$ZEROBREW_PREFIX/share/ca-certificates/cacert.pem"
+        fi
+    fi
+
+    if [ -z "${SSL_CERT_DIR:-}" ]; then
+        if [ -d "$ZEROBREW_PREFIX/etc/ca-certificates" ]; then
+            export SSL_CERT_DIR="$ZEROBREW_PREFIX/etc/ca-certificates"
+        elif [ -d "$ZEROBREW_PREFIX/etc/openssl/certs" ]; then
+            export SSL_CERT_DIR="$ZEROBREW_PREFIX/etc/openssl/certs"
+        elif [ -d "$ZEROBREW_PREFIX/share/ca-certificates" ]; then
+            export SSL_CERT_DIR="$ZEROBREW_PREFIX/share/ca-certificates"
+        fi
+    fi
+
+    _zb_path_append "$ZEROBREW_BIN"
+    _zb_path_append "$ZEROBREW_PREFIX/bin"
+    # <<< zerobrew <<<
+
+    # ::::::::::::::: dev :::::::::
+    [ -f "$HOME/.config/op/plugins.sh" ] && source "$HOME/.config/op/plugins.sh"
+
+    [[ "$TERM_PROGRAM" == "kiro" ]] && . "$(kiro --locate-shell-integration-path zsh)"
+
+
+    [ -f "$HOME/.x-cmd.root/X" ] && [ -f "$HOME/.x-cmd.root/v/latest/X" ] && . "$HOME/.x-cmd.root/X" # boot up x-cmd.
+
+    # Added by LM Studio CLI (lms)
+    export PATH="$PATH:$HOME/.lmstudio/bin"
+    # End of LM Studio CLI section
+
+    # OpenClaw Completion
+    [ -f "$HOME/.openclaw/completions/openclaw.zsh" ] && source "$HOME/.openclaw/completions/openclaw.zsh"
+
+    # compilers
+    # Merged LDFLAGS for both MySQL Client and ICU4C
+    export LDFLAGS="-L/opt/homebrew/Cellar/mysql-client/9.6.0/lib -L/opt/homebrew/opt/icu4c@77/lib"
+
+    # sensitive - using op as secrets manager
+    [[ -v STEALTH_MODE ]] && export GMAIL_PASS=$(op item get kz64g775ufoodnld46so5xz6bi --fields password --reveal)
+    [[ -v STEALTH_MODE ]] && export MINIO_PASS=$(op item get mlrqdvddkl2tfcwlpnlzg7jdiu --fields password --reveal)
+
+    # terraform keys
+    export TF_VAR_access_key="op://private/homenet-minio/username"
+    export TF_VAR_secret_key="op://private/homenet-minio/password"
+
+    export TF_VAR_minio_user="op://private/homenet-minio/username"
+    export TF_VAR_minio_password="op://private/homenet-minio/password"
+
+    export TF_VAR_pihole_password="op://private/homenet-pihole/password"
+
 else
     export KAFKA_HOME="$HOME/zApps"
     export KAFKA_BIN="$KAFKA_HOME/kafka_2.13-3.9.0/bin"
     export ANDROID_HOME="${ANDROID_HOME:-$HOME/Android/Sdk}"
 
-    path_prepend "/home/linuxbrew/.linuxbrew/bin"
     path_append "/snap/bin"
+    path_append "$HOME/.cargo/bin"
     path_append "$HOME/lib/apps/bin"
     path_append "$KAFKA_BIN"
 
@@ -261,44 +332,6 @@ fi
 export SDKMAN_DIR="$HOME/.sdkman"
 [[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"
 
-# >>> zerobrew >>>
-# zerobrew
-export ZEROBREW_DIR=/Users/murpheux/.zerobrew
-export ZEROBREW_BIN=/Users/murpheux/.zerobrew/bin
-export ZEROBREW_ROOT=/opt/zerobrew
-export ZEROBREW_PREFIX=/opt/zerobrew
-export PKG_CONFIG_PATH="$ZEROBREW_PREFIX/lib/pkgconfig:${PKG_CONFIG_PATH:-}"
-
-# SSL/TLS certificates (only if ca-certificates is installed)
-if [ -z "${CURL_CA_BUNDLE:-}" ] || [ -z "${SSL_CERT_FILE:-}" ]; then
-    if [ -f "$ZEROBREW_PREFIX/opt/ca-certificates/share/ca-certificates/cacert.pem" ]; then
-        [ -z "${CURL_CA_BUNDLE:-}" ] && export CURL_CA_BUNDLE="$ZEROBREW_PREFIX/opt/ca-certificates/share/ca-certificates/cacert.pem"
-        [ -z "${SSL_CERT_FILE:-}" ] && export SSL_CERT_FILE="$ZEROBREW_PREFIX/opt/ca-certificates/share/ca-certificates/cacert.pem"
-    elif [ -f "$ZEROBREW_PREFIX/etc/ca-certificates/cacert.pem" ]; then
-        [ -z "${CURL_CA_BUNDLE:-}" ] && export CURL_CA_BUNDLE="$ZEROBREW_PREFIX/etc/ca-certificates/cacert.pem"
-        [ -z "${SSL_CERT_FILE:-}" ] && export SSL_CERT_FILE="$ZEROBREW_PREFIX/etc/ca-certificates/cacert.pem"
-    elif [ -f "$ZEROBREW_PREFIX/etc/openssl/cert.pem" ]; then
-        [ -z "${CURL_CA_BUNDLE:-}" ] && export CURL_CA_BUNDLE="$ZEROBREW_PREFIX/etc/openssl/cert.pem"
-        [ -z "${SSL_CERT_FILE:-}" ] && export SSL_CERT_FILE="$ZEROBREW_PREFIX/etc/openssl/cert.pem"
-    elif [ -f "$ZEROBREW_PREFIX/share/ca-certificates/cacert.pem" ]; then
-        [ -z "${CURL_CA_BUNDLE:-}" ] && export CURL_CA_BUNDLE="$ZEROBREW_PREFIX/share/ca-certificates/cacert.pem"
-        [ -z "${SSL_CERT_FILE:-}" ] && export SSL_CERT_FILE="$ZEROBREW_PREFIX/share/ca-certificates/cacert.pem"
-    fi
-fi
-
-if [ -z "${SSL_CERT_DIR:-}" ]; then
-    if [ -d "$ZEROBREW_PREFIX/etc/ca-certificates" ]; then
-        export SSL_CERT_DIR="$ZEROBREW_PREFIX/etc/ca-certificates"
-    elif [ -d "$ZEROBREW_PREFIX/etc/openssl/certs" ]; then
-        export SSL_CERT_DIR="$ZEROBREW_PREFIX/etc/openssl/certs"
-    elif [ -d "$ZEROBREW_PREFIX/share/ca-certificates" ]; then
-        export SSL_CERT_DIR="$ZEROBREW_PREFIX/share/ca-certificates"
-    fi
-fi
-
-_zb_path_append "$ZEROBREW_BIN"
-_zb_path_append "$ZEROBREW_PREFIX/bin"
-# <<< zerobrew <<<
 
 unalias kitty 2>/dev/null || true
 
@@ -332,39 +365,5 @@ if [[ -n "$BASH_VERSION" && -f "$HOME/.config/broot/launcher/bash/br" ]]; then
   source "$HOME/.config/broot/launcher/bash/br"
 fi
 
-[ -f "$HOME/.config/op/plugins.sh" ] && source "$HOME/.config/op/plugins.sh"
-
-[[ "$TERM_PROGRAM" == "kiro" ]] && . "$(kiro --locate-shell-integration-path zsh)"
-
-
-[ -f "$HOME/.x-cmd.root/X" ] && [ -f "$HOME/.x-cmd.root/v/latest/X" ] && . "$HOME/.x-cmd.root/X" # boot up x-cmd.
-
-# Added by LM Studio CLI (lms)
-export PATH="$PATH:/Users/murpheux/.lmstudio/bin"
-# End of LM Studio CLI section
-
-# OpenClaw Completion
-source "/Users/murpheux/.openclaw/completions/openclaw.zsh"
-
-# compilers
-# Merged LDFLAGS for both MySQL Client and ICU4C
-export LDFLAGS="-L/opt/homebrew/Cellar/mysql-client/9.6.0/lib -L/opt/homebrew/opt/icu4c@77/lib"
-
-# sensitive - using op as secrets manager
-[[ -v STEALTH_MODE ]] && export GMAIL_PASS=$(op item get kz64g775ufoodnld46so5xz6bi --fields password --reveal)
-[[ -v STEALTH_MODE ]] && export MINIO_PASS=$(op item get mlrqdvddkl2tfcwlpnlzg7jdiu --fields password --reveal)
-
-# terraform keys
-export TF_VAR_access_key="op://private/homenet-minio/username"
-export TF_VAR_secret_key="op://private/homenet-minio/password"
-
-export TF_VAR_minio_user="op://private/homenet-minio/username"
-export TF_VAR_minio_password="op://private/homenet-minio/password"
-
-export TF_VAR_pihole_password="op://private/homenet-pihole/password"
-
-#export TF_VAR_prometheus_admin_password="op://private/homenet-prometheus/password"
-#export TF_VAR_grafana_admin_password="op://private/homenet-grafana/password"
-#export TF_VAR_grafana_auth_token="op://private/homenet-grafana-apitoken/password"
 
 export PATH="/opt/homebrew/bin:$PATH"

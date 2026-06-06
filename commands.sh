@@ -2832,6 +2832,7 @@
   tar -cvpzf backup.tar.gz --exclude=/home/murpheux/backup.tar.gz --one-file-system /
   tar -cvpzf /mnt/tcapsule/scarletBkp.tar.gz --exclude=/mnt --one-file-system /
   tar -czvf file_name.tar.gz *
+  tar xf btop.tbz --strip-components=2 -C /usr/local ./btop/bin/btop
 
   grep -r hello /sys/ 2> /dev/null
   ping google.com 1> /dev/null
