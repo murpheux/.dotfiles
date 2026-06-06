@@ -20,47 +20,32 @@ path_append() {
     esac
 }
 
-#function zshaddhistory() {
-#    local command="$1"
-#    local redacted
-#    local redacted_cmd
-#
-#    redacted=$(echo -n "$command" | history-redact redact 2>/dev/null)
-#    if [[ $? -ne 0 ]]; then
-#        echo "Warning: history-redact failed to process command" >&2
-#        return 0
-#    fi
-#    redacted_cmd="${redacted#*|}"
-#    print -sr -- "${redacted_cmd%%$'\n'}"
-#    return 1
-#}
-
 function zshaddhistory() {
-    # 1. Cleanly strip trailing newlines and carriage returns from the raw command
+    # SAFETY CHECK: If the history-redact tool isn't installed, 
+    # skip processing completely and save the history natively.
+    if (( ! ${+commands[history-redact]} )); then
+        return 0 
+    fi
+
     local command="${1%%$'\n'}"
     command="${command%%$'\r'}"
-
-    # Skip processing entirely if the command line is empty
     [[ -z "$command" ]] && return 1
 
     local redacted
     local redacted_cmd
 
-    # 2. Use printf instead of echo to safely handle special characters/flags
     redacted=$(printf '%s' "$command" | history-redact redact 2>/dev/null)
-
     if [[ $? -ne 0 ]]; then
-        echo "Warning: history-redact failed to process command" >&2
-        return 0 # Saves original command if redactor fails
+        # This will now only trigger if the tool crashed, not if it is missing
+        #echo "Warning: history-redact failed to process command" >&2
+        return 0  
     fi
 
     redacted_cmd="${redacted#*|}"
-
-    # 3. Save the safely sanitized command to the history file
     print -sr -- "$redacted_cmd"
-
-    return 1 # Tells Zsh NOT to save the unredacted version
+    return 1 
 }
+
 
 ip() {
     local iface="eth0"
