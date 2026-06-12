@@ -466,3 +466,7 @@ string match -q "$TERM_PROGRAM" "kiro" and . (kiro --locate-shell-integration-pa
 set -gx PATH $PATH /Users/murpheux/.lmstudio/bin
 # End of LM Studio CLI section
 
+
+
+# Added by Antigravity CLI installer
+set -gx PATH "/Users/murpheux/.local/bin" $PATH

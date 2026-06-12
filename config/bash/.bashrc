@@ -81,3 +81,7 @@ fi
 export PATH="$PATH:/Users/murpheux/.lmstudio/bin"
 # End of LM Studio CLI section
 
+
+
+# Added by Antigravity CLI installer
+export PATH="/Users/murpheux/.local/bin:$PATH"

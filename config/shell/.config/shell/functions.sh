@@ -2,23 +2,67 @@
 
 # functions.sh
 
+#path_prepend() {
+#    local dir="$1"
+#    [ -d "$dir" ] || return 0
+#    case ":$PATH:" in
+#    *":$dir:"*) ;;
+#    *) PATH="$dir:$PATH" ;;
+#    esac
+#}
+
+#path_append() {
+#    local dir="$1"
+#    [ -d "$dir" ] || return 0
+#    case ":$PATH:" in
+#    *":$dir:"*) ;;
+#    *) PATH="$PATH:$dir" ;;
+#    esac
+#}
+
+#path_prepend() {
+#    # Loop backwards to preserve the exact command-line argument order
+#    for ((i=$#; i>0; i--)); do
+#        local dir="${!i}"
+#        [ -d "$dir" ] || continue
+#        case ":$PATH:" in
+#        *":$dir:"*) ;;
+#        *) PATH="$dir:$PATH" ;;
+#        esac
+#    done
+#}
+
+#path_append() {
+#    for dir in "$@"; do
+#        [ -d "$dir" ] || continue
+#        case ":$PATH:" in
+#        *":$dir:"*) ;;
+#        *) PATH="$PATH:$dir" ;;
+#        esac
+#    done
+#}
+
 path_prepend() {
-    local dir="$1"
-    [ -d "$dir" ] || return 0
-    case ":$PATH:" in
-    *":$dir:"*) ;;
-    *) PATH="$dir:$PATH" ;;
-    esac
+    # Zsh syntax to cleanly loop through the arguments backwards
+    for dir in ${(Oa)@}; do
+        [ -d "$dir" ] || continue
+        case ":$PATH:" in
+        *":$dir:"*) ;;
+        *) PATH="$dir:$PATH" ;;
+        esac
+    done
 }
 
 path_append() {
-    local dir="$1"
-    [ -d "$dir" ] || return 0
-    case ":$PATH:" in
-    *":$dir:"*) ;;
-    *) PATH="$PATH:$dir" ;;
-    esac
+    for dir in "$@"; do
+        [ -d "$dir" ] || continue
+        case ":$PATH:" in
+        *":$dir:"*) ;;
+        *) PATH="$PATH:$dir" ;;
+        esac
+    done
 }
+
 
 function zshaddhistory() {
     # SAFETY CHECK: If the history-redact tool isn't installed, 
@@ -91,4 +135,17 @@ swarm-ps() {
         echo "=== $n ==="
         docker node ps $n
     done
+}
+
+# specific for mac os
+function gluster-remote() {
+    ssh -t murpheux@scarlet "sudo gluster $*"
+}
+
+function gi() { curl -sLw "\n" https://www.toptal.com/developers/gitignore/api/$@ ;}
+
+# cleanup history
+history_cleanup() {
+  fc -W
+  fc -RI
 }

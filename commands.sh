@@ -188,6 +188,11 @@
 
   softwareupdate --install-rosetta
 
+  # ==> pfctl
+  sudo pfctl -s nat
+  sudo pfctl -s rules
+
+
   # This tells macOS to trust command-line tools run from Terminal
   sudo spctl --developer-mode --enable
 
@@ -678,6 +683,7 @@
 
   # what binaries have what ports and in what states are those ports:
   lsof -n -i4TCP
+  sudo lsof -iTCP -sTCP:LISTEN | grep caddy
 
   # make an alias for looking at what has a listener open, called ports:
   alias ports='lsof -n -i4TCP | grep LISTEN'
@@ -732,6 +738,16 @@
   launchctl unload /Library/LaunchDaemons/org.wso2.am.plist
   launchctl load /usr/local/cellar/nginx/1.17.0/homebrew.mxcl.nginx.plist 
   launchctl unload /usr/local/cellar/nginx/1.17.0/homebrew.mxcl.nginx.plist
+
+  # Using modern macOS bootstrap commands (Recommended)
+  launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.ollama.plist
+
+  # Legacy fallback trigger (If the plist configuration file is already loaded)
+  launchctl start com.ollama
+
+  launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.ollama.plist
+  # same
+  OLLAMA_MODELS="/Volumes/TikkaSSD/ai/ollama/models" OLLAMA_KEEP_ALIVE="-1" OLLAMA_HOST="0.0.0.0:11434" ollama serve
 
   # ssd health
   diskutil info disk0 | grep SMART
@@ -1168,6 +1184,9 @@
   readlink -e /etc/grub2-efi.cfg
   grub2-mkconfig --output /boot/efi/EFI/rocky/grub.cfg
 
+  ls
+  eza -lg # show gid. uid only shown
+
   ls -lh | awk '{ print $0; }'
   ls -lh | awk '{ print $1; }'
   ls -lh | awk '{ print $NF; }'
@@ -1437,6 +1456,8 @@
   top [-u username]
   top -l 1 -n 10 -s 0 -o cpu
   top -l 1 -n 10 -o gpu -stats pid,command,gpu,cpu,mem
+  top -o cpu   # Processes by CPU usage
+  top -o mem   # Processes by memory usage
 
   bpytop
   bashtop
@@ -1772,7 +1793,34 @@
 
   7zz a -t7z -v3500m largemovie.7z most_large_movie_ever.mkv
 
+  # ==> 
+  ngrok config check
+  ngrok config check --config /path/to/your/custom-config.yml
+
+  ngrok http 11434 --host-header="localhost:11434"
+  ngrok config add-authtoken $YOUR_AUTHTOKEN
+  ngrok http --url=pettiness-decathlon-mumble.ngrok-free.dev 80
+  ngrok http 11434 --host-header="localhost:11434"
+  ngrok http 8080 --url https://app.acme.com
+
+  ngrok http --url=pettiness-decathlon-mumble.ngrok-free.dev 11434 --host-header="127.0.0.1:11434"
+  ngrok http 8080 --url your-domain.ngrok-free.app --traffic-policy-file policy.yaml
+
+  ngrok start --config config.yaml my-api
+  ngrok start --all --config config.yaml
+  ngrok http 8080 --config config.yaml --traffic-policy-file policy.yaml
+
+  ngrok start ollama_tunnel
+
+  # ==> pinggy.io
+  ssh -p 443 -R0:localhost:11434 free.pinggy.io
+
+  # ==> cloudflared
+  cloudflared tunnel --url http://localhost:11434 --http-host-header="localhost:11434"
+
   # ==> ssh
+  ssh -p 443 -R0:localhost:11434 free.pinggy.io
+
   ssh-keygen -t rsa -b 4096
   ssh-keygen -t dsa
   ssh-keygen -t ecdsa -b 521
@@ -2283,7 +2331,6 @@
   fstab
   /dev/vg_bricks/dist_brick1 /bricks/dist_brick1 xfs rw,noatime,inode64,nouuid 1 2
 
-
   gluster vol create distvol gru:/bricks/dist_brick1/brick 
   gluster vol start distvol
   gluster vol create shadowvol replica 2 gru:/bricks/shadow_brick1/brick
@@ -2416,6 +2463,12 @@
 
   # display and manipulate extended attributes
   xattr -rc Chromium.app
+
+  # strip away Apple’s digital "quarantine" flag
+  xattr -cr zenshd.app
+
+  # Disable Gatekeeper Globally
+  sudo spctl --master-disable|--master-enable
 
   # split files size vs number
   split myLargeFile.txt -b 500m
@@ -3761,8 +3814,9 @@
   rsync -rltzp /src/dir/ user@remote:/dest/dir/ # Drop the strict attribute flags
   rsync -azp --no-perms --no-owner --no-group /src/dir/ user@remote:/dest/dir/ # want to keep using -a for its other benefits but want to explicitly mute the errors regarding ownership and permissions, append these exclusion flags
 
-
+  # ==> snmp
   snmpwalk -v2c -c public softctaftprn sysName
+  snmpwalk -v2c -c softcrafthome prn sysName|sysContact.0
 
   screen
   setterm -linewrap off
@@ -7150,6 +7204,8 @@ docker volume inspect my_volume_name
   openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /d/tmp/nginx.key -out /d/tmp/nginx.crt -subj "/CN=my-nginx/O=my-nginx"
   openssl pkcs12 -export -out certificate.pfx -inkey localhost.key -in localhost.cer
 
+  openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout ollama.key -out ollama.crt -subj "/C=CA/ST=Alberta/L=Calgary/O=SoftCraft/OU=AI/CN=localhost"
+
   #Add the cert to the macOS keychain
   security import certificate.pfx -k ~/Library/Keychains/login.keychain-db
 
@@ -7167,7 +7223,6 @@ docker volume inspect my_volume_name
 
   openssl pkcs12 -in file-to-convert.p12 -out converted-file.pem -nodes
   openssl x509 -inform der -in to-convert.der -out converted.pem
-
 
   # view PEM encoded certificate
   openssl x509 -in cert.pem -text -noout
@@ -7321,9 +7376,16 @@ docker volume inspect my_volume_name
 
 #::::::::::::::::::::::::::::::: brew :::::::::::::::::::::::::::::::
   brew info
+  brew --env
   brew --cellar
   brew --prefix
   brew --prefix httpd
+  brew tap-info --installed
+
+  brew link --overwrite --dry-run
+  brew link --overwrite
+
+  brew --repository
 
   brew shellenv
 
@@ -7360,6 +7422,9 @@ docker volume inspect my_volume_name
 
   brew cleanup -n|--dry-run
   brew cleanup
+  brew cleanup
+  brew update-reset
+  rm -rf "$(brew --cache)"
 
   brew help [upgrade]
 
@@ -9136,6 +9201,43 @@ docker volume inspect my_volume_name
   gh alias set
   gh alias list
 
+  # ==> gitea
+  gitea --config /etc/gitea/app.ini actions generate-runner-token
+
+  tea clone murpheux/first-blood
+  tea login add --name <choose_a_profile_name> --url <your_gitea_url> --token <your_copied_token>
+  tea login add --name work-server --url https://gitea.example.com --token 1234567890abcdef
+
+  docker run --rm -it --entrypoint /usr/local/bin/act_runner -v $(pwd)/data:/data -w /data gitea/act_runner:latest register --no-interactive --instance http://192.168.12.164:3000/ --token kethKs5m1ygpv95hYIEWFd1cW5NBGE4sKB8WYK9V --name gitea-runner --labels ubuntu-latest:docker://node:20-bookworm
+
+  ./gitea-runner register
+  ./gitea-runner register --instance https://yourdomain.com --token <registration_token> --no-interactive
+  ./gitea-runner generate-config
+  ./gitea-runner generate-config > config.yaml
+  ./gitea-runner --config config.yaml [command]
+  ./act_runner register --no-interactive --instance <instance_url> --token <registration_token> --name <runner_name> --labels <runner_labels>
+  ./act_runner daemon
+  ./act_runner daemon --config config.yaml
+
+  docker run \
+    -e GITEA_INSTANCE_URL=<instance_url> \
+    -e GITEA_RUNNER_REGISTRATION_TOKEN=<registration_token> \
+    -e GITEA_RUNNER_NAME=<runner_name> \
+    --name my_runner \
+    -d docker.io/gitea/act_runner:nightly
+
+  docker run \
+    -v $PWD/config.yaml:/config.yaml \
+    -v $PWD/data:/data \
+    -v /var/run/docker.sock:/var/run/docker.sock \
+    -e CONFIG_FILE=/config.yaml \
+    -e GITEA_INSTANCE_URL=<instance_url> \
+    -e GITEA_RUNNER_REGISTRATION_TOKEN=<registration_token> \
+    -e GITEA_RUNNER_NAME=<runner_name> \
+    -e GITEA_RUNNER_LABELS=<runner_labels> \
+    --name my_runner \
+    -d docker.io/gitea/act_runner:nightly
+
 #:::::::::::::::::::::::::::::: golang ::::::::::::::::::::::::::::::
   go --version
   go build -o imessage-viewer main.go
@@ -9884,6 +9986,8 @@ docker volume inspect my_volume_name
 #::::::::::::::::::::::::::::: glutserfs ::::::::::::::::::::::::::::
   #Gluster 3.10 (Stable)
   #https://www.gluster.org/install/
+  systemctl start glusterd
+  systemctl enable glusterd
   systemctl disable ufw
   systemctl stop ufw
   systemctl status ufw
@@ -9895,15 +9999,15 @@ docker volume inspect my_volume_name
   add-apt-repository ppa:gluster/glusterfs-3.10
   apt-get update -y
   apt-get install glusterfs-server -y
+
   glusterfs --version
   gluster peer probe gluster1
-  systemctl start glusterd
-  systemctl enable glusterd
   gluster volume create gvol0 replica 2 gluster1.example.lan:/data/gluster/gvol0 gluster2.example.lan:/data/gluster/gvol0
   gluster volume start test-volume
   gluster volume info test-volume
   gluster volume set test-volume network.ping-timeout 3
-  # glusterfs client
+  
+  # ==> glusterfs client
   apt-get install -y glusterfs-client
   mkdir -p /mnt/glusterfs
   mount -t glusterfs gluster1.example.lan:/data/gluster/gvol0 /mnt/glusterfs
@@ -9924,60 +10028,61 @@ docker volume inspect my_volume_name
   Fuse –> is a loadable kernel module that lets non-privileged users create their own file systems without editing kernel code.
   glusterd –> is a daemon that runs on all servers in the trusted storage pool.
   RAID –> Redundant Array of Inexpensive Disks (RAID) is a technology that provides increased storage reliability through redundancy
-  TCP ports 111, 24007,24008  on all Gluster servers
-  TCP port  24009-(24009 + number of bricks across all volumes) on all Gluster servers 
-  TCP port 24009 to 24014 -> 5 bricks for each
+  
+  # TCP ports 111, 24007,24008  on all Gluster servers
+  # TCP port  24009-(24009 + number of bricks across all volumes) on all Gluster servers 
+  # TCP port 24009 to 24014 -> 5 bricks for each
  
-   glusterfs -V -> Check the version of installed glusterfs
-   gluster -> Gluster Console Manager in interactive mode
-   
-   sudo vi /etc/hosts -> modify /etc/hosts file if DNS is N\A
-   192.168.13.16  gluster1.storage.local  gluster1
-   192.168.13.17  gluster2.storage.local  gluster2
-   192.168.13.20  client.storage.local    client
-   
-   gluster peer status -> Verify the status of the trusted storage pool
-   gluster peer probe gluster2-server ->  Add servers to the trusted storage pool
-   gluster peer detach gluster2-server -> Remove a server in storage pool
-   gluster pool list -> List the storage pool.
-   
-   
-   mkdir -p /data/gluster/gvol0 -> Create a brick (directory) called “gvol0” in the mounted file system on both nodes
-   gluster volume create gvol0 replica 2 gluster1.storage.local:/data/gluster/gvol0 gluster2.storage.local:/data/gluster/gvol0
-   volume create: gvol0 -> Create the volume named “gvol0” with two replicas
-   gluster volume start gvol0 -> Start volume
-   gluster volume info -> Show the volume information
-   gluster volume info gvol0 -> Show the volume information of volume gvol0
-   gluster volume start test-volume -> Start volume
-   
-   mkfs.ext4 /dev/sdb1 -> Format partition
-   mkdir -p /data/gluster -> Create directory called /data/gluster
-   mount /dev/sdb1 /data/gluster -> Mount the disk on a directory called /data/gluster
+  glusterfs -V -> Check the version of installed glusterfs
+  gluster -> Gluster Console Manager in interactive mode
+  
+  sudo vi /etc/hosts -> modify /etc/hosts file if DNS is N\A
+  192.168.13.16  gluster1.storage.local  gluster1
+  192.168.13.17  gluster2.storage.local  gluster2
+  192.168.13.20  client.storage.local    client
+  
+  gluster peer status -> Verify the status of the trusted storage pool
+  gluster peer probe gluster2-server ->  Add servers to the trusted storage pool
+  gluster peer detach gluster2-server -> Remove a server in storage pool
+  gluster pool list -> List the storage pool.
+  
+  
+  mkdir -p /data/gluster/gvol0 -> Create a brick (directory) called “gvol0” in the mounted file system on both nodes
+  gluster volume create gvol0 replica 2 gluster1.storage.local:/data/gluster/gvol0 gluster2.storage.local:/data/gluster/gvol0
+  volume create: gvol0 -> Create the volume named “gvol0” with two replicas
+  gluster volume start gvol0 -> Start volume
+  gluster volume info -> Show the volume information
+  gluster volume info gvol0 -> Show the volume information of volume gvol0
+  gluster volume start test-volume -> Start volume
+  
+  mkfs.ext4 /dev/sdb1 -> Format partition
+  mkdir -p /data/gluster -> Create directory called /data/gluster
+  mount /dev/sdb1 /data/gluster -> Mount the disk on a directory called /data/gluster
 
-   mount -t glusterfs gluster1-server:/test-volume /mnt/glusterfs -> Mount a Gluster volume on all Gluster servers
-   cat /proc/mounts | grep glusterfs
-   
-   #/etc/fstab
-   storage.example.lan:/test-volume       /mnt  glusterfs   defaults,_netdev  0  0
-   gluster1-server:/test-volume /mnt/glusterfs glusterfs defaults,_netdev 0 0 -> Edit the /etc/fstab file on all Gluster servers
-   echo "/dev/sdb1 /data/gluster ext4 defaults 0 0" | sudo tee --append /etc/fstab ->Add an entry to /etc/fstab
-   
-   
-   sudo iptables -I INPUT -p all -s <ip-address> -j ACCEPT -> Configure the firewall to allow all connections within a cluster
-   
-   Redhat Based Systems
-   chkconfig glusterd on -> Start the glusterd daemon every time the system boots
-   
-   Debian Based Systems
-   sudo service glusterfs-server start ->Start the glusterfs-server service on all gluster nodes
-   
-   Clients
-   dmesg | grep -i fuse -> Verify FUSE module is installed
-   mkdir -p /mnt/glusterfs -> Create a directory to mount the GlusterFS filesystem
-   mount -t glusterfs gluster1.storage.local:/gvol0 /mnt/glusterfs -> Mount the GlusterFS filesystem to /mnt/glusterfs 
-   df -hP /mnt/glusterfs -> Verify the mounted GlusterFS filesystem
-   gluster1.storage.local:/gvol0 /mnt/glusterfs glusterfs  defaults,_netdev 0 0 -> Add to /etc/fstab for automatically mounting
-   
+  mount -t glusterfs gluster1-server:/test-volume /mnt/glusterfs -> Mount a Gluster volume on all Gluster servers
+  cat /proc/mounts | grep glusterfs
+  
+  #/etc/fstab
+  storage.example.lan:/test-volume       /mnt  glusterfs   defaults,_netdev  0  0
+  gluster1-server:/test-volume /mnt/glusterfs glusterfs defaults,_netdev 0 0 -> Edit the /etc/fstab file on all Gluster servers
+  echo "/dev/sdb1 /data/gluster ext4 defaults 0 0" | sudo tee --append /etc/fstab ->Add an entry to /etc/fstab
+  
+  
+  sudo iptables -I INPUT -p all -s <ip-address> -j ACCEPT -> Configure the firewall to allow all connections within a cluster
+  
+  Redhat Based Systems
+  chkconfig glusterd on -> Start the glusterd daemon every time the system boots
+  
+  Debian Based Systems
+  sudo service glusterfs-server start ->Start the glusterfs-server service on all gluster nodes
+  
+  Clients
+  dmesg | grep -i fuse -> Verify FUSE module is installed
+  mkdir -p /mnt/glusterfs -> Create a directory to mount the GlusterFS filesystem
+  mount -t glusterfs gluster1.storage.local:/gvol0 /mnt/glusterfs -> Mount the GlusterFS filesystem to /mnt/glusterfs 
+  df -hP /mnt/glusterfs -> Verify the mounted GlusterFS filesystem
+  gluster1.storage.local:/gvol0 /mnt/glusterfs glusterfs  defaults,_netdev 0 0 -> Add to /etc/fstab for automatically mounting
+  
   Benchmarking && Testing
 
   Servers
@@ -11488,7 +11593,9 @@ docker volume inspect my_volume_name
 
 
 #:::::::::::::::::::::::::::::::: ai ::::::::::::::::::::::::::::::::
-  # Model - DevOps/SRE: Gemma 4 (31B Dense) or Qwen 3.6 Coder
+  # Model - 
+  # devOps/sree: Gemma 4 (31B Dense) or Qwen 3.6 Coder - qwen3-coder:30b, 
+  # https://oz.warp.dev/runs
 
   # ==> warp ai
   aliases (ga for git add, gc for commit, gp for push)
@@ -11498,15 +11605,49 @@ docker volume inspect my_volume_name
   oz mcp list
   oz model list
 
+  oz environment list
+
   oz run list
   oz agent run --prompt "Build anything"
   oz run get
+
+  oz agent run --prompt "Your question or instruction goes here"
+  oz agent run --prompt "How do I optimize this path configuration: $PATH"
+  oz agent run --share --prompt "Why is my local docker container crashing?"
+  oz agent run --prompt "Follow the instructions outlined in <notebook:gq1CMAUWLtaL1CpEoTDQ3y>"
+
+  oz agent list [--repo owner/repo]
+  oz agent run-cloud
+
+  oz run list [--limit 20]
+  oz run get <RUN_ID>
+
+  oz model list
+  oz environment image list
+
+  # Run locally with a skill
+  oz agent run --skill "owner/repo:skill-name" --prompt "additional context"
+
+  # Run in the cloud with a skill
+  oz agent run-cloud \
+    --environment <ENV_ID> \
+    --skill "owner/repo:skill-name" \
+    --prompt "additional context"
+
+  oz schedule create \
+  --name "Weekly Code Cleanup" \
+  --cron "0 10 * * 1" \
+  --environment <ENV_ID> \
+  --prompt "Scan for dead code and unused feature flags. Open a PR with removals."
 
   # ==> github copilot
   copilot update
   copilot
   copilot --banner
   !<shell commands>
+
+  # ==> apm - agent package manager
+  apm list
 
   # ==> wave term
   wsh editconfig waveai.json
@@ -11609,10 +11750,58 @@ docker volume inspect my_volume_name
 
   ollama run gemma-4-31b-it:free --prompt "Recommend a great action movie on Netflix that I should watch."
 
-  
+  ollama cp <your-local-model> claude-3-5-sonnet
+  ollama launch claude --model kimi-k2.5:cloud --yes -- -p "how does this repository work?"
+
   export ANTHROPIC_BASE_URL=https://openrouter.ai/api/v1 # Redirect the API endpoint to OpenRouter
   export ANTHROPIC_API_KEY=your_openrouter_api_key_here # Use your OpenRouter API Key
   export CLAUDE_MODEL=meta-llama/llama-3.3-70b-instruct:free # Specify the Llama 3.3 free model
+
+  # ==> openclaw
+  openclaw gateway status|run
+  openclaw gateway status --json
+  openclaw gateway status --require-rpc
+  openclaw gateway start|restart|stop|uninstall
+  openclaw gateway --port 18789
+  openclaw gateway discover
+
+  openclaw dashboard
+  openclaw onboard
+
+  openclaw security audit
+
+  openclaw agents list
+  openclaw agents add work-assistant
+  openclaw agents add personal-assistant
+
+  openclaw configure --section gateway.tailscale
+  openclaw configure --section agents.defaults.model
+
+  openclaw doctor --fix
+
+  openclaw gateway health --url ws://127.0.0.1:18789
+  openclaw gateway usage-cost
+  openclaw gateway usage-cost --days 7
+  openclaw gateway usage-cost --json
+
+  openclaw gateway stability
+  openclaw gateway stability --type payload.large
+  openclaw gateway stability --bundle latest
+  openclaw gateway stability --bundle latest --export
+  openclaw gateway stability --json
+
+  openclaw gateway stability
+  openclaw gateway stability --type payload.large
+  openclaw gateway stability --bundle latest
+  openclaw gateway stability --bundle latest --export
+  openclaw gateway stability --json
+
+  openclaw gateway probe
+  openclaw gateway probe --json
+  openclaw gateway probe --ssh user@gateway-host
+
+  openclaw gateway call status
+  openclaw gateway call logs.tail --params '{"sinceMs": 60000}'
 
   #modelfile
   FROM gemma3
@@ -11621,7 +11810,10 @@ docker volume inspect my_volume_name
   ollama create -f Modelfile
 
   launchctl setenv OLLAMA_HOST "0.0.0.0:11434" # environment variables on mac
-
+  launchctl bootout gui/$(id -u) ~/Library/LaunchAgents/com.ollama.plist 2>/dev/null
+  plutil -lint ~/Library/LaunchAgents/com.ollama.plist
+  plutil -lint ~/Library/LaunchAgents/com.ngrok.agent.plist
+  
   # ==> mail client
   mutt
   neomutt
@@ -11632,6 +11824,12 @@ docker volume inspect my_volume_name
 
   # ==> api
   curl http://localhost:11434/api/tags
+
+  curl http://localhost:11434/api/generate -d '{
+    "model": "llama3.2",
+    "prompt": "Why is the sky blue?",
+    "stream": false
+  }'
 
   # ==> llm studio/lms
   lms status # To check the status of LM Studio.

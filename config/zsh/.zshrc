@@ -98,14 +98,18 @@ zstyle ':fzf-tab:*' switch-group ',' '.'
 HISTSIZE=100000
 SAVEHIST=200000
 setopt EXTENDED_HISTORY          # Add timestamps
-setopt inc_append_history        # Add commands immediately
-setopt share_history             # Share across sessions
+#setopt inc_append_history        # Add commands immediately
+#setopt share_history             # Share across sessions
 setopt hist_ignore_all_dups      # Don't add duplicates
 setopt hist_save_no_dups         # Remove duplicates on save
 setopt hist_expire_dups_first    # Remove duplicates when full
 setopt hist_ignore_space         # Skip commands with leading space
 setopt hist_verify               # Confirm before running from history
 setopt hist_find_no_dups         # Don't show duplicates in search
+
+# Disable the two troublemakers
+unsetopt share_history
+unsetopt inc_append_history
 
 export HISTORY_IGNORE="(ls|ll|cat|pwd|clear|which|dig|rm|cls|echo|exit|cd|z|bup|zup|h|history|tree|eza|path|ping|ping6|rm -rf|export|paru*|cd|sz)*"
 
@@ -137,6 +141,10 @@ eval "$(zoxide init --cmd cd zsh)"
 [ -f "$HOME/.config/shell/functions.sh" ] && source "$HOME/.config/shell/functions.sh"
 [ -f "$HOME/.config/shell/aliases.sh" ] && source "$HOME/.config/shell/aliases.sh" # Source user modules
 
+# Rewrite history every 10 minutes
+autoload -Uz add-zsh-hook
+add-zsh-hook periodic history_cleanup
+
 export VSH_VERSION="0.1.4"
 export AWS_PROFILE="default"
 export EDITOR="nvim"
@@ -153,27 +161,14 @@ export NODE_ENV="development"
 export GPG_TTY="$(tty)"
 export EZA_CONFIG_DIR=$HOME/.config/eza
 
-path_append "$HOME/.local/bin"
-path_append "$HOME/bin"
-path_append "$HOME/.npm-global/bin"
-path_append "$GOPATH/bin"
-path_append "$GO_HOME/bin"
-path_append "$HOME/.dotnet/tools"
-path_append "$HOME/.nvm/versions/node/v25.8.2/bin"
+path_append "$HOME/.local/bin" "$HOME/bin" "$HOME/.npm-global/bin" "$GOPATH/bin" "$GO_HOME/bin" "$HOME/.dotnet/tools" "$HOME/.nvm/versions/node/v25.8.2/bin"
 
 if [[ "$OSTYPE" == darwin* ]]; then
     export ANDROID_HOME="$HOME/Library/Android/sdk"
     export ANDROID_SDK="$ANDROID_HOME"
     export KITTY_CONFIG_DIRECTORY="$HOME/.config/kitty"
 
-    path_append "$HOME/Library/Python/3.9/bin"
-    path_append "$HOME/.cargo/bin"
-    path_append "$HOME/.config/emacs/bin"
-    path_append "$HOME/.zim"
-    path_append "$HOME/zApps/flutter/bin"
-    path_append "$HOME/zApps/kafka_2.13-3.9.0/bin"
-    path_append "$ANDROID_SDK/platform-tools"
-    path_append "$ANDROID_SDK/tools/bin"
+    path_append "$HOME/Library/Python/3.9/bin" "$HOME/.cargo/bin" "$HOME/.config/emacs/bin" "$HOME/.zim" "$HOME/zApps/flutter/bin" "$HOME/zApps/kafka_2.13-3.9.0/bin" "$ANDROID_SDK/platform-tools" "$ANDROID_SDK/tools/bin"
 
     if command -v /usr/libexec/java_home >/dev/null 2>&1; then
         #export JAVA_HOME="$(/usr/libexec/java_home -v 26)"
@@ -207,16 +202,7 @@ if [[ "$OSTYPE" == darwin* ]]; then
     fi
 
     HOMEBREW_PREFIX=$(brew --prefix)
-    path_prepend "$HOMEBREW_PREFIX/bin"
-    path_prepend "$HOMEBREW_PREFIX/sbin"
-    path_prepend "$HOMEBREW_PREFIX/anaconda3/bin"
-    path_prepend "$HOMEBREW_PREFIX/opt/libpq/bin"
-    path_prepend "$HOMEBREW_PREFIX/opt/util-linux/bin"
-    path_prepend "$HOMEBREW_PREFIX/opt/util-linux/sbin"
-    path_prepend "$(brew --prefix findutils)/libexec/gnubin"
-
-    path_prepend "$HOMEBREW_PREFIX/opt/icu4c@77/bin"
-    path_prepend "$HOMEBREW_PREFIX/opt/icu4c@77/sbin"
+    path_prepend "$HOMEBREW_PREFIX/bin" "$HOMEBREW_PREFIX/sbin" "$HOMEBREW_PREFIX/anaconda3/bin" "$HOMEBREW_PREFIX/opt/libpq/bin" "$HOMEBREW_PREFIX/opt/util-linux/bin" "$HOMEBREW_PREFIX/opt/util-linux/sbin" "$(brew --prefix findutils)/libexec/gnubin" "$HOMEBREW_PREFIX/opt/icu4c@77/bin" "$HOMEBREW_PREFIX/opt/icu4c@77/sbin"
 
     export HOMEBREW_NO_REQUIRE_TAP_TRUST=1
     export HOMEBREW_NO_AUTO_UPDATE=1
@@ -224,10 +210,8 @@ if [[ "$OSTYPE" == darwin* ]]; then
     export SSH_AUTH_SOCK="$HOME/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
 
     # mac aliases
-    alias sed="gsed"/op
     alias dodo="open -a ScreenSaverEngine.app"
-    alias dotfiles="/opt/homebrew/bin/git --git-dir=$HOME/.dotfiles/.git --work-tree=$HOME/.dotfiles/"
-    alias git=/opt/homebrew/bin/git
+    alias dotfiles="git --git-dir=$HOME/.dotfiles/.git --work-tree=$HOME/.dotfiles/"
     alias zup="zb outdated | cut -d ' ' -f 1 | xargs -r zb install"
     alias bup="brew update && brew upgrade"
     alias bdump="brew bundle dump --file .dotfiles/packages/Brewfile --force"
@@ -292,8 +276,11 @@ if [[ "$OSTYPE" == darwin* ]]; then
     export LDFLAGS="-L/opt/homebrew/Cellar/mysql-client/9.6.0/lib -L/opt/homebrew/opt/icu4c@77/lib"
 
     # sensitive - using op as secrets manager
-    [[ -v STEALTH_MODE ]] && export GMAIL_PASS=$(op item get kz64g775ufoodnld46so5xz6bi --fields password --reveal)
-    [[ -v STEALTH_MODE ]] && export MINIO_PASS=$(op item get mlrqdvddkl2tfcwlpnlzg7jdiu --fields password --reveal)
+    if [[ -v STEALTH_MODE ]]; then
+        export GMAIL_PASS=$(op item get kz64g775ufoodnld46so5xz6bi --fields password --reveal)
+        export MINIO_PASS=$(op item get mlrqdvddkl2tfcwlpnlzg7jdiu --fields password --reveal)
+        export DEEPSEEK_API_KEY=$(op item get inmd7mcpkyy7n3w4tzv6cm4fdq --fields password --reveal)
+    fi
 
     # terraform keys
     export TF_VAR_access_key="op://private/homenet-minio/username"
@@ -365,5 +352,16 @@ if [[ -n "$BASH_VERSION" && -f "$HOME/.config/broot/launcher/bash/br" ]]; then
   source "$HOME/.config/broot/launcher/bash/br"
 fi
 
+GEMINI_CLI_TRUST_WORKSPACE=true
 
 export PATH="/opt/homebrew/bin:$PATH"
+
+# Hermes Agent — ensure ~/.local/bin is on PATH
+export PATH="$HOME/.local/bin:$PATH"
+
+
+# Added by Antigravity CLI installer
+export PATH="/Users/murpheux/.local/bin:$PATH"
+
+# Added by Antigravity IDE
+export PATH="/Users/murpheux/.antigravity-ide/antigravity-ide/bin:$PATH"
