@@ -291,6 +291,8 @@ if [[ "$OSTYPE" == darwin* ]]; then
 
     export TF_VAR_pihole_password="op://private/homenet-pihole/password"
 
+    load_cline_instructions
+
 else
     export KAFKA_HOME="$HOME/zApps"
     export KAFKA_BIN="$KAFKA_HOME/kafka_2.13-3.9.0/bin"

@@ -142,6 +142,16 @@ function gluster-remote() {
     ssh -t murpheux@scarlet "sudo gluster $*"
 }
 
+function load_cline_instructions() {
+  #echo "Loading HomeNet environment configuration..."
+  if [[ -f ~/Documents/Cline/Configs/environment.json ]]; then
+    # Load configuration logic here
+    #echo "Configuration loaded successfully"
+  else
+    #echo "No configuration file found. Using default settings."
+  fi
+}
+
 function gi() { curl -sLw "\n" https://www.toptal.com/developers/gitignore/api/$@ ;}
 
 # cleanup history

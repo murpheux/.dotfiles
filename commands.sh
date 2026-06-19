@@ -203,6 +203,8 @@
   nfsd restart
   nfsd checkexports
 
+  ssh <host> "ls -al /System/Volumes/Data/Users/Shared/nfs_share/docker_volumes/database/"
+
   # ==> xcode switch/select
   xcode-select -switch /Applications/Xcode.app/
   xcode-select -switch ~/Documents/Xcode.app/
@@ -8342,6 +8344,21 @@ docker volume inspect my_volume_name
   
   aws ssm send-command --region "$REGION" --document-name "AWS-RunPowerShellScript" --instance-ids "i-00c976040b0b0df49" "i-05e3834fdd28ab963" --parameters "$PARAMS_JSON" --timeout-seconds 180 --comment "loginportal cwagent reload"
 
+  aws ec2 create-launch-template \
+     --launch-template-name my-launch-template \
+     --launch-template-data '{
+         "ImageId": "ami-0abcdef1234567890",
+         "InstanceType": "t3.micro",
+         "TagSpecifications": [
+             {
+                 "ResourceType": "launch-template",
+                 "Tags": [
+                     {"Key": "Name", "Value": "MyLaunchTemplate"}
+                 ]
+             }
+         ]
+     }'
+
 
   # ==> cloudwatch
   aws cloudwatch list-metrics --namespace "AWS/EC2" --region us-east-1
@@ -11597,6 +11614,9 @@ docker volume inspect my_volume_name
   # devOps/sree: Gemma 4 (31B Dense) or Qwen 3.6 Coder - qwen3-coder:30b, 
   # https://oz.warp.dev/runs
 
+  export OPENAI_API_KEY=
+  export ANTHROPIC_BASE_URL=
+
   # ==> warp ai
   aliases (ga for git add, gc for commit, gp for push)
 
@@ -11608,6 +11628,7 @@ docker volume inspect my_volume_name
   oz environment list
 
   oz run list
+  oz agent list
   oz agent run --prompt "Build anything"
   oz run get
 
@@ -11640,11 +11661,43 @@ docker volume inspect my_volume_name
   --environment <ENV_ID> \
   --prompt "Scan for dead code and unused feature flags. Open a PR with removals."
 
+  # ==> cline
+  cline
+  cline auth --provider [YOUR_PROVIDER] --apikey [YOUR_KEY] --modelid [MODEL_ID]
+  cline auth --provider anthropic --apikey sk-ant-yourkey --modelid claude-3-5-haiku-20241022
+
+  export ANTHROPIC_API_KEY=sk-ant-yourkey
+  cline
+
+  cline config
+  cline doctor
+
   # ==> github copilot
   copilot update
   copilot
   copilot --banner
-  !<shell commands>
+  ! <shell commands>
+
+  /chronicle reindex
+  copilot --continue
+  copilot --resume
+  copilot --resume <SESSION_ID>
+
+  export COPILOT_PROVIDER_TYPE=anthropic
+  export COPILOT_PROVIDER_BASE_URL=https://api.anthropic.com/v1
+  export COPILOT_PROVIDER_API_KEY="your-anthropic-api-key-here"
+  export COPILOT_MODEL="claude-3-5-sonnet-latest" # Or your preferred Claude variant
+
+  export COPILOT_PROVIDER_TYPE=openai
+  export COPILOT_PROVIDER_BASE_URL=http://localhost:11434/v1
+  export COPILOT_PROVIDER_API_KEY=""
+  export COPILOT_MODEL="qwen3-coder:30b"
+
+  export COPILOT_OFFLINE=true # offline mode - stop comms with github
+
+  export COPILOT_PROVIDER_TYPE=openai
+  export COPILOT_PROVIDER_BASE_URL=http://localhost:11434/v1
+  export COPILOT_MODEL="llama3.3"  # Replace with your pulled model name
 
   # ==> apm - agent package manager
   apm list
@@ -11692,6 +11745,9 @@ docker volume inspect my_volume_name
   export OLLAMA_NUM_PARALLEL=2 ollama serve # how many requests Ollama executes in parallel
   export OLLAMA_MAX_LOADED_MODELS # to control how many models stay in memory
   export OLLAMA_KEEP_ALIVE=-1
+
+  export OLLAMA_NUM_PARALLEL=4
+  export OLLAMA_MAX_LOADED_MODELS=3
 
   # Assistant: claude, codex, opencode, droid, goose, pi, pool
 
@@ -11813,7 +11869,7 @@ docker volume inspect my_volume_name
   launchctl bootout gui/$(id -u) ~/Library/LaunchAgents/com.ollama.plist 2>/dev/null
   plutil -lint ~/Library/LaunchAgents/com.ollama.plist
   plutil -lint ~/Library/LaunchAgents/com.ngrok.agent.plist
-  
+
   # ==> mail client
   mutt
   neomutt
