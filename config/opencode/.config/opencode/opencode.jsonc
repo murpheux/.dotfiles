@@ -1,0 +1,228 @@
+{
+    "$schema": "https://opencode.ai/config.json",
+    "model": "ollama/qwen3-coder:30b",
+    // Inject your personal environment and network context into every agent initialization
+    "instructions": [
+        "~/.config/opencode/user_prompt.md"
+    ],
+    "plugin": [
+        "envsitter-guard@latest",
+        "opencode-ignore",
+        "@warp-dot-dev/opencode-warp"
+    ],
+    "agent": {
+        "zcoder": {
+            "description": "",
+            "mode": "primary",
+            "color": "#7C3AED",
+            "prompt": "<full content of copilot.instructions.md>"
+        }
+    },
+    "lsp": {
+        "ty": {
+            "command": [
+                "uv",
+                "run",
+                "--with",
+                "pyright",
+                "pyright-langserver",
+                "--stdio"
+            ],
+            "extensions": [
+                ".py",
+                ".pyi"
+            ]
+        },
+        "clangd": {
+            "command": [
+                "clangd",
+                "--background-index",
+                "--compile-commands-dir=build"
+            ],
+            "extensions": [
+                ".c",
+                ".cpp",
+                ".cc",
+                ".cxx",
+                ".h",
+                ".hpp"
+            ]
+        },
+        "csharp": {
+            "command": [
+                "csharp-ls"
+            ],
+            "extensions": [
+                ".cs",
+                ".csx"
+            ]
+        },
+        "typescript": {
+            "command": [
+                "typescript-language-server",
+                "--stdio"
+            ],
+            "extensions": [
+                ".js",
+                ".ts",
+                ".jsx",
+                ".tsx"
+            ]
+        },
+        "go": {
+            "command": [
+                "gopls"
+            ],
+            "extensions": [
+                ".go"
+            ]
+        },
+        "deno": {
+            "command": [
+                "deno",
+                "lsp"
+            ],
+            "extensions": [
+                ".ts",
+                ".tsx",
+                ".js",
+                ".jsx"
+            ]
+        },
+        "pyright": {
+            "command": [
+                "pyright-langserver",
+                "--stdio"
+            ],
+            "extensions": [
+                ".py",
+                ".pyi"
+            ]
+        },
+        "jdtls": {
+            "command": [
+                "jdtls"
+            ],
+            "extensions": [
+                ".java"
+            ]
+        },
+        "lua-lsp": {
+            "command": [
+                "lua-language-server"
+            ],
+            "extensions": [
+                ".lua"
+            ]
+        },
+        "ruby-lsp": {
+            "command": [
+                "ruby-lsp"
+            ],
+            "extensions": [
+                ".rb",
+                ".rake",
+                ".gemspec"
+            ]
+        },
+        "rust-analyzer": {
+            "command": [
+                "rust-analyzer"
+            ],
+            "extensions": [
+                ".rs"
+            ]
+        }
+    },
+    "provider": {
+        "ollama": {
+            "npm": "@ai-sdk/openai-compatible",
+            "name": "Ollama (Local)",
+            "options": {
+                "baseURL": "http://localhost:11434/v1"
+            },
+            "models": {
+                "qwen3-coder:30b": {},
+                "deepseek-r1:70b": {},
+                "llama3.3:70b": {},
+                "deepseek-r1:32b": {},
+                "gemma4:31b": {},
+                "phi4-mini:latest": {},
+                "qwen3.6:27b": {}
+            }
+        }
+    },
+    "mcp": {
+        // 1. GitHub MCP Server (Using Docker)
+        "github": {
+            "type": "local",
+            "command": [
+                "docker",
+                "run",
+                "-i",
+                "--rm",
+                "-e",
+                "GITHUB_PERSONAL_ACCESS_TOKEN={env:GITHUB_PAT}",
+                "ghcr.io/github/github-mcp-server"
+            ],
+            "enabled": true
+        },
+        // 2. Local Node/Bun based MCP Server example
+        //"context7-docs": {
+        //    "type": "local",
+        //    "command": [
+        //        "bun",
+        //        "x",
+        //        "@context7/mcp-server"
+        //    ],
+        //    "enabled": true
+        //},
+        "context7-docs": {
+            "type": "remote",
+            "url": "https://mcp.context7.com/mcp",
+            "headers": {
+                "CONTEXT7_API_KEY": "{env:CONTEXT7_API_KEY}"
+            },
+            "enabled": true
+        },
+        // 3. Remote Hosted MCP Gateway (e.g., Jira or Composio)
+        "remote-tools-gateway": {
+            "type": "remote",
+            "url": "https://api.yourhostedgateway.com/mcp",
+            "headers": {
+                "Authorization": "Bearer {env:GATEWAY_API_KEY}"
+            },
+            "enabled": true
+        },
+        "1password": {
+            "type": "local",
+            "enabled": true,
+            "command": [
+                "/Applications/1Password.app/Contents/MacOS/onepassword-mcp"
+            ]
+        }
+    },
+    // Execution Permissions (ask vs. allow)
+    "permission": {
+        "bash": "ask", // Safeguard against critical mistakes
+        "write": "allow", // Let the agent create code seamlessly
+        "read": "allow", // Fluid file reading
+        "github_*": "ask", // Require approval before pushing code or creating PRs
+        "context7-*": "allow", // Freely allow documentation fetching
+        "webfetch": "allow" // Access documentation on the fly
+    },
+    // Automated Code Quality Formatters
+    // Keeps the agent's edits compliant with formatting specs automatically
+    "formatter": {
+        "prettier": {
+            "disabled": false
+        },
+        "ruff": {
+            "disabled": false
+        },
+        "terraform": {
+            "disabled": false
+        }
+    },
+    "autoupdate": true
+}

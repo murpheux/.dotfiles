@@ -1,7 +1,10 @@
 {
   "autoupdate:channel": "latest",
+  "term:fontsize": 16,
   "waveai:defaultmode": "ollama-llama",
   "waveai:showcloudmodes": false,
+  "window:confirmclose": false,
   "window:opacity": 0.65,
+  "window:tilegapsize": 5,
   "window:transparent": true
 }

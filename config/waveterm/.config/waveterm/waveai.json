@@ -1,14 +1,19 @@
 {
   "ollama-llama": {
-    "display:name": "Ollama - Llama 3.3",
+    "display:name": "Ollama - Phi4 mini",
     "display:order": 1,
     "display:icon": "microchip",
-    "display:description": "Local Llama 3.3 70B model via Ollama",
+    "display:description": "Local Phi4 mini latest model via Ollama",
     "ai:apitype": "openai-chat",
-    "ai:model": "llama3.3:70b",
+    "ai:model": "phi4-mini:latest",
     "ai:thinkinglevel": "medium",
     "ai:endpoint": "http://localhost:11434/v1/chat/completions",
-    "ai:apitoken": "ollama"
+    "ai:apitoken": "ollama",
+    "ai:capabilities": [
+      "tools",
+      "images",
+      "pdfs"
+    ]
   },
   "lmstudio-qwen": {
     "display:name": "LM Studio - Qwen",

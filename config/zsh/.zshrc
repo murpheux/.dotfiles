@@ -111,7 +111,7 @@ setopt hist_find_no_dups         # Don't show duplicates in search
 unsetopt share_history
 unsetopt inc_append_history
 
-export HISTORY_IGNORE="(ls|ll|cat|pwd|clear|which|dig|rm|cls|echo|exit|cd|z|bup|zup|h|history|tree|eza|path|ping|ping6|rm -rf|export|paru*|cd|sz)*"
+export HISTORY_IGNORE="(man|tldr|ls|ll|cat|pwd|clear|which|dig|rm|cls|echo|exit|cd|z|bup|zup|h|history|tree|eza|path|ping|ping6|rm -rf|export|paru*|cd|sz)*"
 
 # Completion initialization
 autoload -Uz compinit -u
@@ -290,6 +290,15 @@ if [[ "$OSTYPE" == darwin* ]]; then
     export TF_VAR_minio_password="op://private/homenet-minio/password"
 
     export TF_VAR_pihole_password="op://private/homenet-pihole/password"
+    
+    export GITHUB_PAT=$(op read "op://private/github-pat/token")
+    export CONTEXT7_API_KEY=$(op read "op://private/context7-opencode-api-key/password")
+
+    export COPILOT_PROVIDER_TYPE="openai"
+    export COPILOT_PROVIDER_BASE_URL="http://localhost:11434/v1"
+    export COPILOT_PROVIDER_API_KEY=""
+    export COPILOT_MODEL="qwen3-coder:30b"
+    export COPILOT_OFFLINE="true"
 
     load_cline_instructions
 

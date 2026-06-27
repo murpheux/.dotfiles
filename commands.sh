@@ -3193,6 +3193,11 @@
   lsof -i | grep LISTEN
   cat /etc/services
 
+  lsof /path/to/your/file.txt # file
+  lsof +D /path/to/your/folder/ # directory
+  lsof -c Preview # reverse usage
+  lsof -r 2 /path/to/your/file.txt # real time monitoring
+
   gzip -c nerdgraph/query/basic.gql
 
   head -1 $(awk -F',' '{ for( i=1; i<=NF; i++ ) print $i }' <<< $(tail -1 .cred/kunye/kunye-iam-user-dev_accessKeys.csv))
@@ -6134,7 +6139,13 @@ docker volume inspect my_volume_name
   git rm -r [file-name.txt]
   git commit -m "Commit message"
   git commit -a -S -m "Signed commit"
-  git commit -a
+  git commit -
+
+  git commit --no-gpg-sign -m "Your commit message"
+  git config --global commit.gpgsign false
+  git config commit.gpgsign false
+  git commit --amend --no-gpg-sign --no-edit
+
   git push origin master
   
   git status [-C|-git-dir <path/to/other/directory>]
@@ -7337,6 +7348,10 @@ docker volume inspect my_volume_name
   code --status
   code --list-extensions
   code --list-extensions | xargs -L 1 echo code --install-extension
+
+  code --agents
+  #alt1 : vscode.dev/agents
+  #alt 2: https://insiders.vscode.dev/agents
 
   cp ~/Library/Application\ Support/Code/User/settings.json ~/vscode-settings.json
   cp ~/Library/Application\ Support/Code/User/keybindings.json ~/vscode-keybindings.json
@@ -11636,6 +11651,7 @@ docker volume inspect my_volume_name
   oz agent run --prompt "How do I optimize this path configuration: $PATH"
   oz agent run --share --prompt "Why is my local docker container crashing?"
   oz agent run --prompt "Follow the instructions outlined in <notebook:gq1CMAUWLtaL1CpEoTDQ3y>"
+  oz agent run-cloud --environment <ENV_ID> --skill "yourorg/repo:code-review" --prompt "review the latest PR"
 
   oz agent list [--repo owner/repo]
   oz agent run-cloud
@@ -11716,6 +11732,13 @@ docker volume inspect my_volume_name
   # Set an image background with 50% opacity (default)
   wsh setbg ~/pictures/background.jpg
 
+  wsh setconfig waveai:defaultmode="ollama-llama"
+  wsh setconfig waveai:showcloudmodes=false
+
+  git diff | wsh ai -                          # Pipe to AI
+  wsh ai main.go -m "find bugs"                # Attach files with message
+  wsh ai $(tail -n 500 my.log) -m "review" -s  # Auto-submit with output
+
   # ==> chrome
   # chrome://flags/#enable-force-dark
 
@@ -11748,6 +11771,10 @@ docker volume inspect my_volume_name
 
   export OLLAMA_NUM_PARALLEL=4
   export OLLAMA_MAX_LOADED_MODELS=3
+
+  export ANTHROPIC_API_KEY=YOUR_API_KEY
+  export OPENAI_API_KEY=YOUR_API_KEY
+  export GEMINI_API_KEY=YOUR_API_KEY
 
   # Assistant: claude, codex, opencode, droid, goose, pi, pool
 
@@ -11813,6 +11840,28 @@ docker volume inspect my_volume_name
   export ANTHROPIC_API_KEY=your_openrouter_api_key_here # Use your OpenRouter API Key
   export CLAUDE_MODEL=meta-llama/llama-3.3-70b-instruct:free # Specify the Llama 3.3 free model
 
+  # ==> opencode
+  export OPENCODE_USER_NAME="Clement"
+  export OPENCODE_HOST_OS="macOS (Mac Studio Ultra)"
+  export OPENCODE_LOCAL_HOME="/Users/murpheux"
+
+  opencode
+  opencode auth login|list
+  opencode auth login --provider ollama-local --url http://localhost:11434
+  opencode models
+  opencode --model anthropic/claude-3-5-sonnet
+
+  opencode run --model deepseek/deepseek-chat "..."
+
+  opencode serve [-h|--hostname] hostname [-p|--port] port
+  opencode agent create
+
+  opencode run --model deepseek/deepseek-chat --agent plan
+  opencode debug config
+
+  opencode --continue|-c # load last session /resume /continue
+  opencode provider set anthropic
+
   # ==> openclaw
   openclaw gateway status|run
   openclaw gateway status --json
@@ -11823,6 +11872,11 @@ docker volume inspect my_volume_name
 
   openclaw dashboard
   openclaw onboard
+  # Register, load, and activate the background LaunchAgent for user 'murpheux'
+  openclaw onboard --install-daemon
+
+  # Verify live supervisor lifecycle status
+  openclaw gateway status
 
   openclaw security audit
 
