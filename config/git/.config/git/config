@@ -389,10 +389,10 @@
 	path = /Users/murpheux/.config/git/config-azure
 [gcm]
 	gitPath = /opt/homebrew/bin/git
+[credential "http://gru:3002"]
+	provider = generic
 [credential]
 	helper = 
 	helper = /usr/local/share/gcm-core/git-credential-manager
 [credential "https://dev.azure.com"]
 	useHttpPath = true
-[credential "http://gru:3002"]
-	provider = generic

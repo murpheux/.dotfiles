@@ -294,6 +294,8 @@ if [[ "$OSTYPE" == darwin* ]]; then
     export GITHUB_PAT=$(op read "op://private/github-pat/token")
     export CONTEXT7_API_KEY=$(op read "op://private/context7-opencode-api-key/password")
 
+    export DEEPSEEK_API_KEY=$(op read "op://private/deepseek-api-key/password")
+
     export COPILOT_PROVIDER_TYPE="openai"
     export COPILOT_PROVIDER_BASE_URL="http://localhost:11434/v1"
     export COPILOT_PROVIDER_API_KEY=""

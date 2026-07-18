@@ -24,10 +24,12 @@ Active GitHub repositories include: `.dotfiles`, `homenet`, `resume`, `graphql`,
 ## Tech Stack
 
 ### Cloud Platforms
+
 - **AWS** — primary cloud; access via `op plugin run -- aws ...` (1Password credential injection)
 - **MS Azure**, **GCP**, **DigitalOcean**, **IBM Cloud**, **Linode**, **Alibaba Cloud** — all CLIs installed and configured
 
 ### Infrastructure & Automation
+
 - **Terraform / OpenTofu** — cloud infra (first choice for cloud provisioning)
 - **Ansible** — server-state configuration management
 - **Docker Compose** — local services; **Docker Stack** — Swarm deploys
@@ -35,6 +37,7 @@ Active GitHub repositories include: `.dotfiles`, `homenet`, `resume`, `graphql`,
 - Avoid inline shell scripts in configs — extract to dedicated scripts
 
 ### Languages & Runtimes
+
 | Language | Version | Notes |
 |----------|---------|-------|
 | Node.js | v22 | TypeScript strict mode, `biome` over prettier/eslint |
@@ -47,6 +50,7 @@ Active GitHub repositories include: `.dotfiles`, `homenet`, `resume`, `graphql`,
 | Rust | latest | — |
 
 ### Shell & OS
+
 - **Primary OS:** macOS Tahoe (`softcraftmedusa` / `medusa` = localhost)
 - **Default shell:** `zsh`
 - **Default browser:** `safari`; use `brave` for chrome-based needs
@@ -54,6 +58,7 @@ Active GitHub repositories include: `.dotfiles`, `homenet`, `resume`, `graphql`,
 - Generate scripts in `bash` or `zsh` only — never PowerShell
 
 ### Version Control & Tooling
+
 - **GitHub** — `gh` CLI for repo operations
 - **Git** — signed commits (`-S` GPG), trunk-based for small changes, GitHub Flow otherwise, squash-merge PRs preferred
 - Commit style: `git commit -S -m "<conventional-commit>: <message>"`
@@ -63,6 +68,7 @@ Active GitHub repositories include: `.dotfiles`, `homenet`, `resume`, `graphql`,
 ## Coding Guidelines
 
 ### General
+
 - Assume high technical understanding — skip introductory explanations and pleasantries.
 - Show preferred patterns inline; omit verbose comments unless explaining non-obvious operational edge cases.
 - Use semantic conventions when modifying files or proposing commit structures.
@@ -72,6 +78,7 @@ Active GitHub repositories include: `.dotfiles`, `homenet`, `resume`, `graphql`,
 - Prefer containerised executions over global host installations.
 
 ### Security (non-negotiable)
+
 - **Never inline secrets** in commands, scripts, or configs.
 - Use **1Password CLI** (`op`) for credential injection: `op plugin run -- <command>`
 - Use environment variables or `.env` files (never committed) for local dev secrets.
@@ -81,6 +88,7 @@ Active GitHub repositories include: `.dotfiles`, `homenet`, `resume`, `graphql`,
 - Prefer secure, explicit access over automatic operations.
 
 ### Language-Specific
+
 - **Go:** idiomatic Go, prefer stdlib when sufficient, use `errors.Is`/`errors.As`
 - **Python:** type-annotated, prefer `pydantic` for configs, `ruff` for linting
 - **TypeScript:** strict mode, prefer `biome` over prettier/eslint
@@ -88,11 +96,13 @@ Active GitHub repositories include: `.dotfiles`, `homenet`, `resume`, `graphql`,
 - **Error handling:** explicit error propagation — no silent swallows
 
 ### Project Scaffolding
+
 - Each repo gets: `README.md`, `LICENSE`, `.gitignore`, `Makefile` or `Taskfile`
 - Prefer `Makefile` with targets: `lint`, `test`, `build`, `deploy`
 - Use `just` or `task` (go-task) if Makefile is insufficient
 
 ### Config Format Priority
+
 1. Terraform / OpenTofu — cloud infra
 2. Docker Compose — local services; Docker Stack — swarm deploys
 3. Ansible — server-state config
@@ -104,15 +114,17 @@ Active GitHub repositories include: `.dotfiles`, `homenet`, `resume`, `graphql`,
 ## Project Structure
 
 ### Directory Layout (macOS host: `medusa`)
+
 ```
 /Users/murpheux/
-  Workspace/
+  AI_Workspace/
     Projects/       # All active git repositories
     Research/       # Demo and experimental repos
-  AI/               # AI working files — full R+W access, use and edit without permission
+    Work_Files/               # AI working files — full R+W access, use and edit without permission
 ```
 
 ### Typical Repo Layout
+
 ```
 <repo-root>/
   README.md
@@ -152,8 +164,9 @@ When proposing new static IPs, suggest addresses in the `10.10.2.200+` DHCP excl
 | `medusa`    | `10.10.2.100` | Main Development Host   |
 
 ### Network Rules
+
 1. Device names are CNAMEs — `softcraftscarlet` on DNS/ARP is the same as `scarlet`.
-2. All Docker host and Swarm nodes have SSH access using user `murpheux`. Check `~/.ssh/config` and `ssh-add -l` for keys.
+2. All Docker host and Swarm nodes have SSH access using user `_ai_daemon`. Check `~/.ssh/config` and `ssh-add -l` for keys.
 3. Alert me to any network security vulnerabilities encountered.
 
 ---
@@ -187,8 +200,8 @@ When installing packages or managing dependencies on any node, use the correct p
 
 - **3-node swarm:** `softcraftscarlet` as manager, `gru` and `cass` as workers
 - **Development Docker client:** `softcraftmedusa` / `medusa` — discover swarm with `docker node ls`
-- **Docker contexts:** each node has a context named `murpheux-<hostname>`; use `docker --context=murpheux-<hostname>` to target a node
-- **SSH access:** `ssh murpheux@<hostname>` (keys in `~/.ssh/config`)
+- **Docker contexts:** each node has a context named `<hostname>-daemon`; use `docker --context=<hostname>-daemon` to target a node
+- **SSH access:** `ssh _ai_daemon@<hostname>` (keys in `~/.ssh/config`)
 - **NFS share:** `medusa:/System/Volumes/Data/Users/Shared/nfs_share` — discover with `showmount -e medusa`
 
 ### Common Swarm Operations
@@ -218,7 +231,7 @@ docker service inspect --pretty <service-name>
 docker stack rm <stack-name>   # requires explicit approval
 
 # Run a one-off task on the swarm
-docker --context=murpheux-scarlet service create --restart-condition none <image> <cmd>
+docker --context=scarlet-daemon service create --restart-condition none <image> <cmd>
 ```
 
 ---
@@ -247,7 +260,7 @@ Use these before suggesting blind log searches or ad-hoc commands:
 | Container CPU/memory | **cAdvisor** → Grafana | Dashboard at `http://sclet:3000` |
 | Service metrics / alerts | **Prometheus** | Query at `http://sclet:9090/query` |
 | Application logs | **Kibana** | Discover at `http://scarlet:5601` |
-| Node-level resource usage | `ssh murpheux@<node>` then `htop` / `iostat` / `df -h` | — |
+| Node-level resource usage | `ssh _ai_daemon@<node>` then `htop` / `iostat` / `df -h` | — |
 | Swarm service health | `docker service ps <svc> --no-trunc` | Shows failure reasons |
 | DNS resolution check | `dig @10.10.2.9 <hostname>` or `dig @10.10.2.7 <hostname>` | Use both DNS servers |
 
@@ -261,11 +274,12 @@ Use these before suggesting blind log searches or ad-hoc commands:
 Check these before suggesting manual steps in any project:
 
 ### CLI Tools (all installed and configured)
+
 | Tool | Purpose |
 |------|---------|
 | `op` | 1Password CLI — `op plugin run -- <cmd>` for credential-backed CLIs |
 | `gh` | GitHub CLI for repo, PR, and issue operations |
-| `docker` / `docker compose` | Use contexts (`murpheux-<hostname>`) for swarm node targeting |
+| `docker` / `docker compose` | Use contexts (`<hostname>-daemon`) for swarm node targeting |
 | `terraform` / `tofu` | Infrastructure provisioning |
 | `ansible` / `ansible-playbook` | Configuration management |
 | `ggshield` | Secrets scanning — run before every commit |
@@ -275,6 +289,7 @@ Check these before suggesting manual steps in any project:
 | `showmount` | NFS share discovery |
 
 ### Project Automation
+
 - Check `Makefile` or `Taskfile` targets (`lint`, `test`, `build`, `deploy`) before running raw commands
 - Check `.github/workflows/` for existing CI/CD pipelines
 - Check `scripts/` for operational helpers
@@ -340,9 +355,10 @@ When starting work on any task or entering an unfamiliar repo, gather context in
 ### Destructive operation gate
 
 Always ask before executing any of the following, regardless of context:
+
 - `terraform destroy` / `terraform apply` with `-destroy`
 - `docker stack rm` / `docker service rm`
-- `rm -rf` on any path outside `~/AI/` or `~/ai-sandbox/`
+- `rm -rf` on any path outside `~/AI_Workspace/`
 - `git reset --hard`, `git push --force`, `git clean -fd`
 - `DROP`, `DELETE`, `TRUNCATE` on any database
 - Any `ansible-playbook` run that touches production hosts
@@ -392,8 +408,8 @@ Always ask before executing any of the following, regardless of context:
 
 ## Access & Approvals
 
-- **Full R+W access:** `~/AI/` folder and all subfolders/files — use and edit without asking permission
-- **Full R+W access:** `~/ai-sandbox/` folder and all subfolders/files
+- **Full R+W access:** `~/AI_Workspace/` folder and all subfolders/files — use and edit without asking permission
+- **Full R+W access:** `~/AI_Workspace/` folder and all subfolders/files
 - **Read-only:** any folder or file appearing in chat messages (unless R+W explicitly stated)
 - **Pre-approved:** all non-edit, non-update, non-create commands (read, list, query, etc.)
 - **Ask for approval:** all commands that create, edit, update, or delete files or system state

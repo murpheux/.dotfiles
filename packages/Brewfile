@@ -1,6 +1,6 @@
 tap "ameshkov/tap"
 tap "anomalyco/tap"
-tap "asmvik/formulae"
+tap "asmvik/formulae", "https://github.com/asmvik/homebrew-formulae.git"
 tap "aws-cli-tools/aws-cli-tools"
 tap "aws/tap"
 tap "cloudfoundry/tap"
@@ -19,19 +19,21 @@ tap "manaflow-ai/cmux"
 tap "martido/graph"
 tap "mike-engel/jwt-cli"
 tap "minio/stable"
+tap "moncho/dry"
 tap "mongodb/brew"
 tap "neomutt/neomutt"
 tap "octoproject/octoproject"
 tap "octopusdeploy/taps"
-tap "oktadev/tap"
+tap "oktadev/tap", "https://github.com/oktadev/homebrew-tap.git"
 tap "openclaw/tap"
 tap "pulumi/tap"
-tap "reyamira/tap"
+tap "reyamira/tap", "https://github.com/reyamira/homebrew-tap.git"
 tap "rusty-ferris-club/tap"
+tap "showwin/speedtest"
 tap "snyk/tap"
 tap "splunk/tap"
 tap "spring-io/tap"
-tap "thezoraiz/ascii-image-converter"
+tap "thezoraiz/ascii-image-converter", "https://github.com/TheZoraiz/homebrew-ascii-image-converter"
 # Library to load and enumerate PKCS#11 modules
 brew "p11-kit"
 # GNU Transport Layer Security (TLS) Library
@@ -117,7 +119,7 @@ brew "icu4c@77"
 # Music player with an ncurses based interface
 brew "cmus"
 # Powerful, clean, object-oriented scripting language
-brew "ruby", link: false
+brew "ruby"
 # Dependency manager for Cocoa projects
 brew "cocoapods"
 # Color-highlighted diff(1) output
@@ -156,6 +158,8 @@ brew "doctl"
 brew "doggo"
 # Convert text between DOS, UNIX, and Mac formats
 brew "dos2unix"
+# Terminal application to manage Docker and Docker Swarm
+brew "dry"
 # View disk space usage and delete unwanted data, fast
 brew "dua-cli"
 # Embeddable SQL OLAP Database Management System
@@ -194,6 +198,8 @@ brew "figlet"
 brew "filebeat"
 # Collection of GNU find, xargs, and locate
 brew "findutils"
+# User-friendly command-line shell for UNIX-like operating systems
+brew "fish"
 # Fast and Lightweight Logs and Metrics processor
 brew "fluent-bit"
 # Fast and simple Node.js version manager
@@ -528,6 +534,8 @@ brew "trash-cli", link: true
 brew "universal-ctags"
 # Collection of Linux utilities
 brew "util-linux"
+# Extremely fast Python package installer and resolver, written in Rust
+brew "uv"
 # Ncurses-based file manager with vi-like keybindings
 brew "vifm"
 # Simple terminal image viewer written in Rust
@@ -556,6 +564,8 @@ brew "ykman"
 brew "yq"
 # Pluggable terminal workspace, with terminal multiplexer as the base feature
 brew "zellij"
+# Terminal coding agent you own
+brew "zero"
 # Zsh plugin manager
 brew "zimfw"
 # Flexible and fast Zsh plugin manager
@@ -651,6 +661,8 @@ brew "octopusdeploy/taps/octopus-cli"
 brew "pulumi/tap/esc"
 # Secure shell history commands
 brew "rusty-ferris-club/tap/shellclear"
+# speedtest cli
+brew "showwin/speedtest/speedtest", trusted: true
 # Find & fix known vulnerabilities in open-source dependencies
 brew "snyk/tap/snyk"
 brew "spring-io/tap/spring-boot"
@@ -677,6 +689,8 @@ cask "confluentinc/confluent-hub-client/confluent-hub-client"
 cask "copilot-cli"
 # Browser for SQLite databases
 cask "db-browser-for-sqlite"
+# Universal database tool and SQL client
+cask "dbeaver-community"
 cask "font-fira-code"
 cask "font-hack-nerd-font"
 cask "font-meslo-lg-nerd-font"
@@ -699,6 +713,8 @@ cask "microsoft-openjdk@25"
 # Reverse proxy, secure introspectable tunnels to localhost
 cask "ngrok"
 cask "oktadev/tap/okta"
+# AI coding agent desktop client
+cask "opencode-desktop"
 # CLI for command-line API management on Postman
 cask "postman-cli"
 # Hardware-accelerated GPU terminal emulator
@@ -749,7 +765,9 @@ mas "VOX", id: 461369673
 mas "Windows App", id: 1295203466
 mas "Xcode", id: 497799835
 mas "Yubico Authenticator", id: 1497506650
+vscode "1password.op-vscode"
 vscode "angular.ng-template"
+vscode "anthropic.claude-code"
 vscode "aws-scripting-guy.cform"
 vscode "bajdzis.vscode-database"
 vscode "batisteo.vscode-django"
@@ -826,6 +844,7 @@ vscode "msjsdiag.vscode-react-native"
 vscode "naumovs.color-highlight"
 vscode "njpwerner.autodocstring"
 vscode "octref.vetur"
+vscode "openai.chatgpt"
 vscode "orta.vscode-jest"
 vscode "pdconsec.vscode-print"
 vscode "pgourlain.erlang"
@@ -851,6 +870,7 @@ vscode "typescriptteam.native-preview"
 vscode "valentjn.vscode-ltex"
 vscode "vincaslt.highlight-matching-tag"
 vscode "vitest.explorer"
+vscode "vizards.deepseek-v4-for-copilot"
 vscode "vmware.vscode-spring-boot"
 vscode "vscjava.migrate-java-to-azure"
 vscode "vscjava.vscode-gradle"
@@ -858,7 +878,6 @@ vscode "vscjava.vscode-java-debug"
 vscode "vscjava.vscode-java-dependency"
 vscode "vscjava.vscode-java-pack"
 vscode "vscjava.vscode-java-test"
-vscode "vscjava.vscode-java-upgrade"
 vscode "vscjava.vscode-maven"
 vscode "vscode-icons-team.vscode-icons"
 vscode "vue.volar"
@@ -874,33 +893,6 @@ cargo "history-redact"
 cargo "nu-alias-converter"
 cargo "openrouter-cli"
 cargo "sppg"
-npm "@microsoft/m365agentstoolkit-cli"
-npm "@pnp/cli-microsoft365"
-npm "bun"
-npm "cdktf-cli"
-npm "cli-fireplace"
-npm "cline"
-npm "cordova"
-npm "degit"
-npm "deno"
-npm "eas-cli"
-npm "expo-cli"
-npm "express-gateway"
-npm "fast-cli"
-npm "forever"
-npm "gmail-cli"
-npm "iptv-cli"
-npm "loadtest"
-npm "m3u8-composer"
-npm "miii-cli"
-npm "nodemon"
-npm "nodenv"
-npm "openclaw"
-npm "pm2"
-npm "pnpm"
-npm "postman-cli"
-npm "prettier"
-npm "run-deepseek-cli"
-npm "supervisor"
-npm "trash-cli"
-npm "yarn"
+uv "a0", source: "https://github.com/agent0ai/a0-connector/archive/refs/tags/v2.2.zip"
+uv "aider-chat", with: ["pip"]
+uv "md2term"

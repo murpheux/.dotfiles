@@ -5,13 +5,12 @@
 
 # Tools  : vi, ed, ex, vim, neovim - lazyvim, spacevim, edit
 # Editor : vscode, sublime, notepad++
-# Term   : Alacritty, Black Box , Bobcat, ConEmu, Contour Terminal, Cool Retro Term, Cosmic Terminal
-#          , Extraterm, Foot, Ghostty, GNOME Terminal, Guake, iTerm2, Kitty, Konsole, LXTerminal
-#          , MATE Terminal, Mintty, mlterm, Ptyxis, PuTTY, QTerminal, Rio Terminal, ROXTerm, Suckless Terminal (st)
-#          , Tabby, Terminal.app, Terminator, Terminology, Termux, Tilda, Tilix, urxvt, Warp Terminal
-#          , Wave Terminal, Wezterm, Windows Terminal, xfce4-terminal, xterm, Cathode, Hyper
+# Term   : alacritty, hyper, ghostty, kitty, warp, rio, wave, iterm2, tabby
 # Sec Mgr: 1password, Bitwarden, Passwords (macos), lastpass
-# Lib Pac: brew, macports, nix, zerobrew, pkgsrc, rudix, fink
+# Lib Pac: brew, zerobrew
+# AI Agents: opencode, cline, copilot, agy, openclaw, deepseek/deepseek-cli, 
+#            deepcode, aider, hermes, zero, codex, droid, qwen, atk, kiro, 
+#            llm, agent, kaggle, plandex*, omp, kilo, kimi
 
 #:::::::::::::::::::::::::::: homenet minions ::::::::::::::::::::::::::::
   swarm manager         scarlet
@@ -147,6 +146,8 @@
   
   sudo systemsetup -setremotelogin on  # enable ssh
 
+  find .git/objects/pack/ -name "._*" -delete # remove mac generated files
+
   networksetup -listallhardwareports
   networksetup -listallhardwareports | grep Wi-Fi -A 3
   networksetup -listlocations
@@ -178,6 +179,9 @@
   sysctl -n kern.smp.cpus
   sysctl -n machdep.cpu.brand_string
   sysctl hw.physicalcpu hw.logicalcpu
+
+  open -n -a "Safari" # run new instance of app
+  xattr -dr com.apple.quarantine /Applications/Startup\ Show.app
 
   system_profiler SPDisplaysDataType
   system_profiler SPDisplaysDataType | grep Resolution
@@ -799,6 +803,30 @@
   source ~/.bashrc
   bash --debug ~/.bashrc
 
+  # daemon user e.g for AI
+  sudo sysadminctl -addUser _ai_daemon -fullName "AI Background Service Account" -UID 475 -shell /usr/bin/false -home /var/ai_sandbox -roleAccount
+  sudo dseditgroup -o edit -a _ai_daemon -t user staff
+
+  # linux
+  # 1. Create the user with custom home path and disabled local login
+  sudo useradd --system --home-dir /var/ai_sandbox --create-home --shell /usr/bin/nologin _ai_daemon
+  sudo passwd -l _ai_daemon
+
+  # 2. Lock the password field completely (Forces SSH key-only authentication)
+  sudo passwd -l _ai_daemon
+
+  # 1. Apply the ACL recursively to all standard directories and files
+  sudo chmod -R +a "user:_ai_daemon allow read,write,execute,delete,chown,file_inherit,directory_inherit" ~/Workspace
+
+  # 2. Find any symlinks that caused the error and apply the ACL cleanly using -h
+  find ~/Workspace -type l -exec chmod -h +a "user:_ai_daemon allow read,write,execute,delete,chown,file_inherit,directory_inherit" {} +
+
+  chmod -R +a "user:murpheux allow read,write,execute,delete,chown,file_inherit,directory_inherit" /var/ai_sandbox
+
+  dscl . -change /Users/_ai_daemon UserShell /usr/bin/false /bin/bash
+  dscl . -create /Users/_ai_daemon NFSHomeDirectory /var/ai_sandbox
+  dscl . -read /Users/_ai_daemon NFSHomeDirectory
+
   # ==> brew
   brew install invoice
   invoice generate --from 'Nikhil Vemu LLC' --logo logo.png \
@@ -806,16 +834,9 @@
      --discount 0.2  --item 'Paid Article' --quantity 5 --rate 250
      --note 'Pleasure doing business with you.'
 
-  invoice generate --from 'Nikhil Vemu LLC' \
-  --logo logo.png
-  --to 'SuperVPN, Inc.' \
-  --date 'June 10, 2025' \
-  --tax 0.18 \
-  --discount 0.2 \
-  --item 'Paid Article'
-  --quantity 5
-  --rate 250
-  --note 'Pleasure doing business with you.'`
+  invoice generate --from 'Nikhil Vemu LLC' --logo logo.png \
+    --to 'SuperVPN, Inc.'  --date 'June 10, 2025' --tax 0.18 --discount 0.2 \
+    --item 'Paid Article' --quantity 5 --rate 250 --note 'Pleasure doing business with you.'`
 
   # ==> zerobrew
   zb --version
@@ -1193,6 +1214,16 @@
   ls -lh | awk '{ print $1; }'
   ls -lh | awk '{ print $NF; }'
   ls -lh | awk '{ print $(NF-1); }'
+
+  stat -f "%Sp %Su:%Sg %Sm %N" file.txt # view attributes of file
+  stat -f "%Sp %Su:%Sg %Sm %N" *
+  find . -maxdepth 1 -exec stat -f "%Sp %Su:%Sg %Sm %N" {} \; # recursively
+
+  # look like ls
+  for f in *; do
+    stat -f "%Sp %Su:%Sg %Sm %N" "$f"
+  done
+
 
   # ==> password file integrity
   pwck -r /etc/passwd
@@ -3104,6 +3135,8 @@
   ls -p | grep -v /
   ls -A -p | grep -v /
 
+  find .agents/skills -maxdepth 1 -type d -not -path .agents/skills | xargs -I % waza dev "%"
+
   # ==> files older than seven days
   find ./log -type f -mtime +7
 
@@ -3393,6 +3426,10 @@
   ssh -l murpheux -p 53801 gru who-am-i
 
   passwd root
+  sudo passwd -u _ai_daemon          # remove the lock (!) prefix
+  sudo passwd -l _ai_daemon         # keep password auth disabled (sets *)
+  # or simply set the shadow field to * instead of !
+  sudo usermod -p '*' _ai_daemon    # no password login, but not "locked"
 
   # ==> linux display/resolution
   xradr
@@ -4031,8 +4068,6 @@
 
   mongodb://localhost:27017,localhost:27018,localhost:27019/?replicaSet=rs0
 
-  git submodule update --init --recursive --jobs 8
-
   agillespie
 
   build_id=$(curl --user murpheux:$api_token http://gru:8088/job/dgiini/lastBuild/buildNumber)
@@ -4095,6 +4130,12 @@
   server:/shared/dir /opt/mounted/dir nfs rsize=8192,wsize=8192,timeo=14,intr
 
   dseditgroup -o edit -a $USER -t user wheel
+  dseditgroup -o edit -a "$USER" -t user daemon
+  dseditgroup -o edit -d "$USER" -t user daemon # remove user
+
+  groups # user groups
+  id -Gn "$USER"
+
   xz -d somefile.xz
 
   curl -s https://gist.githubusercontent.com/HaleTom/89ffe32783f89f403bba96bd7bcd1263/raw/ | bash
@@ -4827,17 +4868,12 @@
   docker volume ls --filter name=minio --format "table {{.Driver}}\t{{.Name}}"
 
   mount -t nfs -o rw medusa:/Users/murpheux/nfs_share /mnt
+  mount -t nfs -o resvport,rw medusa:/Users/murpheux/nfs_share /mnt/meme
+  mount -t nfs -o rw 192.168.1.100:/remote/share /mnt/local_mount_point
 
-mount -t nfs -o resvport,rw medusa:/Users/murpheux/nfs_share /mnt/meme
-
-sudo mount -t nfs -o rw 192.168.1.100:/remote/share /mnt/local_mount_point
-
-docker run --rm -v my_volume_name:/data alpine ls -la /data
-
-docker run --rm -it -v my_volume_name:/data alpine sh
-
-docker volume inspect my_volume_name
-
+  docker run --rm -v my_volume_name:/data alpine ls -la /data
+  docker run --rm -it -v my_volume_name:/data alpine sh
+  docker volume inspect my_volume_name
 
   docker ps -aq
   docker ps --no-trunc -aq
@@ -4978,6 +5014,10 @@ docker volume inspect my_volume_name
   docker-machine create --driver generic --generic-ip-address=10.10.2.80 --generic-ssh-key ~/.ssh/id_rsa --generic-ssh-user=murpheux vm
 
   dive image:version
+
+  # ==> dry
+  dry -H tcp://scarlet:2376 # not work
+  DOCKER_HOST=scarlet dry
 
   # ==> snyk
   snyk --version
@@ -6051,6 +6091,7 @@ docker volume inspect my_volume_name
 
 #::::::::::::::::::::::::::::::: git ::::::::::::::::::::::::::::::::
   git init [-bare]
+  git check-ignore -v path/to/folder/
 
   gmtl=git mergetool --no-prompt
   gmtlvim=git mergetool --no-prompt --tool=vimdiff
@@ -6153,6 +6194,7 @@ docker volume inspect my_volume_name
   git status -b -s
   git status .
   git status -s .
+  git -C yank status
 
   git remote add origin <server>
   git remote set-url origin <server>
@@ -6420,6 +6462,27 @@ docker volume inspect my_volume_name
   git diff --diff-filter=ad # added and deleted
   git diff --diff-filter=[A|C|D|M|R|T|U|X|B]
 
+  # ==> git submodule
+  git clone --recurse-submodules https://github.com/chaconinc/MainProject
+  git config --global diff.submodule log
+
+  git diff --submodule 
+
+  git submodule status
+  git submodule update --init --recursive --jobs 8
+  git submodule set-branch --branch develop yank
+
+  git diff --cached DbConnector
+  git diff --cached --submodule
+
+  git commit -am 'Add DbConnector module'
+
+  git submodule add <repository-url>
+  git submodule add https://github.com/user/repo.git path/to/submodule
+  git submodule add -b develop https://github.com/user/repo.git
+
+  git clone --recurse-submodules https://github.com/your-org/main-project.git
+
   # ==> pre-commit
   pre-commit --version
   pre-commit sample-config > .pre-commit-config.yaml
@@ -6642,9 +6705,13 @@ docker volume inspect my_volume_name
   terraform import -var-file='../terraform.tfvars' aws_instance.nginx terraformtest
 
   terraform refresh
+  terraform mv aws_security_group.htp aws_security_group.http
 
+  # deprecated
   terraform taint aws_instance.example
   terraform untaint aws_instance.example
+  # now
+  terraform apply -replace="null_resource.run_script"
 
   terraform graph | dot -Tpng > graph.png
 
@@ -11242,6 +11309,7 @@ docker volume inspect my_volume_name
   find . -name "*.html" -exec grep "meta" {} +
   find . -type f | xargs -0 dos2unix
   find . -type f -path .git -prune -o -print | xargs -0 dos2unix
+  find . -type d -empty # empty folder
 
   cat ref_brew | xargs -I {} brew search {}
   echo "qwen3.6:27b qwen3.6:35b gemma4:31b kimi-k2.6:cloud" | xargs -n 1 ollama pull
@@ -11682,11 +11750,25 @@ docker volume inspect my_volume_name
   cline auth --provider [YOUR_PROVIDER] --apikey [YOUR_KEY] --modelid [MODEL_ID]
   cline auth --provider anthropic --apikey sk-ant-yourkey --modelid claude-3-5-haiku-20241022
 
+  # Force explicit provider routing
+  cline --provider deepseek "Audit this main.go file for race conditions"
+
+  # Force an alternative model override on runtime
+  cline --provider openrouter --model deepseek/deepseek-r1 "Refactor our docker-compose orchestration"
+
   export ANTHROPIC_API_KEY=sk-ant-yourkey
   cline
 
   cline config
   cline doctor
+
+  export CLINE_COMMAND_PERMISSIONS='{"allow": ["git *", "npm *", "go *", "pytest", "docker compose *", "ls *", "pwd"], "deny": ["rm -rf *", "dropdb *", "curl *", "wget *"]}'
+
+  # Auto-configure and target local qwen weights
+  ollama launch cline --model qwen3.5
+
+  # Pass a prompt directly down into it
+  ollama launch cline -- "Add a health check endpoint to our server"
 
   # ==> github copilot
   copilot update
@@ -11698,6 +11780,15 @@ docker volume inspect my_volume_name
   copilot --continue
   copilot --resume
   copilot --resume <SESSION_ID>
+
+  copilot --yolo
+  copilot --yolo -p "Initialize a Node workspace, install express, and write a basic health check server"
+  # settings - "chat.tools.autoApprove": true,
+
+  sudo PATH="$PATH" -u _ai_daemon opencode
+  sudo -u ai-agent opencode --yolo # run opencode under a user
+  ai-run opencode --prompt "Refactor this function"
+  ai-run aider
 
   export COPILOT_PROVIDER_TYPE=anthropic
   export COPILOT_PROVIDER_BASE_URL=https://api.anthropic.com/v1
@@ -11841,9 +11932,39 @@ docker volume inspect my_volume_name
   export CLAUDE_MODEL=meta-llama/llama-3.3-70b-instruct:free # Specify the Llama 3.3 free model
 
   # ==> opencode
+
+  # ~/.config/opencode/opencode.json
+  # ~/.local/share/opencode/auth.json
+
   export OPENCODE_USER_NAME="Clement"
   export OPENCODE_HOST_OS="macOS (Mac Studio Ultra)"
   export OPENCODE_LOCAL_HOME="/Users/murpheux"
+
+  export OPENCODE_AUTO_SHARE                   # Automatically share sessions
+  export OPENCODE_GIT_BASH_PATH                # Path to Git Bash executable on Windows
+  export OPENCODE_CONFIG                       # Path to config file
+  export OPENCODE_TUI_CONFIG                   # Path to TUI config file
+  export OPENCODE_CONFIG_DIR                   # Path to config directory
+  export OPENCODE_CONFIG_CONTENT               # Inline json config content
+  export OPENCODE_DISABLE_AUTOUPDATE           # Disable automatic update checks
+  export OPENCODE_DISABLE_PRUNE                # Disable pruning of old data
+  export OPENCODE_DISABLE_TERMINAL_TITLE       # Disable automatic terminal title updates
+  export OPENCODE_PERMISSION                   # Inlined json permissions config
+  export OPENCODE_DISABLE_DEFAULT_PLUGINS      # Disable default plugins
+  export OPENCODE_DISABLE_LSP_DOWNLOAD         # Disable automatic LSP server downloads
+  export OPENCODE_ENABLE_EXPERIMENTAL_MODELS   # Enable experimental models
+  export OPENCODE_DISABLE_AUTOCOMPACT          # Disable automatic context compaction
+  export OPENCODE_DISABLE_CLAUDE_CODE          # Disable reading from .claude (prompt + skills)
+  export OPENCODE_DISABLE_CLAUDE_CODE_PROMPT   # Disable reading ~/.claude/CLAUDE.md
+  export OPENCODE_DISABLE_CLAUDE_CODE_SKILLS   # Disable loading .claude/skills
+  export OPENCODE_DISABLE_MODELS_FETCH         # Disable fetching models from remote sources
+  export OPENCODE_DISABLE_MOUSE                # Disable mouse capture in the TUI
+  export OPENCODE_FAKE_VCS                     # Fake VCS provider for testing purposes
+  export OPENCODE_CLIENT                       # Client identifier (defaults to cli)
+  export OPENCODE_ENABLE_EXA                   # Enable Exa web search tools
+  export OPENCODE_SERVER_PASSWORD              # Enable basic auth for serve/web
+  export OPENCODE_SERVER_USERNAME              # Override basic auth username (default opencode)
+  export OPENCODE_MODELS_URL                   # Custom URL for fetching models configuration
 
   opencode
   opencode auth login|list
@@ -11852,6 +11973,7 @@ docker volume inspect my_volume_name
   opencode --model anthropic/claude-3-5-sonnet
 
   opencode run --model deepseek/deepseek-chat "..."
+  opencode run --auto "Refactor user authentication routes"
 
   opencode serve [-h|--hostname] hostname [-p|--port] port
   opencode agent create
@@ -11861,6 +11983,12 @@ docker volume inspect my_volume_name
 
   opencode --continue|-c # load last session /resume /continue
   opencode provider set anthropic
+
+  opencode config validate
+
+  opencode --yolo
+  opencode --yolo -p "Refactor the error handling in src/utils/logger.ts"
+  # jsonc - "autoExecute": true, // Enables YOLO mode by default
 
   # ==> openclaw
   openclaw gateway status|run
@@ -11967,12 +12095,117 @@ docker volume inspect my_volume_name
   lms chat --prompt "Your question here"
 
   # ==> aider
+  aider
+  aider --dry-run
+
   aider --model o3-mini --api-key openai=<key>
   aider --model sonnet --api-key anthropic=<key>
   aider --model ollama/gemma4
   aider --model ollama/devops-lead
 
+  aider --model sonnet --thinking-tokens 8k
+  aider --model o3-mini --reasoning-effort high
+
+  aider --alias "fast:gpt-4o-mini" --alias "smart:o3-mini"
+  aider --model fast  # Uses gpt-4o-mini
+  aider --model smart  # Uses o3-mini
+  /model fast
+  /model smart
+
+  # ==> grok
+  grok
+  grok -d /path/to/project
+  grok --api-key your_api_key_here
+
+  export GROK_API_KEY=your_api_key_here
+  export GROK_BASE_URL=https://your-custom-endpoint.com/v1
+
+  grok update
+  grok uninstall
+  grok uninstall --dry-run
+  grok uninstall --keep-config
+
+  grok --prompt "run the test suite and summarize failures"
+  grok -p "show me package.json" --directory /path/to/project
+  grok --prompt "refactor X" --max-tool-rounds 30
+  grok --prompt "summarize the repo state" --format json
+  grok --prompt "review the repo overnight" --batch-api
+  grok --verify
+
+  grok --session latest
+  grok -s <session-id>
+
+  grok --prompt "summarize the repo state" --format json
+
+  grok daemon --background
+  grok models
+
+  grok fix the flaky test in src/foo.test.ts
+
+  grok "Generate a retro-futuristic logo for my CLI called Grok Forge"
+  grok "Edit ./assets/hero.png into a watercolor poster"
+  grok "Animate ./assets/cover.jpg into a 6 second cinematic push-in"
+
+  # ==> agent (cursor cli)
+  agent
+  agent "command ..."
+
+  agent -p "find ... " --model "gpt-5"
+  agent -p "review these changes for security issues" --output-format text
+
+  # Open previous chats and resume one
+  agent ls
+
+  # Resume latest conversation
+  agent resume
+
+  # Continue the previous session
+  agent --continue
+
+  # Resume specific conversation
+  agent --resume="chat-id-here"
+
+  export CURSOR_API_KEY=your_api_key_here
+
+  # ==> atk
+  atk doctor        # Prerequisite checker for building Microsoft 365 Apps.
+  atk new           # Create a new Microsoft 365 App.
+  atk add           # Add feature to your Microsoft 365 App.
+  atk auth          # Manage Microsoft 365 and Azure accounts.
+  atk entra-app     # Manage the Microsoft Entra app in the current application.
+  atk env           # Manage environments.
+  atk help          # Show Microsoft 365 Agents Toolkit CLI help.
+  atk install       # Upload a given application package across Microsoft 365.
+  atk launchinfo    # Get launch information of an acquired Microsoft 365 App.
+  atk list          # List available Microsoft 365 App templates and samples.
+  atk provision     # Run the provision stage in m365agents.yml or m365agents.local.yml.
+  atk deploy        # Run the deploy stage in m365agents.yml or m365agents.local.yml.
+  atk package       # Build your Microsoft 365 App into a package for publishing.
+  atk validate      # Validate the Microsoft 365 App using manifest schema, validation rules, or test cases.
+  atk publish       # Run the publish stage in m365agents.yml.
+  atk preview       # Preview the current application.
+  atk update        # Update the Microsoft 365 App manifest to Developer Portal.
+  atk upgrade       # Upgrade the project to work with the latest version of Microsoft 365 Agents Toolkit.
+  atk collaborator  # Check, grant and list permissions for who can access and manage Microsoft 365 App and Microsoft Entra application.
+  atk uninstall     # Clean up resources associated with Manifest ID, Title ID, or an environment.
+
+  # Analyze an image
+  agent -p "Analyze this image and describe what you see: ./screenshot.png"
+
+  # Process multiple media files
+  agent -p "Compare these two images and identify differences: ./before.png ./after.png"
+
+  # Combine file paths with text instructions
+  agent -p "Review the code in src/app.ts and the design mockup in designs/homepage.png. Suggest improvements to match the design."
+
+
   # ==> deepseek/deepseek-cli
+  DEEPSEEK_USE_LOCAL=true
+  DEEPSEEK_MODEL=deepseek-coder:6.7b
+  OLLAMA_HOST=http://localhost:11434
+
+  deepseek-cli code "Write a python script to validate an email address"
+
   deepseek # start interactive mode
   deepseek setup # setup local Ollama environment
   deepseek chat "prompt" # single prompt mode
@@ -11981,8 +12214,226 @@ docker volume inspect my_volume_name
   deepseek --help # show help information
   deepseek --version # show version
 
+  # Basic usage
+  deepseek -q "What is the capital of France?"
+
+  # Specify a model
+  deepseek -q "Write a Python function to calculate factorial" -m deepseek-coder
+
+  # Get raw output without token usage information
+  deepseek -q "Write a Python function to calculate factorial" -r
+
+  # Set a custom system message
+  deepseek -S "You are a Rust expert." -q "Explain lifetimes"
+
+  # Enable JSON output mode
+  deepseek -q "List 3 European capitals" --json
+
+  # Set temperature and a stop sequence
+  deepseek -q "Tell me a story" --temp 1.3 --stop "The End"
+
+  # Multiple stop sequences
+  deepseek -q "Count to five" --stop "5" --stop "five"
+
+  # Start the REPL with prefix completion and a lower temperature
+  deepseek --prefix --temp 0.0
+
+  # Enable Fill-in-the-Middle mode via CLI
+  deepseek --fim -q "def add(<fim_prefix>):<fim_suffix>    pass"
+
+  # Enable multiline input mode for complex prompts
+  deepseek --multiline
+
+  # Use Shift+Enter to submit (requires a terminal that distinguishes Shift+Enter)
+  deepseek --multiline --multiline-submit shift-enter
+
+  # Combine options with multiline
+  deepseek --multiline --prefix --temp 0.0
+
+  # Read query from a file
+  deepseek --read prompt.txt
+
+  # Pipe query from stdin
+  echo "What is the time complexity of quicksort?" | deepseek --read -
+
+  # Combine piped input with a prefix query and a system message
+  git diff HEAD | deepseek --read - -q "Review this diff:" -S "You are a code reviewer."
+
+  # Combine options
+  deepseek -q "Write a Python function to calculate factorial" -m deepseek-coder -r -S "You are an expert Python developer."
+
+  # Multiline example
+  deepseek --multiline -q "
+  def calculate_sum(a, b):
+      return a + b
+  print(calculate_sum(2, 3))
+  "
+
+  Available options (apply to both inline and interactive modes unless noted):
+
+  **Core**
+  - `-q, --query TEXT`: Run in inline mode with the given query
+  - `--read FILE`: Read query text from FILE, or `-` to read from stdin (pipe). When combined with `-q` the file/pipe content is appended after the query text.
+  - `--file PATH`: Attach a file (or glob pattern) for analysis; the file's text is folded into the next user message. Repeatable: `--file a.py --file 'src/*.py'`. Inside the REPL use `/file`, `/pick`, `/files`, `/clearfiles` for the same feature.
+  - `-m, --model MODEL`: Model to use (`deepseek-chat`, `deepseek-coder`, `deepseek-reasoner`)
+  - `-r, --raw`: Output raw response without token usage information (inline only)
+  - `-S, --system TEXT`: Set the system message (default: `"You are a helpful assistant."`)
+  - `-s, --stream`: Enable streaming mode
+  - `--no-stream`: Disable streaming mode
+
+  **Output / Mode**
+  - `--json`: Enable JSON output mode (`response_format: json_object`)
+  - `--beta`: Enable the beta API endpoint
+  - `--prefix`: Enable prefix completion mode (last user message becomes the assistant prefix)
+  - `--fim`: Enable Fill-in-the-Middle mode (use `<fim_prefix>`/`<fim_suffix>` tags in your query)
+  - `--multiline`: Enable multiline input mode (Enter for newlines, empty line or Ctrl+D to submit by default)
+  - `--multiline-submit MODE`: How to submit in multiline mode: `empty-line` (default, press Enter on a blank line) or `shift-enter` (Shift+Enter — requires a terminal that distinguishes Shift+Enter from Enter, e.g. Kitty, WezTerm)
+
+  **Sampling & Penalties**
+  - `--temp FLOAT`: Set temperature (0–2)
+  - `--freq FLOAT`: Set frequency penalty (−2 to 2)
+  - `--pres FLOAT`: Set presence penalty (−2 to 2)
+  - `--top-p FLOAT`: Set top-p sampling (0–1)
+
+  **Stop Sequences**
+  - `--stop SEQ`: Add a stop sequence (can be repeated: `--stop A --stop B`)
+
+  ### Troubleshooting
+
+  - If the API key is not recognized:
+    - Make sure you've set the DEEPSEEK_API_KEY environment variable
+    - Try closing and reopening your terminal
+    - Check if the key is correct with: `echo $DEEPSEEK_API_KEY` (Unix) or `echo %DEEPSEEK_API_KEY%` (Windows)
+
+  - If you get import errors:
+    - Ensure you've installed the package: `pip list | grep deepseek-cli`
+    - Try reinstalling: `pip install --force-reinstall deepseek-cli`
+
+  - For development installation issues:
+    - Make sure you're in the correct directory
+    - Try: `pip install -e . --upgrade`
+
+  ### Available Commands
+
+  Basic Commands:
+  - `/help` - Show help message
+  - `/models` - List available models
+  - `/model X` - Switch model (deepseek-chat, deepseek-coder, deepseek-reasoner)
+  - `/system X` - Set a custom system message mid-session
+  - `/system` - Show the current system message
+  - `/clear` - Clear conversation history
+  - `/history` - Display conversation history
+  - `/about` - Show API information
+  - `/balance` - Show instructions for checking your account balance on the DeepSeek platform
+  - `/multiline` - Show multiline mode information (enable with --multiline flag)
+
+  Model Settings:
+  - `/temp X` - Set temperature (0-2) or use preset (coding/data/chat/translation/creative)
+  - `/freq X` - Set frequency penalty (-2 to 2)
+  - `/pres X` - Set presence penalty (-2 to 2)
+  - `/top_p X` - Set top_p sampling (0 to 1)
+
+  Beta Features:
+  - `/beta` - Toggle beta features
+  - `/prefix` - Toggle prefix completion mode
+  - `/fim` - Toggle Fill-in-the-Middle completion
+  - `/cache` - Toggle context caching
+
+  Output Control:
+  - `/json` - Toggle JSON output mode
+  - `/stream` - Toggle streaming mode (streaming is disabled by default)
+  - `/stop X` - Add stop sequence
+  - `/clearstop` - Clear stop sequences
+
+  Function Calling:
+  - `/function {}` - Add function definition (JSON format)
+  - `/clearfuncs` - Clear registered functions
+
+  File Attachments (analyse local files):
+  - `/file PATH...` - Attach one or more files for the next message. Accepts literal paths, `~`-paths, and glob patterns (e.g. `/file src/*.py`)
+  - `/pick` - Interactive file picker with tab completion (multi-select, space-separated)
+  - `/files` - List currently attached files
+  - `/dropfile X` - Remove an attached file by index (see `/files`) or by absolute path
+  - `/clearfiles` - Clear all attached files
+
+  #Attached file contents are folded into the next outgoing user message and then automatically cleared, matching the DeepSeek app's file-upload UX. Limits: 1 MiB per file, 4 MiB total, up to 20 files; binary files are rejected.
+
+  ### Model-Specific Features
+
+  #### DeepSeek-V3.2 (deepseek-chat)
+  - **Version**: DeepSeek-V3.2 (Non-thinking Mode) - Updated December 2025
+  - **Context Length**: 128K tokens (128,000 tokens)
+  - **Output Length**: Default 4K, Maximum 8K tokens
+  - **Supports all features**:
+    - JSON Output ✓
+    - Function Calling ✓ (up to 128 functions)
+    - Chat Prefix Completion ✓
+    - Fill-in-the-Middle ✓
+  - General-purpose chat model
+  - Latest improvements:
+    - Enhanced instruction following (77.6% IFEval accuracy)
+    - Improved JSON output (97% parsing rate)
+    - Advanced reasoning capabilities
+    - Role-playing capabilities
+    - Agent capability optimizations (Code Agent, Search Agent)
+
+  #### DeepSeek-R1 (deepseek-reasoner)
+  - **Version**: DeepSeek-R1 (Thinking Mode)
+  - **Context Length**: 128K tokens (128,000 tokens)
+  - **Output Length**: Default 32K, Maximum 64K tokens
+  - **Chain of Thought**: Displays reasoning process before final answer
+  - **Supported features**:
+    - JSON Output ✓
+    - Chat Prefix Completion ✓
+  - **Unsupported features**:
+    - Function Calling ✗ (automatically falls back to deepseek-chat if tools provided)
+    - Fill-in-the-Middle ✗
+    - Temperature, top_p, presence/frequency penalties ✗
+  - Excels at complex reasoning and problem-solving tasks
+  - Enhanced agent capabilities with benchmark improvements
+
+  #### DeepSeek-V2.5 Coder (deepseek-coder)
+
+  > ⚠️ **Note:** `deepseek-coder` may be deprecated and could redirect to `deepseek-chat`. Prefer `deepseek-chat` for new projects.
+
+  - **Context Length**: 128K tokens
+  - **Output Length**: Default 4K, Maximum 8K tokens
+  - **Supports all features**:
+    - JSON Output ✓
+    - Function Calling ✓
+    - Chat Prefix Completion (Beta) ✓
+    - Fill-in-the-Middle (Beta) ✓
+  - Optimized for code generation and analysis
+
+  ### Feature Details
+
+  #### Pipe and File Input (`--read`)
+
+  Feed query content from a file or stdin pipe instead of (or in addition to) `-q`:
+
+  ```bash
+  # Read the entire query from a file
+  deepseek --read prompt.txt
+
+  # Pipe from another command (use '-' as the filename)
+  echo "Explain this error:" | deepseek --read -
+  cat error.log | deepseek --read -
+
+  # Combine with -q — the -q text comes first, then the file/pipe content
+  git diff HEAD | deepseek --read - -q "Review this diff:"
+  cat report.md  | deepseek --read - -q "Summarise in one paragraph:"
+
   # ==> claude
   claude
+  claude --dangerously-skip-permissions # dangerous
+  claude --permission-mode auto # safer
+
+  # .claude/settings.json
+  {
+    "defaultMode": "auto"
+  }
+
+  # default, acceptEdits, plan, auto, bypassPermissions
 
 # ::::::::::
 

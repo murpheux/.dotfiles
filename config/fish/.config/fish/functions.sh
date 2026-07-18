@@ -160,7 +160,7 @@ _ai_security_block() {
 
 # 3. Dynamic Enforcement Loop
 # Simply add any new CLI agent names to this array
-local -a blocked_agents=(opencode aider copilot agy gemini openclaw cline claude claude-code openinterpreter deepseek-cli deepseek deepcode atk kiro kiro-cli hermes agent omp kilo kimi grok composio)
+local -a blocked_agents=(opencode aider copilot agy openclaw cline claude claude-code openinterpreter deepseek-cli deepseek deepcode)
 
 for agent in $blocked_agents; do
     alias "$agent"="_ai_security_block"
