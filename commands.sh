@@ -11836,6 +11836,7 @@
   oz agent run --share --prompt "Why is my local docker container crashing?"
   oz agent run --prompt "Follow the instructions outlined in <notebook:gq1CMAUWLtaL1CpEoTDQ3y>"
   oz agent run-cloud --environment <ENV_ID> --skill "yourorg/repo:code-review" --prompt "review the latest PR"
+  oz agent run-cloud --environment <ENV_ID> --prompt "Your specific instructions here"
 
   oz agent list [--repo owner/repo]
   oz agent run-cloud
