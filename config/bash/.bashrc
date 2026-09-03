@@ -16,6 +16,7 @@ export HISTFILESIZE=100000
 export HISTIGNORE="ls:ll:cd:pwd:bg:fg:history"
 export HISTSIZE=${HISTFILESIZE}
 export PROMPT_COMMAND="history -a; history -n; ${PROMPT_COMMAND}"
+export BASH_SILENCE_DEPRECATION_WARNING=1
 bind '"\C-r": "\C-a hstr -- \C-j"'
 
 shopt -s histappend
@@ -60,16 +61,18 @@ fi
 
 [ -r "$HOME/.byobu/prompt" ] && . "$HOME/.byobu/prompt"
 
-# Prompt engine
-if command -v oh-my-posh >/dev/null 2>&1; then
-    if [[ "$OSTYPE" == darwin* ]]; then
-        eval "$(oh-my-posh init bash --config /opt/homebrew/opt/oh-my-posh/themes/illusi0n.omp.json)"
-    elif [ -f "$HOME/.cache/oh-my-posh/themes/di4am0nd.omp.json" ]; then
-        eval "$(oh-my-posh init bash --config $HOME/.cache/oh-my-posh/themes/di4am0nd.omp.json)"
-    elif [ -f "$HOME/.cache/oh-my-posh/themes/atomic.omp.json" ]; then
-        eval "$(oh-my-posh init bash --config $HOME/.cache/oh-my-posh/themes/atomic.omp.json)"
-    else
-        eval "$(oh-my-posh init bash)"
+if [[ $UID -ge 500 ]]; then
+    # Prompt engine
+    if command -v oh-my-posh >/dev/null 2>&1; then
+        if [[ "$OSTYPE" == darwin* ]]; then
+            eval "$(oh-my-posh init bash --config /opt/homebrew/opt/oh-my-posh/themes/illusi0n.omp.json)"
+        elif [ -f "$HOME/.cache/oh-my-posh/themes/di4am0nd.omp.json" ]; then
+            eval "$(oh-my-posh init bash --config $HOME/.cache/oh-my-posh/themes/di4am0nd.omp.json)"
+        elif [ -f "$HOME/.cache/oh-my-posh/themes/atomic.omp.json" ]; then
+            eval "$(oh-my-posh init bash --config $HOME/.cache/oh-my-posh/themes/atomic.omp.json)"
+        else
+            eval "$(oh-my-posh init bash)"
+        fi
     fi
 fi
 
@@ -80,8 +83,6 @@ fi
 # Added by LM Studio CLI (lms)
 export PATH="$PATH:/Users/murpheux/.lmstudio/bin"
 # End of LM Studio CLI section
-
-
 
 # Added by Antigravity CLI installer
 export PATH="/Users/murpheux/.local/bin:$PATH"

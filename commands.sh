@@ -213,6 +213,9 @@
   xcode-select -switch /Applications/Xcode.app/
   xcode-select -switch ~/Documents/Xcode.app/
 
+  # ==> check secure input affects logi mx4 mouse
+  ioreg -l -d 1 -w 0 | grep SecureInput
+
   # ==> list installed applsications
   system_profiler SPApplicationsDataType
 
@@ -315,11 +318,11 @@
   setterm -linewrap off
 
   # ==> restart bluetooth
-  sudo pkill bluetoothd
-  sudo kextunload -b # bluetooth driver
+  pkill bluetoothd
+  kextunload -b # bluetooth driver
 
   com.apple.iokit.BroadcomBluetoothHostControllerUSBTransport
-  sudo kextload -b com.apple.iokit.BroadcomBluetoothHostControllerUSBTransport
+  kextload -b com.apple.iokit.BroadcomBluetoothHostControllerUSBTransport
 
   # ==> RAM Disk
   hdid -nomount ram://<blocksize>
@@ -327,6 +330,30 @@
   diskutil erasedisk <format> <diskname> <output path of previous hdid command>
   format - listFilesystems
   diskutil eject <output path of previous hdid command>, e.g. diskutil eject /dev/disk2
+
+  diskutil info /Volumes/TikkaSSD
+  diskutil verifyVolume /Volumes/TikkaSSD
+  
+  fsck_exfat -n /dev/disk9s2
+  fsck_exfat -y /dev/diskXsY # clear the "dirty bit"
+
+  # mount bypass diskutil
+  mkdir -p /Volumes/TikkaSSD
+  mount -t exfat -o u=$(id -u $USER),g=$(id -g $USER) /dev/diskXsY /Volumes/TikkaSSD # linux
+  mount_exfat -u $(id -u $USER) -g $(id -g $USER) /dev/diskXsY /Volumes/TikkaSSD     # macos, Change exfat to msdos if it is a FAT32 drive
+
+  sudo diskutil unmount /Volumes/TikkaSSD
+  sudo mkdir -p /Volumes/TikkaSSD
+  sudo mount -t exfat -o u=501,g=20 /dev/disk2s1 /Volumes/TikkaSSD
+
+  # activate volume status database
+  sudo vsdbutil -a /Volumes/TikkaSSD
+
+  # accesiblity
+  ps aux | grep -iE 'voiceover|accessibility'
+
+  sqlite3 '/Library/Application Support/com.apple.TCC/TCC.db' \
+    "SELECT client FROM access WHERE service = 'kTCCServiceAccessibility';"
 
   # ==> parallel
   prlctl restart softcraftmaxime
@@ -807,6 +834,8 @@
   sudo sysadminctl -addUser _ai_daemon -fullName "AI Background Service Account" -UID 475 -shell /usr/bin/false -home /var/ai_sandbox -roleAccount
   sudo dseditgroup -o edit -a _ai_daemon -t user staff
 
+  sudo sysadminctl -addUser _ai_daemon -isHidden YES
+
   # linux
   # 1. Create the user with custom home path and disabled local login
   sudo useradd --system --home-dir /var/ai_sandbox --create-home --shell /usr/bin/nologin _ai_daemon
@@ -924,7 +953,17 @@
 
   setopt no_bang_hist # allows ! in command args double quoted ""
 
+  umask
+  umask 002
   umask 77 # mask file creation :rw attribs
+
+  # umask Value Directory (Base 777)  File (Base 666) Resulting Access Level
+  # 022 (Standard)  755 (rwxr-xr-x)   644 (rw-r--r--)   == Owner has full access. Group and Others can only read (and execute dirs).
+  # 002             775 (rwxrwxr-x)   664 (rw-rw-r--)   == Owner and Group share full access. Others can only read/execute.
+  # 027             750 (rwxr-x---)   640 (rw-r-----)   == Owner has full access. Group can read/execute. Others have zero access.
+  # 077 (Strict)    700 (rwx------)   600 (rw-------)   == Only the Owner has access. Group and Others have zero access.
+
+  umask -S # Displays the current mask in a human-readable symbolic format (e.g., u=rwx,g=rx,o=rx).
 
   #  etc info files
   /etc/hosts
@@ -1006,6 +1045,9 @@
 
   chsh -s /bin/zsh  # change shell to zsh
   bash -n ~/.bashrc
+  sudo chsh -s /bin/zsh _ai_daemon
+
+  export BASH_SILENCE_DEPRECATION_WARNING=1
 
   # ==> find if current shell is loaded bu another
   ps -p $PPID -o comm=  # not - /Applications/Warp.app/Contents/MacOS/stable, login, launchd, sshd ,tmux, iTerm2, Terminal
@@ -1021,6 +1063,7 @@
 
   # Zsh - uses TIMEFMT variable  
   zsh$ TIMEFMT='%*E real %U user %S sys'
+  zsh --emulate sh
 
   # In zsh, if you want the external time command:
   zsh$ command time ls          # Bypasses the shell reserved word
@@ -1166,6 +1209,13 @@
   mount -t nfs -o nfsvers=3 gru:/mnt/volume01 /mnt/volume01
   mount /dev/YourVolGroup00/YourLogVol00 /YourMountPoint
 
+  # validate fstab
+  mount -fav # fake dryrun, all, verbose
+  mount -fav -T /mnt/etc/fstab
+
+  findmnt --verify
+  findmnt --verify --tab-file /mnt/etc/fstab
+
   # ==> show network devices
   ip link show
   ip link add name br0 type bridge
@@ -1215,6 +1265,7 @@
   ls -lh | awk '{ print $NF; }'
   ls -lh | awk '{ print $(NF-1); }'
 
+  stat .filename.txt
   stat -f "%Sp %Su:%Sg %Sm %N" file.txt # view attributes of file
   stat -f "%Sp %Su:%Sg %Sm %N" *
   find . -maxdepth 1 -exec stat -f "%Sp %Su:%Sg %Sm %N" {} \; # recursively
@@ -1261,6 +1312,8 @@
   grep -Ev '^[[:space:]]*;|^[[:space:]]*$' filename # for semicolon comments
   cat filename | grep -Ev '^[[:space:]]*#|^[[:space:]]*$'
 
+  grep -r "4c3e28ab" /bootmnt
+
   # strip dot from filenames
   for f in .*; do [ -f "$f" ] && mv -n "$f" "${f#.}"; done
   rename 's/^\.//' .* # not work macos
@@ -1273,6 +1326,8 @@
 
   # cover command with sudo
   sudo bash -c 'command1 | command2 | command3 > /path/to/protected_file'
+  sudo -u alice touch /some/path/file.txt
+  echo "hello" | sudo -u alice tee /some/path/file.txt > /dev/null
 
   echo "some text" | sudo tee /path/to/protected_file
   echo "some text" | sudo tee -a /path/to/protected_file # append
@@ -3457,6 +3512,16 @@
   runuser -l username -c 'command_to_run'
   sudo -u username command_to_run
 
+  sudo -u ai_daemon cp .config/claude/settings.json /var/ai_sandbox/.claude/
+
+  sudo su [-|-m|-s|-H] _ai_daemon
+  sudo su _ai_daemon --shell /bin/bash --preserve-environment
+  sudo -u _ai_daemon env -i HOME=/var/ai_sandbox bash --noprofile --norc
+  sudo su - _ai_daemon -s /bin/bash
+  sudo -u _ai_daemon mkdir /var/ai_sandbox/.ssh
+  sudo -H -u _ai_daemon DOCKER_CONFIG="" docker context create sclet-daemon --docker "host=ssh://sclet"
+  sudo -H -u _ai_daemon docker context ls
+
   usermod -l murpheux -d /home/murpheux -m user
   groupmod -n murpheux user
   reboot
@@ -3703,8 +3768,33 @@
   dotnet --version
 
   diskutil list
-  diskutil apfs list
+  diskutil apfs list|listVolumeGroups|listUsers /
   diskutil apfs listSnapshots disk3s1s1
+
+  diskutil apfs unlockVolume
+  apfs_unlockfv
+
+  diskutil info -all
+  diskutil info /Volumes/TikkaSSD | grep -E "File System|Type \(Bundle\)|Device Node"
+  diskutil eraseVolume APFS "TikkaSSD" /dev/diskXsY
+
+  diskutil list TikkaSSD
+  sudo diskutil enableOwnership /dev/diskXsY
+
+  diskutil apfs convert
+  apfs_hfs_convert
+
+  diskutil mount
+  mount_apfs
+
+  diskutil apfs addVolume
+  newfs_apfs
+
+  #  Unlock an encrypted volume without mounting it using a command like
+  diskutil apfs unlockVolume /dev/disk7s2 -nomount
+  fsck_apfs -n|-y|-n -S /dev/disk7s2
+
+  xattr -l /Volumes/TikkaSSD/ai/ollama
 
   dkps
 
@@ -6740,6 +6830,10 @@
   terraform apply -replace="module.name.resource_type.resource_name"
   terraform apply -var-file="secrets.tfvars" -replace="docker_service.prometheus"
 
+  terraform apply -replace="aws_instance.example"
+  terraform taint aws_instance.example
+  terraform apply
+
   # import missing or existing resource
   terraform import module.grafana.grafana_data_source.prometheus xadfssf
 
@@ -8759,6 +8853,22 @@
   pihole tail | grep status
 
   pihole --allow-regex ".*"
+
+  nvim /etc/pihole/pihole-FTL.conf
+  tail -f var/log/pihole/pihole.log
+
+  # ==> env
+  TZ= America/Edmonton
+  PIHOLE_WEBPASSWORD= ${var.pihole_password}
+  PIHOLE_INTERFACE= eth0
+  PIHOLE_USE_IPV6= false
+  FTLCONF_webserver_api_password = ${var.pihole_password}
+  FTLCONF_dns_listeningMode= ALL
+  PIHOLE_UID= 1000
+  PIHOLE_GID= 1000
+  CHECK_LOAD=false
+
+  FTLCONF_misc_check_load: "false"
 
 #:::::::::::::::::::::::::::::: kafka :::::::::::::::::::::::::::::::
   kafkatp --zookeeper sclet --list
@@ -11314,6 +11424,9 @@
   cat ref_brew | xargs -I {} brew search {}
   echo "qwen3.6:27b qwen3.6:35b gemma4:31b kimi-k2.6:cloud" | xargs -n 1 ollama pull
 
+  # find in multile folders
+  find ~/.claude ~/.config -type f 2>/dev/null | grep -Ei 'log|error|debug'
+
   find . -name "*-e" -exec rm '{}' \; # or
   find . -name "*-e" -exec rm '{}' +
 
@@ -11553,6 +11666,9 @@
 
   ykman otp chalresp -t <slot>
   ykman otp chalresp -g 2
+
+  ykman piv access unblock-pin
+  ykman piv reset
 
 #:::::::::::::::::::::::::::::: 1password :::::::::::::::::::::::::::
   op vault list
@@ -11879,6 +11995,12 @@
   ollama show <model_name> --modelfile
   curl http://localhost:11434/api/show -d '{"model": "gemma4"}'
 
+  curl http://localhost:11434/api/ps
+  curl http://localhost:11434/api/tags
+  curl http://localhost:11434/api/version
+
+  launchctl getenv OLLAMA_MODELS
+
   ollama stop gemma4
   ollama serve
   ollama pull|rm|show <model_name>
@@ -11904,6 +12026,54 @@
   ollama run devops-lead:1.0.0 "your prompt" | mdcat
   ollama run devops-lead:1.0.0 "your prompt" | md2term
 
+  # ==> ollama instructions
+  ollama run llama3.1 "$(cat instructions.md)"
+
+  # curl
+  curl http://localhost:11434/api/chat \
+  -d '{
+    "model":"llama3.1",
+    "messages":[
+      {
+        "role":"system",
+        "content":"'"$(cat instructions.md | sed ':a;N;$!ba;s/\n/\\n/g')"'" 
+      },
+      {
+        "role":"user",
+        "content":"Explain Docker Swarm placement constraints"
+      }
+    ]
+  }'
+
+  # modelfile 
+  #   - ollama create my-assistant -f Modelfile
+  #   - ollama run my-assistant
+  FROM llama3.1
+
+  SYSTEM """
+  <contents of instructions.md>
+  """
+
+  # system instructions
+  System instructions:
+
+  You are a senior DevOps engineer...
+
+  # api
+  {
+    "model": "llama3.1",
+    "messages": [
+      {
+        "role": "system",
+        "content": "...instructions..."
+      },
+      {
+        "role": "user",
+        "content": "question"
+      }
+    ]
+  }
+
   ollama launch openclaw # personal ai
   ollama launch claude|codex|opencode # coding
   ollama launch claude --model qwen2.5-coder:7b
@@ -11926,6 +12096,10 @@
 
   ollama cp <your-local-model> claude-3-5-sonnet
   ollama launch claude --model kimi-k2.5:cloud --yes -- -p "how does this repository work?"
+
+  # pipe website into ollama model
+  curl -s https://ycombinator.com | fabric --pattern|-p summarize | ollama run llama3.1
+
 
   export ANTHROPIC_BASE_URL=https://openrouter.ai/api/v1 # Redirect the API endpoint to OpenRouter
   export ANTHROPIC_API_KEY=your_openrouter_api_key_here # Use your OpenRouter API Key
@@ -11990,6 +12164,27 @@
   opencode --yolo -p "Refactor the error handling in src/utils/logger.ts"
   # jsonc - "autoExecute": true, // Enables YOLO mode by default
 
+  # opencode.jsonc
+  {
+    "llm": {
+      "provider": "ollama",
+      "model": "qwen3-coder:30b",
+      "baseURL": "http://127.0.0.1:11434",
+      "contextWindow": 32768,
+      "options": {
+        "num_ctx": 32768,
+        "num_predict": 4096,
+        "temperature": 0.3
+      }
+    },
+    "workspace": {
+      "autoParse": true
+    },
+    "agent": {
+      "maxIterations": 15
+    }
+  }
+
   # ==> openclaw
   openclaw gateway status|run
   openclaw gateway status --json
@@ -12014,6 +12209,8 @@
 
   openclaw configure --section gateway.tailscale
   openclaw configure --section agents.defaults.model
+  openclaw configure --section model
+  openclaw configure set ...
 
   openclaw doctor --fix
 
@@ -12052,6 +12249,57 @@
   plutil -lint ~/Library/LaunchAgents/com.ollama.plist
   plutil -lint ~/Library/LaunchAgents/com.ngrok.agent.plist
 
+  launchctl stop homebrew.mxcl.ollama
+  launchctl start homebrew.mxcl.ollama
+
+  launchctl stop homebrew.mxcl.ollama
+  launchctl unload ~/Library/LaunchAgents/homebrew.mxcl.ollama.plist
+
+  sudo launchctl bootstrap system /Library/LaunchDaemons/com.ollama.server.plist
+  plutil -lint /Library/LaunchDaemons/com.ollama.server.plist # lint
+
+  sudo launchctl bootout system /Library/LaunchDaemons/com.ollama.server.plist
+  sudo launchctl bootstrap system /Library/LaunchDaemons/com.ollama.server.plist
+
+  # find actual symlink
+  readlink -f /opt/homebrew/bin/ollama
+
+  sudo xattr -d com.apple.quarantine $(readlink -f /opt/homebrew/bin/ollama)
+
+  # Check the actual macOS system state.
+  sudo launchctl print system/com.ollama [ | grep state ]
+
+  sudo launchctl kickstart system/com.ollama
+  sudo launchctl disable system/com.ollama
+
+  sudo launchctl bootout system/com.ollama 2>/dev/null
+  sudo launchctl bootstrap system /Library/LaunchDaemons/com.ollama.server.plist
+
+  ./llama-server -m model.gguf --load-mode none
+  ./llama-cli -m model.gguf --load-mode none
+
+  ./llama-cli -m model.gguf --load-mode nmap --override-tensor
+
+  # curl with constraint
+  curl http://127.0.0.1:11434/api/chat -d '{
+    "model": "qwen3-coder:30b",
+    "messages": [{
+      "role": "user",
+      "content": "Why is the sky blue?"
+    }],
+    "options": {
+      "num_ctx": 32768
+    },
+    "stream": false
+  }'
+
+  ollama run qwen3-coder:30b "What is the capital of France?"
+
+  # enable KV Cache Quantization (System Level)
+  # To prevent autonomous agents from accidentally crashing the server when they request massive codebases, force the background daemon to compress the KV cache in memory.
+    <key>OLLAMA_KV_CACHE_TYPE</key>
+    <string>q8_0</string>
+
   # ==> mail client
   mutt
   neomutt
@@ -12068,6 +12316,18 @@
     "prompt": "Why is the sky blue?",
     "stream": false
   }'
+
+  # ==> fabric
+  fabric --help
+  fabric --setup
+  fabric --serve --serveOllama
+
+   curl -s https://eclecticlight.co/2024/04/22/apfs-command-tools/ | fabric --pattern summarize [--base-url https://api.anthropic.com]
+   pbpaste | fabric --pattern summarize
+   pbpaste | fabric --stream --pattern analyze_claims
+
+   fabric -y "https://youtube.com/watch?v=uXs-zPc63kM" --stream --pattern extract_wisdom
+   fabric -u https://github.com/danielmiessler/fabric/ -p analyze_claims
 
   # ==> llm studio/lms
   lms status # To check the status of LM Studio.
@@ -12095,7 +12355,7 @@
   lms chat --prompt "Your question here"
 
   # ==> aider
-  aider
+  aider [--yes]
   aider --dry-run
 
   aider --model o3-mini --api-key openai=<key>
@@ -12433,6 +12693,9 @@
     "defaultMode": "auto"
   }
 
+  # list models
+  curl https://openrouter.ai/api/v1/models -H "Authorization: Bearer $ANTHROPIC_AUTH_TOKEN"
+
   # default, acceptEdits, plan, auto, bypassPermissions
 
 # ::::::::::
@@ -12442,5 +12705,14 @@
   100 - ((node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"}) * 100)
   rate(node_network_receive_bytes_total[5m])  # Incoming
   rate(node_network_transmit_bytes_total[5m])  # Outgoing
+
+
+# :::::::::::::::::: fixes
+# macos error - Error: Incompatible provider version
+# Provider registry.terraform.io/hashicorp/template v2.2.0 does not have a package available for your current platform, darwin_arm64.
+
+brew install kreuzwerker/taps/m1-terraform-provider-helper
+m1-terraform-provider-helper activate # (In case you have not activated the helper)
+m1-terraform-provider-helper install hashicorp/template -v 2.10.0 # Install and compile
 
 
