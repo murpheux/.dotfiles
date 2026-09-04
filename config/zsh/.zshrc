@@ -275,8 +275,17 @@ if [[ "$OSTYPE" == darwin* ]]; then
     # Merged LDFLAGS for both MySQL Client and ICU4C
     export LDFLAGS="-L/opt/homebrew/Cellar/mysql-client/9.6.0/lib -L/opt/homebrew/opt/icu4c@77/lib"
 
+    # 1Password availability - op refuses config dirs it does not own (e.g.
+    # _ai_daemon shells sharing this dotfiles), so only resolve secrets when
+    # the current user can actually use op.
+    if command -v op >/dev/null 2>&1 && op whoami >/dev/null 2>&1; then
+        OP_AVAILABLE=1
+    else
+        OP_AVAILABLE=0
+    fi
+
     # sensitive - using op as secrets manager
-    if [[ -v STEALTH_MODE ]]; then
+    if [[ -v STEALTH_MODE ]] && (( OP_AVAILABLE )); then
         export GMAIL_PASS=$(op item get kz64g775ufoodnld46so5xz6bi --fields password --reveal)
         export MINIO_PASS=$(op item get mlrqdvddkl2tfcwlpnlzg7jdiu --fields password --reveal)
         export DEEPSEEK_API_KEY=$(op item get inmd7mcpkyy7n3w4tzv6cm4fdq --fields password --reveal)
@@ -291,10 +300,16 @@ if [[ "$OSTYPE" == darwin* ]]; then
 
     export TF_VAR_pihole_password="op://private/homenet-pihole/password"
     
-    export GITHUB_PAT=$(op read "op://private/github-pat/token")
-    export CONTEXT7_API_KEY=$(op read "op://private/context7-opencode-api-key/password")
-
-    export DEEPSEEK_API_KEY=$(op read "op://private/deepseek-api-key/password")
+    # plaintext secrets - resolve only when 1Password is usable by this user
+    if (( OP_AVAILABLE )); then
+        export GITHUB_PAT=$(op read "op://private/github-pat/token")
+        export CONTEXT7_API_KEY=$(op read "op://private/context7-opencode-api-key/password")
+        export DEEPSEEK_API_KEY=$(op read "op://private/deepseek-api-key/password")
+    else
+        export GITHUB_PAT=""
+        export CONTEXT7_API_KEY=""
+        export DEEPSEEK_API_KEY=""
+    fi
 
     export COPILOT_PROVIDER_TYPE="openai"
     export COPILOT_PROVIDER_BASE_URL="http://localhost:11434/v1"

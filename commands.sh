@@ -3518,6 +3518,7 @@
   sudo su _ai_daemon --shell /bin/bash --preserve-environment
   sudo -u _ai_daemon env -i HOME=/var/ai_sandbox bash --noprofile --norc
   sudo su - _ai_daemon -s /bin/bash
+  sudo -u _ai_daemon git -C /var/ai_sandbox/.dotfiles pull
   sudo -u _ai_daemon mkdir /var/ai_sandbox/.ssh
   sudo -H -u _ai_daemon DOCKER_CONFIG="" docker context create sclet-daemon --docker "host=ssh://sclet"
   sudo -H -u _ai_daemon docker context ls
