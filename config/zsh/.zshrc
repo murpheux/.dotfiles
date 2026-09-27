@@ -147,8 +147,8 @@ add-zsh-hook periodic history_cleanup
 
 export VSH_VERSION="0.1.4"
 export AWS_PROFILE="default"
-export EDITOR="nvim"
-export VISUAL="nvim"
+export AWS_PAGER=""
+export EDITOR="nvim" VISUAL="nvim" AIDER_EDITOR="nvim"
 export SSLKEYLOGFILE="$HOME/.ssl-key.log"
 export WORKSPACE="$HOME/Workspace"
 export PROJECTS="$WORKSPACE/Projects"
@@ -160,8 +160,11 @@ export OUT_DIR="./dist"
 export NODE_ENV="development"
 export GPG_TTY="$(tty)"
 export EZA_CONFIG_DIR=$HOME/.config/eza
+export HOMEBREW_NO_ENV_HINTS=1
 
-path_append "$HOME/.local/bin" "$HOME/bin" "$HOME/.npm-global/bin" "$GOPATH/bin" "$GO_HOME/bin" "$HOME/.dotnet/tools" "$HOME/.nvm/versions/node/v25.8.2/bin"
+export CLAUDE_CONFIG_DIR="$HOME/.config/claude"
+
+path_append "$HOME/.local/bin" "$HOME/bin" "$HOME/.amvm/bin" "$HOME/.npm-global/bin" "$GOPATH/bin" "$GO_HOME/bin" "$HOME/.dotnet/tools" "$HOME/.nvm/versions/node/v26.4.0/bin"
 
 if [[ "$OSTYPE" == darwin* ]]; then
     export ANDROID_HOME="$HOME/Library/Android/sdk"
@@ -181,7 +184,7 @@ if [[ "$OSTYPE" == darwin* ]]; then
         export NVM_DIR="$HOME/.nvm"
         [ -s "/opt/homebrew/opt/nvm/nvm.sh" ] && . "/opt/homebrew/opt/nvm/nvm.sh"
 
-        [ "${AUTO_NVM_USE:-0}" = "1" ] && command -v nvm >/dev/null && nvm use --delete-prefix v25.8.2 2>/dev/null || true
+        [ "${AUTO_NVM_USE:-0}" = "1" ] && command -v nvm >/dev/null && nvm use --delete-prefix v26.4.0 2>/dev/null || true
     }
 
     for cmd in nvm node npm npx; do
@@ -204,7 +207,6 @@ if [[ "$OSTYPE" == darwin* ]]; then
     HOMEBREW_PREFIX=$(brew --prefix)
     path_prepend "$HOMEBREW_PREFIX/bin" "$HOMEBREW_PREFIX/sbin" "$HOMEBREW_PREFIX/anaconda3/bin" "$HOMEBREW_PREFIX/opt/libpq/bin" "$HOMEBREW_PREFIX/opt/util-linux/bin" "$HOMEBREW_PREFIX/opt/util-linux/sbin" "$(brew --prefix findutils)/libexec/gnubin" "$HOMEBREW_PREFIX/opt/icu4c@77/bin" "$HOMEBREW_PREFIX/opt/icu4c@77/sbin"
 
-    export HOMEBREW_NO_REQUIRE_TAP_TRUST=1
     export HOMEBREW_NO_AUTO_UPDATE=1
 
     export SSH_AUTH_SOCK="$HOME/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
@@ -255,9 +257,7 @@ if [[ "$OSTYPE" == darwin* ]]; then
     _zb_path_append "$ZEROBREW_BIN"
     _zb_path_append "$ZEROBREW_PREFIX/bin"
     # <<< zerobrew <<<
-
     # ::::::::::::::: dev :::::::::
-    [ -f "$HOME/.config/op/plugins.sh" ] && source "$HOME/.config/op/plugins.sh"
 
     [[ "$TERM_PROGRAM" == "kiro" ]] && . "$(kiro --locate-shell-integration-path zsh)"
 
@@ -268,54 +268,65 @@ if [[ "$OSTYPE" == darwin* ]]; then
     export PATH="$PATH:$HOME/.lmstudio/bin"
     # End of LM Studio CLI section
 
-    # OpenClaw Completion
-    [ -f "$HOME/.openclaw/completions/openclaw.zsh" ] && source "$HOME/.openclaw/completions/openclaw.zsh"
 
     # compilers
     # Merged LDFLAGS for both MySQL Client and ICU4C
     export LDFLAGS="-L/opt/homebrew/Cellar/mysql-client/9.6.0/lib -L/opt/homebrew/opt/icu4c@77/lib"
 
-    # 1Password availability - op refuses config dirs it does not own (e.g.
-    # _ai_daemon shells sharing this dotfiles), so only resolve secrets when
-    # the current user can actually use op.
-    if command -v op >/dev/null 2>&1 && op whoami >/dev/null 2>&1; then
-        OP_AVAILABLE=1
-    else
-        OP_AVAILABLE=0
-    fi
-
     # sensitive - using op as secrets manager
-    if [[ -v STEALTH_MODE ]] && (( OP_AVAILABLE )); then
-        export GMAIL_PASS=$(op item get kz64g775ufoodnld46so5xz6bi --fields password --reveal)
-        export MINIO_PASS=$(op item get mlrqdvddkl2tfcwlpnlzg7jdiu --fields password --reveal)
-        export DEEPSEEK_API_KEY=$(op item get inmd7mcpkyy7n3w4tzv6cm4fdq --fields password --reveal)
-    fi
+    if [[ -v STEALTH_MODE ]]; then
+        [ -f "$HOME/.config/op/plugins.sh" ] && source "$HOME/.config/op/plugins.sh"
 
-    # terraform keys
-    export TF_VAR_access_key="op://private/homenet-minio/username"
-    export TF_VAR_secret_key="op://private/homenet-minio/password"
+        if (( $+commands[op] )); then
+            export GMAIL_PASS=$(op read "op://private/gmail app pwd/password")
+            export MINIO_PASS=$(op read "op://private/homenet-minio/password")
 
-    export TF_VAR_minio_user="op://private/homenet-minio/username"
-    export TF_VAR_minio_password="op://private/homenet-minio/password"
+            # terraform keys
+            #export TF_VAR_access_key="op://private/homenet-minio/username"
+            #export TF_VAR_secret_key="op://private/homenet-minio/password"
+            #export TF_VAR_minio_user="op://private/homenet-minio/username"
+            #export TF_VAR_minio_password="op://private/homenet-minio/password"
+            #export TF_VAR_pihole_password="op://private/homenet-pihole/password"
+   
+            export GITHUB_PAT=$(op read "op://private/github-pat/token")
+            export CONTEXT7_API_KEY=$(op read "op://private/context7-opencode-api-key/password")
+            #export DEEPSEEK_API_KEY=$(op read "op://private/deepseek-api-key/password")
 
-    export TF_VAR_pihole_password="op://private/homenet-pihole/password"
-    
-    # plaintext secrets - resolve only when 1Password is usable by this user
-    if (( OP_AVAILABLE )); then
-        export GITHUB_PAT=$(op read "op://private/github-pat/token")
-        export CONTEXT7_API_KEY=$(op read "op://private/context7-opencode-api-key/password")
-        export DEEPSEEK_API_KEY=$(op read "op://private/deepseek-api-key/password")
-    else
-        export GITHUB_PAT=""
-        export CONTEXT7_API_KEY=""
-        export DEEPSEEK_API_KEY=""
+            
+            export AI_VAULT_ACCOUNT_TOKEN=$(op read "op://ai-vault/op_service_account_token/password")
+
+            export OLLAMA_API_KEY=$(op read "op://private/ollama-opencode-api-key/password")
+
+            export AGENTGATEWAY_BASE_URL="https://scarlet:4000"
+            export AGENTGATEWAY_API_KEY=$(op read "op://private/agent-gateway-api-key/password")
+
+            export ANTHROPIC_BASE_URL=$AGENTGATEWAY_BASE_URL
+
+            export OPENROUTER_API_KEY=$AGENTGATEWAY_API_KEY
+            if [[ -n "$OPENROUTER_API_KEY" ]]; then
+                export ANTHROPIC_AUTH_TOKEN="$OPENROUTER_API_KEY"
+            fi
+
+            export OPENROUTER_API_KEY=""
+            #export ANTHROPIC_API_KEY=$ANTHROPIC_AUTH_TOKEN
+            export OPENAI_API_BASE=$AGENTGATEWAY_BASE_URL
+            export OPENAI_API_KEY=$AGENTGATEWAY_API_KEY
+            export GEMINI_API_KEY=""
+
+            #export GATEWAY_API_KEY=$(op read "op://private/agent-gateway-api-key/password")
+        fi
+
     fi
 
     export COPILOT_PROVIDER_TYPE="openai"
-    export COPILOT_PROVIDER_BASE_URL="http://localhost:11434/v1"
-    export COPILOT_PROVIDER_API_KEY=""
-    export COPILOT_MODEL="qwen3-coder:30b"
+    export COPILOT_PROVIDER_BASE_URL=$AGENTGATEWAY_BASE_URL
+    export COPILOT_PROVIDER_API_KEY=$AGENTGATEWAY_API_KEY
+    export COPILOT_MODEL="deepseek-flash"
     export COPILOT_OFFLINE="true"
+
+    export OPENCLAW_GATEWAY_URL="ws://horus:18789"
+
+    export CODEX_HOME=/tmp/codex-gateway-home
 
     load_cline_instructions
 
@@ -393,3 +404,19 @@ export PATH="/Users/murpheux/.local/bin:$PATH"
 
 # Added by Antigravity IDE
 export PATH="/Users/murpheux/.antigravity-ide/antigravity-ide/bin:$PATH"
+
+# Composio CLI
+export COMPOSIO_INSTALL_DIR="/Users/murpheux/.composio"
+export PATH="$COMPOSIO_INSTALL_DIR:$PATH"
+
+# kimi-code
+export PATH="/Users/murpheux/.kimi-code/bin:$PATH"
+
+# >>> zeroclaw >>>
+export PATH="/Users/murpheux/.cargo/bin:$PATH"
+# <<< zeroclaw <<<
+
+# OpenClaw Completion
+[ -f '/Users/murpheux/.openclaw/completions/openclaw.zsh' ] && source '/Users/murpheux/.openclaw/completions/openclaw.zsh'
+
+. "$HOME/.local/bin/env"

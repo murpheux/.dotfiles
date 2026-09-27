@@ -10,7 +10,9 @@
     "instructions": [
         "~/.opencode/policies/security-guardrails.md"
     ],
-    "plugins": [],
+    "plugins": [
+        "@warp-dot-dev/opencode-warp"
+    ],
     "agents": {
         "router": {
             "description": "Routes each task to the cheapest capable model.",
