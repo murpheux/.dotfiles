@@ -1,29 +1,115 @@
 {
     "$schema": "https://opencode.ai/config.json",
-    "model": "ollama/qwen3-coder:30b",
+    "default_agent": "router",
+    "model": "deepseek/deepseek-flash",
+    "subagent_depth": 1,
+    "model_settings": {
+        "reasoning_effort": "low"
+    },
     "autoupdate": true,
-    // Inject your personal environment and network context into every agent initialization
     "instructions": [
-        "~/.config/opencode/user_prompt.md"
+        "~/.opencode/policies/security-guardrails.md"
     ],
-    "plugin": [
-        "envsitter-guard@latest",
-        "opencode-ignore",
-        "@warp-dot-dev/opencode-warp"
-    ],
-    "agent": {
-        "zcoder": {
-            "description": "",
+    "plugins": [],
+    "agents": {
+        "router": {
+            "description": "Routes each task to the cheapest capable model.",
             "mode": "primary",
-            "color": "#7C3AED",
-            "prompt": "<full content of copilot.instructions.md>"
+            "model": "deepseek/deepseek-flash",
+            "steps": 3,
+            "color": "#00FF00",
+            "permissions": [
+                {
+                    "action": "edit",
+                    "resource": "*",
+                    "effect": "deny"
+                },
+                {
+                    "action": "shell",
+                    "resource": "*",
+                    "effect": "deny"
+                },
+                {
+                    "action": "subagent",
+                    "resource": "*",
+                    "effect": "allow"
+                }
+            ]
+        },
+        "planner": {
+            "description": "Breaks complex requests into implementation steps",
+            "mode": "subagent",
+            "model": "openrouter/openai/gpt-6-sol",
+            "steps": 8,
+            "color": "#CCFF00",
+            "options": {
+                "reasoningEffort": "high"
+            },
+            "permissions": [
+                {
+                    "action": "edit",
+                    "resource": "*",
+                    "effect": "deny"
+                },
+                {
+                    "action": "shell",
+                    "resource": "*",
+                    "effect": "deny"
+                }
+            ]
+        },
+        "developer": {
+            "description": "Implements normal software engineering tasks.",
+            "mode": "subagent",
+            "model": "openrouter/anthropic/claude-opus-5.5",
+            "steps": 20,
+            "color": "#FFCC00",
+            "options": {
+                "reasoningEffort": "high"
+            }
+        },
+        "architect": {
+            "description": "Handles difficult architecture and high-risk reasoning.",
+            "mode": "subagent",
+            "model": "openrouter/openai/gpt-6-sol",
+            "steps": 10,
+            "color": "#FF0000",
+            "options": {
+                "reasoningEffort": "high"
+            },
+            "permissions": [
+                {
+                    "action": "edit",
+                    "resource": "*",
+                    "effect": "ask"
+                }
+            ]
+        },
+        "reviewer": {
+            "description": "Reviews work without modifying files.",
+            "mode": "subagent",
+            "model": "deepseek/deepseek-flash",
+            "steps": 8,
+            "color": "#006622",
+            "permissions": [
+                {
+                    "action": "edit",
+                    "resource": "*",
+                    "effect": "deny"
+                },
+                {
+                    "action": "shell",
+                    "resource": "*",
+                    "effect": "deny"
+                }
+            ]
         }
     },
-    "command": {
-        //"summarize": {
-        //    "description": "Summarize the current project",
-        //    "template": "Give me a brief overview of this project. What is it? What are the main files and folders? What does it seem to be for?"
-        //}
+    "commands": {
+        "summarize": {
+            "description": "Summarize the current project",
+            "template": "Give me a brief overview of this project. What is it? What are the main files and folders? What does it seem to be for?"
+        }
     },
     "lsp": {
         "ty": {
@@ -141,137 +227,302 @@
             ]
         }
     },
-    "provider": {
+    "providers": {
+        "agentgateway": {
+            "name": "Agentgateway",
+            "env": [
+                "AGENTGATEWAY_API_KEY"
+            ],
+            "package": "@opencode/ai/providers/openai-compatible",
+            "settings": {
+                "baseURL": "https://scarlet:4000/v1"
+            },
+            "models": {
+                "deepseek-flash": {
+                    "name": "deepseek-flash"
+                },
+                "claude-fable-5-1": {
+                    "name": "claude-fable-5-1"
+                },
+                "claude-opus-4-6": {
+                    "name": "claude-opus-4-6"
+                },
+                "claude-opus-4-7": {
+                    "name": "claude-opus-4-7"
+                },
+                "claude-opus-4-8": {
+                    "name": "claude-opus-4-8"
+                },
+                "claude-opus-5": {
+                    "name": "claude-opus-5"
+                },
+                "claude-sonnet-4-5": {
+                    "name": "claude-sonnet-4-5"
+                },
+                "claude-sonnet-4-6": {
+                    "name": "claude-sonnet-4-6"
+                },
+                "claude-sonnet-5": {
+                    "name": "claude-sonnet-5"
+                },
+                "claude-haiku-4-5": {
+                    "name": "claude-haiku-4-5-20251001"
+                },
+                "gemini-3.8-flash": {
+                    "name": "gemini-3.8-flash"
+                },
+                "gemini-3.5-flash": {
+                    "name": "gemini-3.5-flash"
+                },
+                "gemini-3.1-pro": {
+                    "name": "gemini-3.1-pro"
+                },
+                "gpt-6-astra": {
+                    "name": "gpt-6-astra"
+                },
+                "gpt-5.6-terra": {
+                    "name": "gpt-5.6-terra"
+                },
+                "gpt-5.6-sol": {
+                    "name": "gpt-5.6-sol"
+                },
+                "gpt-6-luna": {
+                    "name": "gpt-6-luna"
+                },
+                "gpt-5.6-luna": {
+                    "name": "gpt-5.6-luna"
+                },
+                "gpt-5-3-codex": {
+                    "name": "gpt-5-3-codex"
+                },
+                "gpt-5-2-codex": {
+                    "name": "gpt-5-2-codex"
+                },
+                "gpt-5-2": {
+                    "name": "gpt-5-2"
+                },
+                "gpt-4o": {
+                    "name": "gpt-4o"
+                },
+                "gpt-4o-mini": {
+                    "name": "gpt-4o-mini"
+                },
+                "deepseek-v4.1-flash:cloud": {
+                    "name": "ollama:deepseek-v4.1-flash:cloud"
+                },
+                "deepseek-v4-flash:cloud": {
+                    "name": "ollama:deepseek-v4-flash"
+                },
+                "deepseek-v4-flash:0731-cloud": {
+                    "name": "ollama:deepseek-v4-flash:0731-cloud"
+                },
+                "deepseek-v4-pro:cloud": {
+                    "name": "ollama:deepseek-v4-pro:cloud"
+                },
+                "deepseek-v4-pro:0813-cloud": {
+                    "name": "ollama:deepseek-v4-pro:0813-cloud"
+                },
+                "glm-5.3:cloud": {
+                    "name": "ollama:glm-5.3:cloud"
+                },
+                "kimi-k3:cloud": {
+                    "name": "ollama:kimi-k3:cloud"
+                },
+                "gemma4:31b-cloud": {
+                    "name": "ollama:gemma4:31b-cloud"
+                },
+                "kimi-k2.6:cloud": {
+                    "name": "ollama:kimi-k2.6:cloud"
+                },
+                "qwen3.5:cloud": {
+                    "name": "ollama:qwen3.5:cloud"
+                },
+                "qwen3.5:397b-cloud": {
+                    "name": "ollama:qwen3.5:397b-cloud"
+                },
+                "gpt-oss:20b-cloud": {
+                    "name": "ollama:gpt-oss:20b-cloud"
+                },
+                "gpt-oss:120b-cloud": {
+                    "name": "ollama:gpt-oss:120b-cloud"
+                },
+                "glm-5.1:cloud": {
+                    "name": "ollama:glm-5.1:cloud"
+                },
+                "nemotron-3-super:cloud": {
+                    "name": "ollama:nemotron-3-super:cloud"
+                },
+                "nemotron-3-nano:30b-cloud": {
+                    "name": "ollama:nemotron-3-nano:30b-cloud"
+                },
+                "minimax-m3:cloud": {
+                    "name": "ollama:minimax-m3:cloud"
+                },
+                "glm-5.2:cloud": {
+                    "name": "ollama:glm-5.2:cloud"
+                },
+                "kimi-k2.7-code:cloud": {
+                    "name": "ollama:kimi-k2.7-code:cloud"
+                },
+                "glm-5.3-flash:cloud": {
+                    "name": "ollama:glm-5.3-flash:cloud"
+                },
+                "mistral-large-3:675b-cloud": {
+                    "name": "ollama:mistral-large-3:675b-cloud"
+                },
+                "nemotron-3-ultra:cloud": {
+                    "name": "ollama:nemotron-3-ultra:cloud"
+                },
+                "openrouter/openai/gpt-4o-mini": {},
+                "openrouter/openai/gpt-5": {},
+                "openrouter/openai/gpt-6-sol": {
+                    "name": "openrouter/gpt-6-sol"
+                },
+                "openrouter/anthropic/claude-sonnet-4.5": {},
+                "openrouter/google/gemini-2.5-pro": {}
+            }
+        },
         "ollama": {
-            "npm": "@ai-sdk/openai-compatible",
             "name": "Ollama (Local)",
-            "options": {
+            "package": "@opencode/ai/providers/openai-compatible",
+            "settings": {
                 "baseURL": "http://medusa:11434/v1"
             },
             "models": {
                 "qwen3-coder:30b": {},
-                "deepseek-r1:70b": {},
-                "llama3.3:70b": {},
-                "deepseek-r1:32b": {},
-                "gemma4:31b": {},
-                "phi4-mini:latest": {},
-                "qwen3.6:27b": {}
+                "gemma4:31b": {}
             }
         }
     },
     "mcp": {
-        // 1. GitHub MCP Server (Using Docker)
-        "github": {
-            "type": "local",
-            "command": [
-                "docker",
-                "run",
-                "-i",
-                "--rm",
-                "-e",
-                "GITHUB_PERSONAL_ACCESS_TOKEN={env:GITHUB_PAT}",
-                "ghcr.io/github/github-mcp-server"
-            ],
-            "enabled": true
-        },
-        // 2. Local Node/Bun based MCP Server example
-        //"context7-docs": {
-        //    "type": "local",
-        //    "command": [
-        //        "bun",
-        //        "x",
-        //        "@context7/mcp-server"
-        //    ],
-        //    "enabled": true
-        //},
-        "context7-docs": {
-            "type": "remote",
-            "url": "https://mcp.context7.com/mcp",
-            "headers": {
-                "CONTEXT7_API_KEY": "{env:CONTEXT7_API_KEY}"
+        "servers": {
+            "github": {
+                "type": "local",
+                "command": [
+                    "docker",
+                    "run",
+                    "-i",
+                    "--rm",
+                    "-e",
+                    "GITHUB_PERSONAL_ACCESS_TOKEN={env:GITHUB_PAT}",
+                    "ghcr.io/github/github-mcp-server"
+                ]
             },
-            "enabled": true
-        },
-        // 3. Remote Hosted MCP Gateway (e.g., Jira or Composio)
-        "remote-tools-gateway": {
-            "type": "remote",
-            "url": "https://api.yourhostedgateway.com/mcp",
-            "headers": {
-                "Authorization": "Bearer {env:GATEWAY_API_KEY}"
+            "context7-docs": {
+                "type": "remote",
+                "url": "https://mcp.context7.com/mcp",
+                "headers": {
+                    "CONTEXT7_API_KEY": "{env:CONTEXT7_API_KEY}"
+                }
             },
-            "enabled": true
-        },
-        "1password": {
-            "type": "local",
-            "enabled": true,
-            "command": [
-                "/Applications/1Password.app/Contents/MacOS/onepassword-mcp"
-            ]
+            "remote-tools-gateway": {
+                "type": "local",
+                "url": "http://localhost:4000/ui",
+                "headers": {
+                    "Authorization": "Bearer {env:GATEWAY_API_KEY}"
+                }
+            },
+            "1password": {
+                "type": "local",
+                "command": [
+                    "npx",
+                    "-y",
+                    "@takescake/1password-mcp"
+                ],
+                "environment": {
+                    "OP_SERVICE_ACCOUNT_TOKEN": "{env:AI_VAULT_ACCOUNT_TOKEN}"
+                }
+            }
         }
     },
-    // Execution Permissions (ask vs. allow)
-    "permission": {
-        "bash": {
-            "*": "allow",
-            "rm *": "ask",
-            "rmdir *": "ask",
-            "git push *": "ask",
-            "git checkout *": "ask"
+    "permissions": [
+        {
+            "action": "read",
+            "resource": "*",
+            "effect": "allow"
         },
-        //"bash": "ask", // Safeguard against critical mistakes
-        "write": "allow", // Let the agent create code seamlessly
-        "read": "allow", // Fluid file reading
-        "github_*": "ask", // Require approval before pushing code or creating PRs
-        "context7-*": "allow", // Freely allow documentation fetching
-        "webfetch": "allow", // Access documentation on the fly
-        "doom_loop": "ask", // Built-in loop crash prevention,
-        // Whitelisted read access patterns
-        "read": {
-            "*": "allow",
-            "*.env": "deny",
-            "*.env.*": "deny"
+        {
+            "action": "glob",
+            "resource": "*",
+            "effect": "allow"
         },
-        // Whitelisted edit/write access patterns
-        "edit": {
-            "*": "allow"
+        {
+            "action": "grep",
+            "resource": "*",
+            "effect": "allow"
         },
-        // Commands map directly to an explicit permission state
-        "execute": {
-            "git status": "allow",
-            "git diff": "allow",
-            "git log": "allow",
-            "git branch": "allow",
-            "git checkout": "allow",
-            "git add": "allow",
-            "git commit": "allow",
-            "pwd": "allow",
-            "ls": "allow",
-            "command": "allow",
-            "npm": "allow",
-            "yarn": "allow",
-            "pnpm": "allow",
-            "go": "allow",
-            "pip": "allow",
-            "poetry": "allow",
-            "uv": "allow",
-            "jest": "allow",
-            "pytest": "allow",
-            "eslint": "allow",
-            "golangci-lint": "allow",
-            "docker compose": "allow",
-            "terraform": "allow",
-            // Explicit Deny Blocks
-            "rm": "deny",
-            "chmod": "deny",
-            "chown": "deny",
-            "curl": "deny",
-            "wget": "deny",
-            "dropdb": "deny"
+        {
+            "action": "edit",
+            "resource": "*",
+            "effect": "ask"
+        },
+        {
+            "action": "shell",
+            "resource": "*",
+            "effect": "ask"
+        },
+        {
+            "action": "shell",
+            "resource": "git status *",
+            "effect": "allow"
+        },
+        {
+            "action": "shell",
+            "resource": "git diff *",
+            "effect": "allow"
+        },
+        {
+            "action": "shell",
+            "resource": "git log *",
+            "effect": "allow"
+        },
+        {
+            "action": "shell",
+            "resource": "git branch *",
+            "effect": "allow"
+        },
+        {
+            "action": "shell",
+            "resource": "npm test *",
+            "effect": "allow"
+        },
+        {
+            "action": "shell",
+            "resource": "npm run test *",
+            "effect": "allow"
+        },
+        {
+            "action": "shell",
+            "resource": "pnpm test *",
+            "effect": "allow"
+        },
+        {
+            "action": "shell",
+            "resource": "pnpm run test *",
+            "effect": "allow"
+        },
+        {
+            "action": "shell",
+            "resource": "yarn test *",
+            "effect": "allow"
+        },
+        {
+            "action": "shell",
+            "resource": "git push *",
+            "effect": "deny"
+        },
+        {
+            "action": "shell",
+            "resource": "git commit *",
+            "effect": "ask"
+        },
+        {
+            "action": "shell",
+            "resource": "rm *",
+            "effect": "deny"
         }
-    },
-    // Automated Code Quality Formatters
-    // Keeps the agent's edits compliant with formatting specs automatically
-    "formatter": {
+    ],
+    "formatters": {
         "prettier": {
             "disabled": false
         },

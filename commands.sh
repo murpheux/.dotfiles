@@ -3,14 +3,17 @@
 #  Clement Onawole - dapo.onawole@gmail.com
 #  ln/murpheux fb/murpheux tw/murpheux
 
-# Tools  : vi, ed, ex, vim, neovim - lazyvim, spacevim, edit
-# Editor : vscode, sublime, notepad++
-# Term   : alacritty, hyper, ghostty, kitty, warp, rio, wave, iterm2, tabby
-# Sec Mgr: 1password, Bitwarden, Passwords (macos), lastpass
-# Lib Pac: brew, zerobrew
+# Tools    : vi, ed, ex, vim, neovim - lazyvim, spacevim, edit
+# Editor   : vscode, sublime, notepad++
+# Term     : alacritty, hyper, ghostty, kitty, warp, rio, wave, iterm2, tabby
+# Sec Mgr  : 1password, Bitwarden, Passwords (macos), lastpass
+# Lib Pac  : brew, zerobrew
 # AI Agents: opencode, cline, copilot, agy, openclaw, deepseek/deepseek-cli, 
 #            deepcode, aider, hermes, zero, codex, droid, qwen, atk, kiro, 
-#            llm, agent, kaggle, plandex*, omp, kilo, kimi
+#            llm, agent, kaggle, plandex*, omp, kilo, kimi, zeroclaw
+#            claude, opencode, cline, copilot, agy, aider, crush
+# Paid     : openrouter, deepseek, claude direct, gemini/agy, opencode/zen
+# New Find : crush, 
 
 #:::::::::::::::::::::::::::: homenet minions ::::::::::::::::::::::::::::
   swarm manager         scarlet
@@ -162,6 +165,10 @@
 
   tmutil thinlocalsnapshots / 10000000000 4 # claim snapshots used disk space
 
+  chflags uchg ~/.cline/data/settings/providers.json
+  chflags nouchg ~/.cline/data/settings/providers.json
+
+
   sw_vers
   system_profiler | more
 
@@ -239,6 +246,7 @@
   grep -o 'avx\|avx2\|sse4_2' /proc/cpuinfo | sort -u
 
   powermetrics --samplers smc -l1 -n1
+  powermetrics --samplers gpu_power -i 1000 # For real-time GPU utilization on M-series Macs
 
   security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain dev-certs
 
@@ -411,6 +419,9 @@
   prlctl create <vm_name> -d <distro> --cpu-type x86
   prlctl set <vm_name> --device-set cdrom0 --image <x86_iso_path> --connect
   prlctl start <vm_name>
+
+  launchctl stop com.parallels.desktop.launchdaemon
+  launchctl stop com.parallels.desktop.launchdaemon
 
   powermetrics --samplers smc -l1 -n1
   ppwd
@@ -8761,6 +8772,11 @@
   openssl req -new -key server.key -out server.csr
   openssl x509 -req -days 365 -in server.csr -signkey server.key -out server.crt
 
+  openssl s_client -connect localhost:4000 -showcerts
+
+  openssl x509 -in cert.pem -text -noout | grep Issuer
+  openssl x509 -in cert.pem -text -noout | grep Subject
+
 #:::::::::::::::::::::::::::::::: virsh :::::::::::::::::::::::::::::
   virsh list --all
   virsh pool-list --all
@@ -10948,6 +10964,9 @@
   #-user flag for user services:
   systemctl --user status syncthing
 
+  systemctl --user status openclaw-gateway
+  systemctl --user cat openclaw-gateway
+
   # View current target
   systemctl get-default
 
@@ -11736,12 +11755,27 @@
   op run -- env | grep -i TF_VAR
   op run -- sh -c 'env | grep -i TF_VAR'
 
+  op run --env-file=.env -- docker compose up -d
+  op run --env-file=.env -- terraform apply -auto-approve
+  op run --env-file=.env -- docker run --env-file .env ghcr.io/openclaw/openclaw:latest
+
+  op account add --address "my.1password.com" --email "email@example.com" --secret-key "A3-SECRET-KEY-HERE" --shorthand "my_account"
+  op account add --address "my.1password.com" --email "archtalon@agentmail.to" --secret-key $AI_VAULT_ACCOUNT_TOKEN --shorthand "archtalon_op"
+
+  eval $(op signin --account my_account)
+
+  op service-account create "My MCP Service Account" --expires-in 24h --vault MyVault:read_items
+  op service-account create "ai-mcp-service-account" --expires-in 24h --vault ai-vault:read_items
+  op service-account create "ai-mcp-service-account" --expires-in 30d --vault ai-vault:read_items
+
+
 #::::::::::::::::::::::::::::: passwd gen :::::::::::::::::::::::::::
 
   pwgen -s -c -y -1 64
   pwgen -s -c -y 64 1
   pwgen -cny 16 -s 1
 
+  htpasswd -n -m clawuser
   htpasswd -nBC 10 "somepassword123"
   htpasswd -nbBC 10 admin "somepassword123" | cut -d: -f2
   
@@ -11898,6 +11932,8 @@
   copilot --continue
   copilot --resume
   copilot --resume <SESSION_ID>
+
+  copilt help providers
 
   copilot --yolo
   copilot --yolo -p "Initialize a Node workspace, install express, and write a basic health check server"
@@ -12151,6 +12187,11 @@
   opencode run --model deepseek/deepseek-chat "..."
   opencode run --auto "Refactor user authentication routes"
 
+  opencode debug agents
+  opencode run --agent planner "ping"
+  opencode run --agent Planner --model google/gemini-2.5-pro "ping"
+  opencode --agent Planner --model anthropic/claude-sonnet-4-5 --prompt "ping"
+
   opencode serve [-h|--hostname] hostname [-p|--port] port
   opencode agent create
 
@@ -12187,6 +12228,26 @@
     }
   }
 
+  # Local Node/Bun based MCP Server example
+  # "context7-docs": {
+  #    "type": "local",
+  #    "command": [
+  #        "bun",
+  #        "x",
+  #        "@context7/mcp-server"
+  #    ],
+  #    "enabled": true
+  #},
+
+  # "1password": {
+  #    "type": "local",
+  #    "enabled": true,
+  #    "command": [
+  #        "/Applications/1Password.app/Contents/MacOS/onepassword-mcp"
+  #    ]
+  #},
+
+
   # ==> openclaw
   openclaw gateway status|run
   openclaw gateway status --json
@@ -12204,6 +12265,13 @@
   openclaw gateway status
 
   openclaw security audit
+
+  openclaw qr
+  openclaw devices list
+  openclaw nodes pending
+  openclaw devices approve
+  openclaw devices approve zarza-ping-ping-ping-zarzping
+  openclaw nodes approve arza-ping-ping-ping-zarzping
 
   openclaw agents list
   openclaw agents add work-assistant
@@ -12240,7 +12308,14 @@
   openclaw gateway call status
   openclaw gateway call logs.tail --params '{"sinceMs": 60000}'
 
-  #modelfile
+  openclaw gateway auth-token --show
+  openclaw config get gateway.auth.token
+  openclaw doctor --generate-gateway-token
+  openclaw config get gateway.auth.token
+
+  openclaw gateway restart
+
+  # modelfile
   FROM gemma3
   SYSTEM """You are a happy cat."""
 
@@ -12253,6 +12328,8 @@
 
   launchctl stop homebrew.mxcl.ollama
   launchctl start homebrew.mxcl.ollama
+
+  launchctl stop com.parallels.desktop.launchdaemon
 
   launchctl stop homebrew.mxcl.ollama
   launchctl unload ~/Library/LaunchAgents/homebrew.mxcl.ollama.plist
@@ -12319,6 +12396,10 @@
     "stream": false
   }'
 
+  # ==> zero agent
+  docker run -p 80:80 -v a0_usr:/a0/usr agent0ai/agent-zero
+  docker run -p 5080:80 -v a0_usr:/a0/usr agent0ai/agent-zero
+
   # ==> fabric
   fabric --help
   fabric --setup
@@ -12373,6 +12454,25 @@
   aider --model smart  # Uses o3-mini
   /model fast
   /model smart
+
+  # Work with DeepSeek via DeepSeek's API
+  aider --model deepseek --api-key deepseek=your-key-goes-here
+
+  # Work with Claude 3.7 Sonnet via Anthropic's API
+  aider --model sonnet --api-key anthropic=your-key-goes-here
+
+  # Work with o3-mini via OpenAI's API
+  aider --model o3-mini --api-key openai=your-key-goes-here
+
+  # Work with Sonnet via OpenRouter's API
+  aider --model openrouter/anthropic/claude-3.7-sonnet --api-key openrouter=your-key-goes-here
+
+  # Work with DeepSeek Chat V3 via OpenRouter's API
+  aider --model openrouter/deepseek/deepseek-chat --api-key openrouter=your-key-goes-here
+
+  aider --model deepseek/deepseek-flash --show-repo-map
+  aider --show-repo-map > map.md
+  aider --map-tokens <number>
 
   # ==> grok
   grok
@@ -12690,6 +12790,19 @@
   claude --dangerously-skip-permissions # dangerous
   claude --permission-mode auto # safer
 
+  ANTHROPIC_BASE_URL=https://api.deepseek.com/anthropic
+  ANTHROPIC_AUTH_TOKEN=<your_actual_deepseek_api_key>
+  # ANTHROPIC_MODEL / ANTHROPIC_DEFAULT_SONNET_MODEL / 
+  CLAUDE_CODE_SUBAGENT_MODEL=deepseek-flash
+  ANTHROPIC_DEFAULT_OPUS_MODEL=deepseek-v4-pro
+
+  NODE_TLS_REJECT_UNAUTHORIZED=0 claude
+
+  export NODE_EXTRA_CA_CERTS=/path/to/cert.pem
+  NODE_EXTRA_CA_CERTS=/path/to/cert.pem claude
+
+  sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain cert.pem
+
   # .claude/settings.json
   {
     "defaultMode": "auto"
@@ -12716,5 +12829,66 @@
 brew install kreuzwerker/taps/m1-terraform-provider-helper
 m1-terraform-provider-helper activate # (In case you have not activated the helper)
 m1-terraform-provider-helper install hashicorp/template -v 2.10.0 # Install and compile
+
+
+
+  `npm install -g --allow-scripts=@anthropic-ai/claude-code` 
+  `npm config set allow-scripts=@anthropic-ai/claude-code --location=user`
+
+  # :::::::::::::::::: my ai policy
+  # Run live agents under a limited account
+  # Configure stricts rules of actions
+  # Prohibit destructive cli commands
+
+  # :::::::::::::::::: ai rules
+  #
+  # be polite and direct
+  # redact alls secrets I share
+  # never delete or edit without my approval except in specific folder
+  # never include secrets in output unless asked to do so - password, api keys, ssh-keys etc
+  # Ensure final output is in pbcopy
+
+
+
+sm-mcp is installed at /usr/local/bin/sm-mcp. Open Terminal and run the steps below.
+Authenticate (host trelica.app or trelica.eu) — prompts for the secret: sm-mcp login --host trelica.app --client-id <CLIENT_ID> 
+Connect it to your AI client — e.g. Claude Desktop: sm-mcp install claude or: claude-code, cursor, vscode, codex, copilot, factory-droid, opencode Then fully restart the AI client. 
+Read-only by default. To allow write actions, add --enable-writes.
+
+
+  #:::::::::::::: agentgatway
+
+  curl "https://scarlet:4000/v1/chat/completions" \
+  -H "Authorization: Bearer dffffsdfggh44dsd4r" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "<model-name>",
+    "messages": [
+      { "role": "user", "content": "Hello from agentgateway" }
+    ]
+  }'
+
+  curl -k https://scarlet:4000/v1/models -H "Authorization: Bearer $AGENTGATEWAY_API_KEY" | jq
+
+
+  curl http://scarlet:4000/v1/chat/completions \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer YOUR_GW_API_KEY" \
+    -d '{
+      "model": "openrouter/gpt-6-sol",
+      "messages": [{"role": "user", "content": "ping"}]
+    }'
+
+  # codex --model 
+
+  codex
+  codex login --with-api-key <<<"$OPENAI_API_KEY"
+
+  aider --model deepseek/deepseek-flash
+  aider --model deepseek/deepseek-flash --show-repo-map
+
+  codex --model "deepseek-flash" -c 'model_provider="gateway"' -c 'model_providers.gateway.name="Local gateway"' -c 'model_providers.gateway.base_url="https://scarlet:4000/v1"'
+
+  codex doctor --summary
 
 

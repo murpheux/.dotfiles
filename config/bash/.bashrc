@@ -86,3 +86,5 @@ export PATH="$PATH:/Users/murpheux/.lmstudio/bin"
 
 # Added by Antigravity CLI installer
 export PATH="/Users/murpheux/.local/bin:$PATH"
+
+. "$HOME/.local/bin/env"
