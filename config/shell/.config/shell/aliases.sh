@@ -14,7 +14,7 @@ alias rreload="source ~/.bashrc"
 alias c="clear"
 alias cls="clear"
 alias x="exit"
-alias hc="history -c"
+#alias hc="history -c"
 
 alias ls="eza --icons=always"
 alias ll="ls -alF --color=auto"

@@ -169,3 +169,8 @@ local -a blocked_agents=()
 for agent in $blocked_agents; do
     alias "$agent"="_ai_security_block"
 done
+
+claude-api() {
+  CLAUDE_CONFIG_DIR="$HOME/.config/claude-api" \
+    op run --no-masking --env-file="$HOME/.config/claude-api/op.env" -- claude "$@"
+}

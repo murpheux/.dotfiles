@@ -42,5 +42,18 @@
         "sysinfo:type": "All CPU"
       }
     }
+  },
+  "btop": {
+    "icon": "chart-bar",
+    "label": "btop",
+    "description": "System Resource Monitor",
+    "blockdef": {
+      "meta": {
+        "view": "term",
+        "controller": "cmd",
+        "cmd": "/opt/homebrew/bin/btop",
+        "cmd:clearonstart": true
+      }
+    }
   }
 }

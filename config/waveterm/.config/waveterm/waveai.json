@@ -1,7 +1,7 @@
 {
   "ollama-llama": {
     "display:name": "Ollama - Phi4 mini",
-    "display:order": 1,
+    "display:order": 3,
     "display:icon": "microchip",
     "display:description": "Local Phi4 mini latest model via Ollama",
     "ai:apitype": "openai-chat",
@@ -21,14 +21,19 @@
     "display:icon": "server",
     "display:description": "Local Qwen model via LM Studio",
     "ai:apitype": "openai-chat",
-    "ai:model": "qwen/qwen-2.5-coder-32b-instruct",
+    "ai:model": "qwen/qwen3.8-27b",
     "ai:thinkinglevel": "medium",
-    "ai:endpoint": "http://localhost:1234/v1/chat/completions",
-    "ai:apitoken": "not-needed"
+    "ai:endpoint": "http://localhost:8288/v1/chat/completions",
+    "ai:apitokensecretname": "LLM_STUDIO_API_KEY",
+    "ai:capabilities": [
+      "tools",
+      "images",
+      "pdfs"
+    ]
   },
   "vllm-local": {
     "display:name": "vLLM",
-    "display:order": 3,
+    "display:order": 4,
     "display:icon": "server",
     "display:description": "Local model via vLLM",
     "ai:apitype": "openai-chat",
@@ -36,5 +41,31 @@
     "ai:thinkinglevel": "medium",
     "ai:endpoint": "http://localhost:8000/v1/chat/completions",
     "ai:apitoken": "not-needed"
+  },
+  "agentgateway": {
+    "display:name": "agentgateway",
+    "display:order": 1,
+    "display:icon": "network-wired",
+    "display:description": "Local HomeNet Agentgateway proxy",
+    "ai:apitype": "openai-chat",
+    "ai:model": "agentgateway/llm-studio/qwen3.8-27b",
+    "ai:endpoint": "https://scarlet:4000/v1/chat/completions",
+    "ai:apitokensecretname": "AGENTGATEWAY_KEY",
+    "ai:capabilities": [
+      "tools"
+    ]
+  },
+  "ngrok": {
+    "display:name": "ngrok",
+    "display:order": 5,
+    "display:icon": "network-wired",
+    "display:description": "Ngrok proxy",
+    "ai:apitype": "openai-chat",
+    "ai:model": "llm-studio/qwen3.8-27b",
+    "ai:endpoint": "https://pettiness-decathlon-mumble.ngrok-free.dev/v1",
+    "ai:apitokensecretname": "NGROK_API_KEY",
+    "ai:capabilities": [
+      "tools"
+    ]
   }
 }

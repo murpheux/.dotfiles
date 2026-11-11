@@ -1,1 +1,0 @@
-../../../copilot/.copilot/copilot-instructions.md

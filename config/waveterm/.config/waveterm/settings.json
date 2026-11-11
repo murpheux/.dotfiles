@@ -1,7 +1,7 @@
 {
   "autoupdate:channel": "latest",
   "term:fontsize": 16,
-  "waveai:defaultmode": "ollama-llama",
+  "waveai:defaultmode": "agentgateway",
   "waveai:showcloudmodes": false,
   "window:confirmclose": false,
   "window:opacity": 0.65,

@@ -1,0 +1,269 @@
+{
+  "version": 1,
+  "skills": {
+    "bank-sync": {
+      "source": "openaccountant/skills",
+      "sourceType": "github",
+      "skillPath": "shared/bank-sync/SKILL.md",
+      "computedHash": "50544095c59ea18f7efd155fdb65d1b9b1ab350d6ce7e1709986a02f54206f4e"
+    },
+    "break-even-calc": {
+      "source": "openaccountant/skills",
+      "sourceType": "github",
+      "skillPath": "business/break-even-calc/SKILL.md",
+      "computedHash": "b8f0db4eed25c3e7fdde42ce58e25fc6dedd1251d98bcf3e025b0e4ffb37230e"
+    },
+    "cash-flow-forecast": {
+      "source": "openaccountant/skills",
+      "sourceType": "github",
+      "skillPath": "business/cash-flow-forecast/SKILL.md",
+      "computedHash": "39afefcf5cd0b8f0b838159870857156a2497538efa4af2fe3f3036d187fa97c"
+    },
+    "charitable-giving": {
+      "source": "openaccountant/skills",
+      "sourceType": "github",
+      "skillPath": "personal/charitable-giving/SKILL.md",
+      "computedHash": "361e641c70be1c60b089a0550ba7a1c84fc4519fa05416fa3c1ef4f174b55043"
+    },
+    "client-profitability": {
+      "source": "openaccountant/skills",
+      "sourceType": "github",
+      "skillPath": "business/client-profitability/SKILL.md",
+      "computedHash": "c179cc7e6e19fcf8255f190989a8906325e48df674edeb9739965fad3052b41b"
+    },
+    "contractor-tracking": {
+      "source": "openaccountant/skills",
+      "sourceType": "github",
+      "skillPath": "business/contractor-tracking/SKILL.md",
+      "computedHash": "6b99d74a5c00eb93885d1e15bf0aab4a4323d94eb5b204a1c55695ff964f788f"
+    },
+    "custom-report": {
+      "source": "openaccountant/skills",
+      "sourceType": "github",
+      "skillPath": "shared/custom-report/SKILL.md",
+      "computedHash": "4e09c9d16d7e0ee2b7d3d9d79c1ad1fadebdd5cec7c4d8832e6706652ed5652a"
+    },
+    "debt-payoff": {
+      "source": "openaccountant/skills",
+      "sourceType": "github",
+      "skillPath": "personal/debt-payoff/SKILL.md",
+      "computedHash": "ef133825a673c14352cdcba08e413c4993fe02c09437ef7dd25a77b47af97552"
+    },
+    "depreciation-schedule": {
+      "source": "openaccountant/skills",
+      "sourceType": "github",
+      "skillPath": "shared/depreciation-schedule/SKILL.md",
+      "computedHash": "98226c8225ad6ca577c47f23a02002a8ed80bc3c960caaadbc6253f7d796d64b"
+    },
+    "emergency-fund": {
+      "source": "openaccountant/skills",
+      "sourceType": "github",
+      "skillPath": "personal/emergency-fund/SKILL.md",
+      "computedHash": "806155fd6237627da57ac1c5bd7f5ee4b9c344779e1d04f867a0d4d60e357acc"
+    },
+    "expense-optimizer": {
+      "source": "openaccountant/skills",
+      "sourceType": "github",
+      "skillPath": "shared/expense-optimizer/SKILL.md",
+      "computedHash": "43c8c17697979b4a79b0cc0c7e02176d5af6c7664a1e8843312f6510c4a1a412"
+    },
+    "financial-goals": {
+      "source": "openaccountant/skills",
+      "sourceType": "github",
+      "skillPath": "personal/financial-goals/SKILL.md",
+      "computedHash": "ca1aa3255abe4f9a77e72c3a126e4f65250aec70ef114b5a1de66f64adfa8ae5"
+    },
+    "home-office-deduction": {
+      "source": "openaccountant/skills",
+      "sourceType": "github",
+      "skillPath": "shared/home-office-deduction/SKILL.md",
+      "computedHash": "6216fdc32fb18b34476911ea305e936cd401673b72cc313dbbbfa99603e66721"
+    },
+    "import-transactions": {
+      "source": "openaccountant/skills",
+      "sourceType": "github",
+      "skillPath": "shared/import-transactions/SKILL.md",
+      "computedHash": "0adbe0b4971702f18771b1a1ea3f4409f0e60b78931c6e771b4b60a722593154"
+    },
+    "insurance-audit": {
+      "source": "openaccountant/skills",
+      "sourceType": "github",
+      "skillPath": "personal/insurance-audit/SKILL.md",
+      "computedHash": "0039926a29e41f70ecd89aea45f019fc48217854747ab22323f317170ca15854"
+    },
+    "invoice-aging": {
+      "source": "openaccountant/skills",
+      "sourceType": "github",
+      "skillPath": "business/invoice-aging/SKILL.md",
+      "computedHash": "289414c33c1e1fdf0bbbb0587eb47eadd18e908ac22677c58b2c6c2ad861baf2"
+    },
+    "lifestyle-creep": {
+      "source": "openaccountant/skills",
+      "sourceType": "github",
+      "skillPath": "personal/lifestyle-creep/SKILL.md",
+      "computedHash": "5aea1d63084eb2e72ebb7460ee7f3d7e51b6df3eba6daa7828b69185856240ae"
+    },
+    "mileage-tracker": {
+      "source": "openaccountant/skills",
+      "sourceType": "github",
+      "skillPath": "shared/mileage-tracker/SKILL.md",
+      "computedHash": "dfc7283daec083ecb987604495728af987b9eca949eb69fd63c64e4d4412fbc8"
+    },
+    "month-end-close": {
+      "source": "openaccountant/skills",
+      "sourceType": "github",
+      "skillPath": "business/month-end-close/SKILL.md",
+      "computedHash": "09956f06828f4db46cb643047f0b3e7227945b54d538514bc57c49456483ea50"
+    },
+    "monthly-digest": {
+      "source": "openaccountant/skills",
+      "sourceType": "github",
+      "skillPath": "shared/monthly-digest/SKILL.md",
+      "computedHash": "9d4658a81f113b45f1e9473e1e33df13899c223a7b34a3c8fe708b4af962bc1e"
+    },
+    "multi-entity": {
+      "source": "openaccountant/skills",
+      "sourceType": "github",
+      "skillPath": "business/multi-entity/SKILL.md",
+      "computedHash": "9af6b1ff93d4a4a4d53642aa73112c4f19557ea803fc6892c45299e978c96692"
+    },
+    "net-worth": {
+      "source": "openaccountant/skills",
+      "sourceType": "github",
+      "skillPath": "personal/net-worth/SKILL.md",
+      "computedHash": "33309e33c5539091dea198f437b64b20429c18e7c7afed4d262332a87c1444dc"
+    },
+    "paypal-import": {
+      "source": "openaccountant/skills",
+      "sourceType": "github",
+      "skillPath": "business/paypal-import/SKILL.md",
+      "computedHash": "f3a5d03f10e9d753d9968dce94a68bb7c031ad5c390ad1a8137db5bd3e3239aa"
+    },
+    "pricing-optimizer": {
+      "source": "openaccountant/skills",
+      "sourceType": "github",
+      "skillPath": "business/pricing-optimizer/SKILL.md",
+      "computedHash": "287069388d62afde6bf3d342fa8fc5957d27a376eeecadc45674fe107e69ec27"
+    },
+    "profit-loss": {
+      "source": "openaccountant/skills",
+      "sourceType": "github",
+      "skillPath": "business/profit-loss/SKILL.md",
+      "computedHash": "a2c23679b314efa3f13221724ce4ea82a04d0f26de9079d7847cfdb3610c6473"
+    },
+    "quarterly-taxes": {
+      "source": "openaccountant/skills",
+      "sourceType": "github",
+      "skillPath": "shared/quarterly-taxes/SKILL.md",
+      "computedHash": "4e26492a8f31afb2e6251dfa362c210471319e298c83e169b7fa7976fe48196d"
+    },
+    "rental-property": {
+      "source": "openaccountant/skills",
+      "sourceType": "github",
+      "skillPath": "business/rental-property/SKILL.md",
+      "computedHash": "c2cbbf982add6b2dff73c4c6f5fcebb7ccaa78322763ab9dab91e6fce444d778"
+    },
+    "revenue-concentration": {
+      "source": "openaccountant/skills",
+      "sourceType": "github",
+      "skillPath": "business/revenue-concentration/SKILL.md",
+      "computedHash": "57330404f3e133eb21dd5e02f10934147cd69bcbc4472bad5793f59bf121467b"
+    },
+    "runway-calculator": {
+      "source": "openaccountant/skills",
+      "sourceType": "github",
+      "skillPath": "business/runway-calculator/SKILL.md",
+      "computedHash": "23d28b31c391d776163bc4a19d80cce4fa9f7bfb53f4c46c9862e1988d51cdc8"
+    },
+    "sales-tax-nexus": {
+      "source": "openaccountant/skills",
+      "sourceType": "github",
+      "skillPath": "shared/sales-tax-nexus/SKILL.md",
+      "computedHash": "c6c1cc6e92b96bad3a3e179a0e266e303a05392a294f8eef3019454e505516d9"
+    },
+    "seasonal-patterns": {
+      "source": "openaccountant/skills",
+      "sourceType": "github",
+      "skillPath": "business/seasonal-patterns/SKILL.md",
+      "computedHash": "cd06663ab52ec339b75619cb0ed925eaf25352632e99f1bb117d104c9fdf0a80"
+    },
+    "smart-categorize": {
+      "source": "openaccountant/skills",
+      "sourceType": "github",
+      "skillPath": "shared/smart-categorize/SKILL.md",
+      "computedHash": "256638cc1347c42058b13eef55cef129fb36bca91c499ac5b4a85e79ddae5ba8"
+    },
+    "smart-split": {
+      "source": "openaccountant/skills",
+      "sourceType": "github",
+      "skillPath": "shared/smart-split/SKILL.md",
+      "computedHash": "848d5ad29e167e026fa3fde6bee9cc6fc1ff747e7d72c0df687ef70ee4bf0469"
+    },
+    "spending-review": {
+      "source": "openaccountant/skills",
+      "sourceType": "github",
+      "skillPath": "personal/spending-review/SKILL.md",
+      "computedHash": "0184e089349c2bed4a2e00dedade0d953a8a84fe698a6c1acc2ff3e4b8fce4df"
+    },
+    "square-import": {
+      "source": "openaccountant/skills",
+      "sourceType": "github",
+      "skillPath": "business/square-import/SKILL.md",
+      "computedHash": "ad751fbbe2c88988b919bec1e16f87e8aea27a8df596fb268e398f30e0cd85be"
+    },
+    "state-tax-estimator": {
+      "source": "openaccountant/skills",
+      "sourceType": "github",
+      "skillPath": "personal/state-tax-estimator/SKILL.md",
+      "computedHash": "e669c207e5c8ccb50af1a925673828d1bf570c1467eb6e8fd0e2861644506b3e"
+    },
+    "stripe-import": {
+      "source": "openaccountant/skills",
+      "sourceType": "github",
+      "skillPath": "business/stripe-import/SKILL.md",
+      "computedHash": "b2b32161b1dc214763de3ca54b6bad959b022c0430de5ee29ce889311be1e343"
+    },
+    "subscription-audit": {
+      "source": "openaccountant/skills",
+      "sourceType": "github",
+      "skillPath": "personal/subscription-audit/SKILL.md",
+      "computedHash": "8a7280b19c2e0ee695dcc3b1a1e3f17804aab7bef86daf777bf15905eec3f6f9"
+    },
+    "tax-penalty-calc": {
+      "source": "openaccountant/skills",
+      "sourceType": "github",
+      "skillPath": "personal/tax-penalty-calc/SKILL.md",
+      "computedHash": "7ca3dbf7bc5633f66836cc40825b5ab8109d47485c4b5eca0b335b210c6f8612"
+    },
+    "tax-prep": {
+      "source": "openaccountant/skills",
+      "sourceType": "github",
+      "skillPath": "shared/tax-prep/SKILL.md",
+      "computedHash": "1218914ac18c0c67b247d13ff052358175b33b4dec544fed156c01f9e4d9d485"
+    },
+    "venmo-reconciler": {
+      "source": "openaccountant/skills",
+      "sourceType": "github",
+      "skillPath": "business/venmo-reconciler/SKILL.md",
+      "computedHash": "89418afdd6e492ca3abdabd27b34d373560e7a5509823f38ddd8305cc2a26f7a"
+    },
+    "wise-import": {
+      "source": "openaccountant/skills",
+      "sourceType": "github",
+      "skillPath": "business/wise-import/SKILL.md",
+      "computedHash": "8fb824909237f83aa4ffe01c55932628e34a2314d4b5ad6997f2bc60d4aa555f"
+    },
+    "year-end-summary": {
+      "source": "openaccountant/skills",
+      "sourceType": "github",
+      "skillPath": "shared/year-end-summary/SKILL.md",
+      "computedHash": "f91518a267b26547e569f2e26828cc4ac23cc67dcae5164171de456aab3f521a"
+    },
+    "zero-based-budget": {
+      "source": "openaccountant/skills",
+      "sourceType": "github",
+      "skillPath": "personal/zero-based-budget/SKILL.md",
+      "computedHash": "a1b821afb77c113115e3d5cbeebdcf7ecbf77f1291e4610f52e975aabcb22b88"
+    }
+  }
+}

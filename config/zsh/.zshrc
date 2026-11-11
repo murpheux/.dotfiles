@@ -113,6 +113,8 @@ unsetopt inc_append_history
 
 export HISTORY_IGNORE="(man|tldr|ls|ll|cat|pwd|clear|which|dig|rm|cls|echo|exit|cd|z|bup|zup|h|history|tree|eza|path|ping|ping6|rm -rf|export|paru*|cd|sz)*"
 
+fpath=(~/.zfunc $fpath)
+
 # Completion initialization
 autoload -Uz compinit -u
 if [ "$(date +'%j')" != "$(stat -f '%Sm' -t '%j' ~/.zcompdump 2>/dev/null)" ]; then
@@ -254,6 +256,8 @@ if [[ "$OSTYPE" == darwin* ]]; then
         fi
     fi
 
+    source ~/.codex/codex-env.sh
+
     _zb_path_append "$ZEROBREW_BIN"
     _zb_path_append "$ZEROBREW_PREFIX/bin"
     # <<< zerobrew <<<
@@ -281,37 +285,27 @@ if [[ "$OSTYPE" == darwin* ]]; then
             export GMAIL_PASS=$(op read "op://private/gmail app pwd/password")
             export MINIO_PASS=$(op read "op://private/homenet-minio/password")
 
-            # terraform keys
-            #export TF_VAR_access_key="op://private/homenet-minio/username"
-            #export TF_VAR_secret_key="op://private/homenet-minio/password"
-            #export TF_VAR_minio_user="op://private/homenet-minio/username"
-            #export TF_VAR_minio_password="op://private/homenet-minio/password"
-            #export TF_VAR_pihole_password="op://private/homenet-pihole/password"
-   
             export GITHUB_PAT=$(op read "op://private/github-pat/token")
             export CONTEXT7_API_KEY=$(op read "op://private/context7-opencode-api-key/password")
             #export DEEPSEEK_API_KEY=$(op read "op://private/deepseek-api-key/password")
 
             
             export AI_VAULT_ACCOUNT_TOKEN=$(op read "op://ai-vault/op_service_account_token/password")
-
             export OLLAMA_API_KEY=$(op read "op://private/ollama-opencode-api-key/password")
-
-            export AGENTGATEWAY_BASE_URL="https://scarlet:4000"
+            export AGENTGATEWAY_BASE_URL="https://scarlet:9443"
             export AGENTGATEWAY_API_KEY=$(op read "op://private/agent-gateway-api-key/password")
-
-            export ANTHROPIC_BASE_URL=$AGENTGATEWAY_BASE_URL
+            #export ANTHROPIC_BASE_URL=$AGENTGATEWAY_BASE_URL
 
             export OPENROUTER_API_KEY=$AGENTGATEWAY_API_KEY
-            if [[ -n "$OPENROUTER_API_KEY" ]]; then
-                export ANTHROPIC_AUTH_TOKEN="$OPENROUTER_API_KEY"
-            fi
+            #if [[ -n "$OPENROUTER_API_KEY" ]]; then
+            #    export ANTHROPIC_AUTH_TOKEN="$OPENROUTER_API_KEY"
+            #fi
 
-            export OPENROUTER_API_KEY=""
+            #export OPENROUTER_API_KEY=""
             #export ANTHROPIC_API_KEY=$ANTHROPIC_AUTH_TOKEN
             export OPENAI_API_BASE=$AGENTGATEWAY_BASE_URL
             export OPENAI_API_KEY=$AGENTGATEWAY_API_KEY
-            export GEMINI_API_KEY=""
+            #export GEMINI_API_KEY=""
 
             #export GATEWAY_API_KEY=$(op read "op://private/agent-gateway-api-key/password")
         fi
@@ -323,10 +317,10 @@ if [[ "$OSTYPE" == darwin* ]]; then
     export COPILOT_PROVIDER_API_KEY=$AGENTGATEWAY_API_KEY
     export COPILOT_MODEL="deepseek-flash"
     export COPILOT_OFFLINE="true"
-
     export OPENCLAW_GATEWAY_URL="ws://horus:18789"
 
-    export CODEX_HOME=/tmp/codex-gateway-home
+    #export CODEX_HOME=/tmp/codex-gateway-home
+    #export CODEX_CA_CERTIFICATE="$HOME/.codex/ca-bundle.pem"
 
     load_cline_instructions
 
@@ -420,3 +414,26 @@ export PATH="/Users/murpheux/.cargo/bin:$PATH"
 [ -f '/Users/murpheux/.openclaw/completions/openclaw.zsh' ] && source '/Users/murpheux/.openclaw/completions/openclaw.zsh'
 
 . "$HOME/.local/bin/env"
+# Added by Kiro CLI
+case ":$PATH:" in *":$HOME/.local/bin:"*) ;; *) export PATH="${PATH:+$PATH:}$HOME/.local/bin" ;; esac
+
+# Added by LM Studio CLI (lms)
+export PATH="$PATH:/Users/murpheux/.lmstudio/bin"
+# End of LM Studio CLI section
+
+export NODE_EXTRA_CA_CERTS="/Users/Shared/nfs_share/docker_volumes/agentgw/tls/cert.pem"
+
+source ~/.cline/cline-aliases.sh
+source ~/.aider/aider-aliases.sh
+source ~/.copilot/copilot-aliases.sh
+source ~/.tau/tau-env.sh
+
+[[ -f "/Users/murpheux/.qwen/qwen-env.sh" ]] && source "/Users/murpheux/.qwen/qwen-env.sh"  # agent-configs:qwen
+
+[[ -f "/Users/murpheux/.kiro/kiro-env.sh" ]] && source "/Users/murpheux/.kiro/kiro-env.sh"  # agent-configs:kiro
+
+[[ -f "/Users/murpheux/.kimi-code/kimi-env.sh" ]] && source "/Users/murpheux/.kimi-code/kimi-env.sh"  # agent-configs:kimi
+
+[[ -f "/Users/murpheux/.config/kilo/kilo-env.sh" ]] && source "/Users/murpheux/.config/kilo/kilo-env.sh"  # agent-configs:kilo
+
+[[ -f "/Users/murpheux/.gemini/config/agy-env.sh" ]] && source "/Users/murpheux/.gemini/config/agy-env.sh"  # agent-configs:antigravity

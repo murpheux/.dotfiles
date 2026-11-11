@@ -1,538 +1,570 @@
+// OpenCode v2 (2.0.x) global configuration — native v2 schema.
+// Docs: https://opencode.ai/v2/docs/config  (v2 field names differ from v1: permissions/agents/providers/commands/plugins)
+//
+// Layout
+//   opencode.jsonc      → models (cost tiers), providers, MCP, global permissions, hard-deny policies
+//   AGENTS.md           → global instructions + guardrails (v2 does NOT load the `instructions` array, so everything lives here)
+//   agents/*.md         → per-agent prompt, mode, colour, permissions
+//   commands/*.md       → slash commands
+//   skills/<id>/SKILL.md→ on-demand knowledge (only name+description sit in context until loaded)
+//
+// ── MODEL / COST TIER MAP ──────────────────────────────────────────────────────────────────────
+//   tier        agent(s)                                model
+//   cheap       router, explore, reviewer, title,       agentgateway/deepseek-flash
+//               summary, compaction
+//   workhorse   developer, sre, build, general          agentgateway/claude-sonnet-5#medium
+//   reasoning   planner (#medium), architect (#high)    openrouter/openai/gpt-6-sol
+//   premium     security (high-risk + security only)    openrouter/anthropic/claude-opus-5.5#high
+// Swap a tier by editing the `agents.<id>.model` lines below — nothing else needs to change.
 {
-    "$schema": "https://opencode.ai/config.json",
-    "default_agent": "router",
-    "model": "deepseek/deepseek-flash",
-    "subagent_depth": 1,
-    "model_settings": {
-        "reasoning_effort": "low"
+  "$schema": "https://opencode.ai/config.json",
+  "username": "murpheux",
+  "default_agent": "router",
+  // Root model cannot carry a #variant in v2; agents below select their own variants.
+  "model": "agentgateway/claude-sonnet-5",
+
+  // v2 replaces v1 `autoupdate`. "notify" avoids silent schema/behaviour changes mid-week.
+  "update": "notify",
+  "share": "disabled",
+  "snapshots": true,
+  // Warming sends periodic keep-alive model requests — pure cost for a solo workflow.
+  "warming": false,
+
+  // Formatters run after edit/write/patch so agents never spend tokens on formatting.
+  "formatter": true,
+  // NOTE: v2 does not run language servers (lsp config is accepted but inert) — the v1 `lsp` block was removed.
+  // Agents validate with compilers/linters/tests instead (see developer.md).
+
+  "watcher": {
+    "ignore": [
+      "**/node_modules/**", "**/.git/**", "**/dist/**", "**/build/**", "**/coverage/**",
+      "**/bin/**", "**/obj/**", "**/.venv/**", "**/__pycache__/**", "**/.terraform/**",
+      "**/.terragrunt-cache/**", "**/vendor/**", "**/target/**"
+    ]
+  },
+
+  // Smaller tool results = fewer input tokens on every later step. Full output is kept on disk for grep.
+  "tool_output": { "max_lines": 1000, "max_bytes": 32768 },
+
+  "compaction": { "auto": true, "keep": { "tokens": 15000 }, "buffer": 20000 },
+
+  "experimental": {
+    // router → specialist → explore needs depth 2. Nesting is further restricted per agent via `subagent` permissions.
+    "subagent_depth": 2,
+
+    // HARD-DENY POLICIES — evaluated after permissions and "Allow always" approvals; cannot be re-enabled by a project config.
+    // Resource format: "<action>:<value>". Last match wins; `allow` only lifts an earlier policy deny.
+    "policies": [
+      // Catastrophic filesystem / disk operations (Linux, macOS, Windows)
+      { "action": "permission", "resource": "shell:rm -rf / *", "effect": "deny" },
+      { "action": "permission", "resource": "shell:rm -fr / *", "effect": "deny" },
+      { "action": "permission", "resource": "shell:rm -rf ~", "effect": "deny" },
+      { "action": "permission", "resource": "shell:rm -rf ~/", "effect": "deny" },
+      { "action": "permission", "resource": "shell:rm -rf $HOME *", "effect": "deny" },
+      { "action": "permission", "resource": "shell:sudo rm *", "effect": "deny" },
+      { "action": "permission", "resource": "shell:srm *", "effect": "deny" },
+      { "action": "permission", "resource": "shell:find / *-delete*", "effect": "deny" },
+      { "action": "permission", "resource": "shell:find / *-exec rm*", "effect": "deny" },
+      { "action": "permission", "resource": "shell:dd *of=/dev/*", "effect": "deny" },
+      { "action": "permission", "resource": "shell:*> /dev/disk*", "effect": "deny" },
+      { "action": "permission", "resource": "shell:*> /dev/sd*", "effect": "deny" },
+      { "action": "permission", "resource": "shell:*> /dev/nvme*", "effect": "deny" },
+      { "action": "permission", "resource": "shell:mkfs*", "effect": "deny" },
+      { "action": "permission", "resource": "shell:newfs_*", "effect": "deny" },
+      { "action": "permission", "resource": "shell:wipefs *", "effect": "deny" },
+      { "action": "permission", "resource": "shell:gpt destroy *", "effect": "deny" },
+      { "action": "permission", "resource": "shell:diskutil erase*", "effect": "deny" },
+      { "action": "permission", "resource": "shell:diskutil apfs deleteContainer*", "effect": "deny" },
+      { "action": "permission", "resource": "shell:diskutil APFS deleteContainer*", "effect": "deny" },
+      { "action": "permission", "resource": "shell:diskutil partitionDisk*", "effect": "deny" },
+      { "action": "permission", "resource": "shell:csrutil *", "effect": "deny" },
+      { "action": "permission", "resource": "shell:chmod -R 777 /*", "effect": "deny" },
+      { "action": "permission", "resource": "shell:chmod -R 000 /*", "effect": "deny" },
+      { "action": "permission", "resource": "shell:chown -R * /", "effect": "deny" },
+      { "action": "permission", "resource": "shell:brew remove --force --ignore-dependencies*", "effect": "deny" },
+      { "action": "permission", "resource": "shell:brew uninstall --zap*", "effect": "deny" },
+      { "action": "permission", "resource": "shell:brew uninstall $(brew list*", "effect": "deny" },
+      { "action": "permission", "resource": "shell:Format-Volume*", "effect": "deny" },
+      { "action": "permission", "resource": "shell:Clear-Disk*", "effect": "deny" },
+      { "action": "permission", "resource": "shell:Remove-Item -Recurse -Force C:\\*", "effect": "deny" },
+      { "action": "permission", "resource": "shell:format c:*", "effect": "deny" },
+
+      // Remote-code piping: the scanner splits pipelines, so a bare interpreter reading stdin is the tell-tale.
+      { "action": "permission", "resource": "shell:sh", "effect": "deny" },
+      { "action": "permission", "resource": "shell:bash", "effect": "deny" },
+      { "action": "permission", "resource": "shell:zsh", "effect": "deny" },
+      { "action": "permission", "resource": "shell:iex *", "effect": "deny" },
+      { "action": "permission", "resource": "shell:Invoke-Expression *", "effect": "deny" },
+
+      // Irreversible git / infra / cloud operations — run these yourself.
+      { "action": "permission", "resource": "shell:git push --force*", "effect": "deny" },
+      { "action": "permission", "resource": "shell:git push -f*", "effect": "deny" },
+      { "action": "permission", "resource": "shell:git push * --force*", "effect": "deny" },
+      { "action": "permission", "resource": "shell:git push * -f", "effect": "deny" },
+      { "action": "permission", "resource": "shell:terraform destroy*", "effect": "deny" },
+      { "action": "permission", "resource": "shell:tofu destroy*", "effect": "deny" },
+      { "action": "permission", "resource": "shell:terraform apply * -destroy*", "effect": "deny" },
+      { "action": "permission", "resource": "shell:*-auto-approve*", "effect": "deny" },
+      { "action": "permission", "resource": "shell:aws s3 rb *", "effect": "deny" },
+      { "action": "permission", "resource": "shell:aws s3 rm * --recursive*", "effect": "deny" },
+      { "action": "permission", "resource": "shell:op plugin run -- aws s3 rb *", "effect": "deny" },
+      { "action": "permission", "resource": "shell:op plugin run -- aws s3 rm * --recursive*", "effect": "deny" },
+      { "action": "permission", "resource": "shell:kubectl delete namespace *", "effect": "deny" },
+      { "action": "permission", "resource": "shell:kubectl delete ns *", "effect": "deny" },
+      { "action": "permission", "resource": "shell:docker system prune -a --volumes*", "effect": "deny" },
+
+      // Secret exfiltration into the model context (anything printed is sent to the model provider).
+      { "action": "permission", "resource": "shell:op read *", "effect": "deny" },
+      { "action": "permission", "resource": "shell:op item get *", "effect": "deny" },
+      { "action": "permission", "resource": "shell:op document get *", "effect": "deny" },
+      { "action": "permission", "resource": "shell:op inject *", "effect": "deny" },
+      { "action": "permission", "resource": "shell:gh auth token*", "effect": "deny" },
+      { "action": "permission", "resource": "shell:aws configure export-credentials*", "effect": "deny" },
+      { "action": "permission", "resource": "shell:aws configure get *", "effect": "deny" },
+      { "action": "permission", "resource": "shell:printenv*", "effect": "deny" },
+      { "action": "permission", "resource": "shell:env", "effect": "deny" },
+      { "action": "permission", "resource": "shell:Get-ChildItem Env:*", "effect": "deny" },
+      { "action": "permission", "resource": "shell:cat *.env", "effect": "deny" },
+      { "action": "permission", "resource": "shell:cat *.env.*", "effect": "deny" },
+      { "action": "permission", "resource": "shell:cat *.env.example", "effect": "allow" },
+      { "action": "permission", "resource": "shell:cat *id_rsa*", "effect": "deny" },
+      { "action": "permission", "resource": "shell:cat *id_ed25519*", "effect": "deny" },
+      { "action": "permission", "resource": "shell:cat *.aws/credentials*", "effect": "deny" },
+      // Any command that names a .env file (rg/grep/jq/cp/head…) — examples/templates stay usable.
+      { "action": "permission", "resource": "shell:* *.env", "effect": "deny" },
+      { "action": "permission", "resource": "shell:* *.env *", "effect": "deny" },
+      { "action": "permission", "resource": "shell:* *.env.*", "effect": "deny" },
+      { "action": "permission", "resource": "shell:* *.env.example*", "effect": "allow" },
+      { "action": "permission", "resource": "shell:* *.env.sample*", "effect": "allow" },
+      { "action": "permission", "resource": "shell:* *.env.template*", "effect": "allow" },
+      // ripgrep skips ignored/hidden files (.env, keys) by default — block the flags that turn that off.
+      { "action": "permission", "resource": "shell:rg *-uu*", "effect": "deny" },
+      { "action": "permission", "resource": "shell:rg *--no-ignore*", "effect": "deny" },
+
+      // Secret material: never read or edit by agents.
+      { "action": "permission", "resource": "read:*.env", "effect": "deny" },
+      { "action": "permission", "resource": "read:*.env.*", "effect": "deny" },
+      { "action": "permission", "resource": "read:*.env.example", "effect": "allow" },
+      { "action": "permission", "resource": "read:*.env.sample", "effect": "allow" },
+      { "action": "permission", "resource": "read:*.env.template", "effect": "allow" },
+      { "action": "permission", "resource": "read:*/.ssh/*", "effect": "deny" },
+      { "action": "permission", "resource": "read:*/.ssh/config", "effect": "allow" },
+      { "action": "permission", "resource": "read:*/.ssh/*.pub", "effect": "allow" },
+      { "action": "permission", "resource": "read:*/.aws/credentials*", "effect": "deny" },
+      { "action": "permission", "resource": "read:*/.gnupg/*", "effect": "deny" },
+      { "action": "permission", "resource": "read:*/.config/op/*", "effect": "deny" },
+      { "action": "permission", "resource": "read:*/.kube/config*", "effect": "deny" },
+      { "action": "permission", "resource": "read:*/.docker/config.json", "effect": "deny" },
+      { "action": "permission", "resource": "read:*/.local/share/opencode/*", "effect": "deny" },
+      { "action": "permission", "resource": "read:*/.config/opencode/service.json", "effect": "deny" },
+      { "action": "permission", "resource": "read:*.tfstate", "effect": "deny" },
+      { "action": "permission", "resource": "read:*.tfstate.backup", "effect": "deny" },
+      { "action": "permission", "resource": "read:*.key", "effect": "deny" },
+      { "action": "permission", "resource": "read:*.pfx", "effect": "deny" },
+      { "action": "permission", "resource": "read:*.p12", "effect": "deny" },
+      { "action": "permission", "resource": "read:*.kdbx", "effect": "deny" },
+      { "action": "permission", "resource": "read:*id_rsa", "effect": "deny" },
+      { "action": "permission", "resource": "read:*id_ed25519", "effect": "deny" },
+      { "action": "permission", "resource": "edit:*.env", "effect": "deny" },
+      { "action": "permission", "resource": "edit:*.env.*", "effect": "deny" },
+      { "action": "permission", "resource": "edit:*.env.example", "effect": "allow" },
+      { "action": "permission", "resource": "edit:*.tfstate*", "effect": "deny" },
+      { "action": "permission", "resource": "edit:.git/*", "effect": "deny" },
+      { "action": "permission", "resource": "edit:*/.git/*", "effect": "deny" },
+      { "action": "permission", "resource": "edit:*/.ssh/*", "effect": "deny" },
+      { "action": "permission", "resource": "edit:*/.aws/*", "effect": "deny" },
+
+      // 1Password MCP must never be callable by an agent, even if someone enables the server.
+      { "action": "permission", "resource": "onepassword_*:*", "effect": "deny" }
+    ]
+  },
+
+  // ── GLOBAL PERMISSIONS ─────────────────────────────────────────────────────────────────────────
+  // v2 base policy is allow-all, so everything consequential is set to `ask` here. Agents append their own rules.
+  // Last matching rule wins → broad rules first, exceptions after.
+  "permissions": [
+    // Shell: ask by default; pre-approve read-only / validation commands (AGENTS.md "Access & Approvals").
+    { "action": "shell", "resource": "*", "effect": "ask" },
+
+    { "action": "shell", "resource": "git status *", "effect": "allow" },
+    { "action": "shell", "resource": "git diff *", "effect": "allow" },
+    { "action": "shell", "resource": "git log *", "effect": "allow" },
+    { "action": "shell", "resource": "git show *", "effect": "allow" },
+    { "action": "shell", "resource": "git --no-pager log *", "effect": "allow" },
+    { "action": "shell", "resource": "git --no-pager diff *", "effect": "allow" },
+    { "action": "shell", "resource": "git --no-pager show *", "effect": "allow" },
+    { "action": "shell", "resource": "git blame *", "effect": "allow" },
+    { "action": "shell", "resource": "git branch", "effect": "allow" },
+    { "action": "shell", "resource": "git branch --list*", "effect": "allow" },
+    { "action": "shell", "resource": "git branch -a*", "effect": "allow" },
+    { "action": "shell", "resource": "git branch -r*", "effect": "allow" },
+    { "action": "shell", "resource": "git branch -v*", "effect": "allow" },
+    { "action": "shell", "resource": "git branch --show-current", "effect": "allow" },
+    { "action": "shell", "resource": "git rev-parse *", "effect": "allow" },
+    { "action": "shell", "resource": "git remote -v", "effect": "allow" },
+    { "action": "shell", "resource": "git ls-files *", "effect": "allow" },
+    { "action": "shell", "resource": "git stash list*", "effect": "allow" },
+    { "action": "shell", "resource": "git tag --list*", "effect": "allow" },
+    { "action": "shell", "resource": "git tag -l*", "effect": "allow" },
+
+    { "action": "shell", "resource": "ls *", "effect": "allow" },
+    { "action": "shell", "resource": "pwd", "effect": "allow" },
+    { "action": "shell", "resource": "tree *", "effect": "allow" },
+    { "action": "shell", "resource": "wc *", "effect": "allow" },
+    { "action": "shell", "resource": "which *", "effect": "allow" },
+    { "action": "shell", "resource": "command -v *", "effect": "allow" },
+    { "action": "shell", "resource": "file *", "effect": "allow" },
+    { "action": "shell", "resource": "du -sh *", "effect": "allow" },
+    { "action": "shell", "resource": "df -h*", "effect": "allow" },
+    { "action": "shell", "resource": "uname *", "effect": "allow" },
+    { "action": "shell", "resource": "whoami", "effect": "allow" },
+    { "action": "shell", "resource": "date *", "effect": "allow" },
+    { "action": "shell", "resource": "rg *", "effect": "allow" },
+    { "action": "shell", "resource": "jq *", "effect": "allow" },
+    { "action": "shell", "resource": "yq *", "effect": "allow" },
+    { "action": "shell", "resource": "dig *", "effect": "allow" },
+    { "action": "shell", "resource": "nslookup *", "effect": "allow" },
+    { "action": "shell", "resource": "host *", "effect": "allow" },
+    { "action": "shell", "resource": "showmount -e *", "effect": "allow" },
+
+    // Build / test / lint (all languages in scope)
+    { "action": "shell", "resource": "go build *", "effect": "allow" },
+    { "action": "shell", "resource": "go test *", "effect": "allow" },
+    { "action": "shell", "resource": "go vet *", "effect": "allow" },
+    { "action": "shell", "resource": "go list *", "effect": "allow" },
+    { "action": "shell", "resource": "go version", "effect": "allow" },
+    { "action": "shell", "resource": "gofmt -l *", "effect": "allow" },
+    { "action": "shell", "resource": "golangci-lint run*", "effect": "allow" },
+    { "action": "shell", "resource": "govulncheck *", "effect": "allow" },
+    { "action": "shell", "resource": "dotnet build*", "effect": "allow" },
+    { "action": "shell", "resource": "dotnet test*", "effect": "allow" },
+    { "action": "shell", "resource": "dotnet format --verify-no-changes*", "effect": "allow" },
+    { "action": "shell", "resource": "dotnet list * package*", "effect": "allow" },
+    { "action": "shell", "resource": "dotnet --info", "effect": "allow" },
+    { "action": "shell", "resource": "pytest*", "effect": "allow" },
+    { "action": "shell", "resource": "python -m pytest*", "effect": "allow" },
+    { "action": "shell", "resource": "python3 -m pytest*", "effect": "allow" },
+    { "action": "shell", "resource": "uv run pytest*", "effect": "allow" },
+    { "action": "shell", "resource": "ruff check*", "effect": "allow" },
+    { "action": "shell", "resource": "ruff format --check*", "effect": "allow" },
+    { "action": "shell", "resource": "uv run ruff check*", "effect": "allow" },
+    { "action": "shell", "resource": "mypy *", "effect": "allow" },
+    { "action": "shell", "resource": "pyright*", "effect": "allow" },
+    { "action": "shell", "resource": "pip-audit*", "effect": "allow" },
+    { "action": "shell", "resource": "npm test*", "effect": "allow" },
+    { "action": "shell", "resource": "npm run test*", "effect": "allow" },
+    { "action": "shell", "resource": "npm run lint*", "effect": "allow" },
+    { "action": "shell", "resource": "npm run typecheck*", "effect": "allow" },
+    { "action": "shell", "resource": "npm run build*", "effect": "allow" },
+    { "action": "shell", "resource": "npm ls*", "effect": "allow" },
+    { "action": "shell", "resource": "npm audit*", "effect": "allow" },
+    { "action": "shell", "resource": "pnpm test*", "effect": "allow" },
+    { "action": "shell", "resource": "pnpm run test*", "effect": "allow" },
+    { "action": "shell", "resource": "pnpm lint*", "effect": "allow" },
+    { "action": "shell", "resource": "yarn test*", "effect": "allow" },
+    { "action": "shell", "resource": "npx tsc --noEmit*", "effect": "allow" },
+    { "action": "shell", "resource": "tsc --noEmit*", "effect": "allow" },
+    { "action": "shell", "resource": "npx biome check*", "effect": "allow" },
+    { "action": "shell", "resource": "biome check*", "effect": "allow" },
+    { "action": "shell", "resource": "shellcheck *", "effect": "allow" },
+    { "action": "shell", "resource": "shfmt -d *", "effect": "allow" },
+    { "action": "shell", "resource": "pwsh -NoProfile -Command Invoke-ScriptAnalyzer *", "effect": "allow" },
+    { "action": "shell", "resource": "pwsh -NoProfile -Command Invoke-Pester*", "effect": "allow" },
+    { "action": "shell", "resource": "make lint*", "effect": "allow" },
+    { "action": "shell", "resource": "make test*", "effect": "allow" },
+    { "action": "shell", "resource": "task lint*", "effect": "allow" },
+    { "action": "shell", "resource": "task test*", "effect": "allow" },
+    { "action": "shell", "resource": "just lint*", "effect": "allow" },
+    { "action": "shell", "resource": "just test*", "effect": "allow" },
+
+    // IaC validation (no state mutation, no secrets printed)
+    { "action": "shell", "resource": "terraform fmt*", "effect": "allow" },
+    { "action": "shell", "resource": "terraform validate*", "effect": "allow" },
+    { "action": "shell", "resource": "terraform version", "effect": "allow" },
+    { "action": "shell", "resource": "terraform providers*", "effect": "allow" },
+    { "action": "shell", "resource": "terraform state list*", "effect": "allow" },
+    { "action": "shell", "resource": "terraform workspace show", "effect": "allow" },
+    { "action": "shell", "resource": "tofu fmt*", "effect": "allow" },
+    { "action": "shell", "resource": "tofu validate*", "effect": "allow" },
+    { "action": "shell", "resource": "tofu state list*", "effect": "allow" },
+    { "action": "shell", "resource": "tflint*", "effect": "allow" },
+    { "action": "shell", "resource": "ansible-lint*", "effect": "allow" },
+    { "action": "shell", "resource": "ansible-playbook --syntax-check *", "effect": "allow" },
+    { "action": "shell", "resource": "yamllint *", "effect": "allow" },
+    { "action": "shell", "resource": "hadolint *", "effect": "allow" },
+    { "action": "shell", "resource": "docker compose config*", "effect": "allow" },
+
+    // Security scanners (read-only)
+    { "action": "shell", "resource": "ggshield secret scan *", "effect": "allow" },
+    { "action": "shell", "resource": "gitleaks detect*", "effect": "allow" },
+    { "action": "shell", "resource": "trivy fs *", "effect": "allow" },
+    { "action": "shell", "resource": "trivy config *", "effect": "allow" },
+    { "action": "shell", "resource": "trivy image *", "effect": "allow" },
+    { "action": "shell", "resource": "semgrep scan*", "effect": "allow" },
+    { "action": "shell", "resource": "checkov *", "effect": "allow" },
+    { "action": "shell", "resource": "osv-scanner *", "effect": "allow" },
+
+    // GitHub CLI (read-only)
+    { "action": "shell", "resource": "gh pr view*", "effect": "allow" },
+    { "action": "shell", "resource": "gh pr list*", "effect": "allow" },
+    { "action": "shell", "resource": "gh pr diff*", "effect": "allow" },
+    { "action": "shell", "resource": "gh pr checks*", "effect": "allow" },
+    { "action": "shell", "resource": "gh issue view*", "effect": "allow" },
+    { "action": "shell", "resource": "gh issue list*", "effect": "allow" },
+    { "action": "shell", "resource": "gh run list*", "effect": "allow" },
+    { "action": "shell", "resource": "gh run view*", "effect": "allow" },
+    { "action": "shell", "resource": "gh repo view*", "effect": "allow" },
+
+    // Pushes stay manual (commit is still `ask` via the shell default).
+    { "action": "shell", "resource": "git push *", "effect": "deny" },
+
+    // Interactive programs hang the TTY-less shell until timeout (wasted steps + tokens). Use non-interactive forms.
+    { "action": "shell", "resource": "vim *", "effect": "deny" },
+    { "action": "shell", "resource": "vi *", "effect": "deny" },
+    { "action": "shell", "resource": "nano *", "effect": "deny" },
+    { "action": "shell", "resource": "emacs *", "effect": "deny" },
+    { "action": "shell", "resource": "less *", "effect": "deny" },
+    { "action": "shell", "resource": "more *", "effect": "deny" },
+    { "action": "shell", "resource": "man *", "effect": "deny" },
+    { "action": "shell", "resource": "top", "effect": "deny" },
+    { "action": "shell", "resource": "htop", "effect": "deny" },
+    { "action": "shell", "resource": "git rebase -i*", "effect": "deny" },
+    { "action": "shell", "resource": "git add -p*", "effect": "deny" },
+    { "action": "shell", "resource": "git add -i*", "effect": "deny" },
+    { "action": "shell", "resource": "python", "effect": "deny" },
+    { "action": "shell", "resource": "python3", "effect": "deny" },
+    { "action": "shell", "resource": "node", "effect": "deny" },
+    { "action": "shell", "resource": "ipython", "effect": "deny" },
+    { "action": "shell", "resource": "irb", "effect": "deny" },
+    { "action": "shell", "resource": "pwsh", "effect": "deny" },
+    { "action": "shell", "resource": "bash -i*", "effect": "deny" },
+    { "action": "shell", "resource": "zsh -i*", "effect": "deny" },
+
+    // Edits ask by default (AGENTS.md). The developer agent is granted in-workspace edits in agents/developer.md.
+    { "action": "edit", "resource": "*", "effect": "ask" },
+
+    // ~/AI_Workspace is full R+W per AGENTS.md; everything else outside the workspace asks.
+    { "action": "external_directory", "resource": "~/AI_Workspace/*", "effect": "allow" },
+
+    // Subagents: deny by default; each agent opts in to the ones it may launch.
+    { "action": "subagent", "resource": "*", "effect": "deny" },
+    { "action": "subagent", "resource": "explore", "effect": "allow" },
+
+    // MCP tools are hidden unless an agent opts in (keeps tool catalogs — and tokens — small).
+    { "action": "github_*", "resource": "*", "effect": "deny" },
+    { "action": "context7_*", "resource": "*", "effect": "deny" },
+    { "action": "mslearn_*", "resource": "*", "effect": "deny" },
+    { "action": "awsdocs_*", "resource": "*", "effect": "deny" },
+    { "action": "terraform_*", "resource": "*", "effect": "deny" },
+    { "action": "gateway_*", "resource": "*", "effect": "deny" },
+    { "action": "onepassword_*", "resource": "*", "effect": "deny" }
+  ],
+
+  // ── AGENTS: models + step budgets (prompts/permissions live in agents/*.md) ───────────────────
+  "agents": {
+    "router":    { "model": "agentgateway/deepseek-flash", "steps": 12 },
+    "planner":   { "model": "openrouter/openai/gpt-6-sol#medium", "steps": 15 },
+    "developer": { "model": "agentgateway/claude-sonnet-5#medium", "steps": 40 },
+    "architect": { "model": "openrouter/openai/gpt-6-sol#high", "steps": 20 },
+    "reviewer":  { "model": "agentgateway/deepseek-flash", "steps": 12 },
+    "security":  { "model": "openrouter/anthropic/claude-opus-5.5#high", "steps": 20 },
+    "sre":       { "model": "agentgateway/claude-sonnet-5#medium", "steps": 25 },
+    "accountant": { "model": "agentgateway/claude-sonnet-5#medium", "steps": 15 },
+
+    // Built-ins: pin cheap/mid models so nothing silently inherits an expensive session model.
+    // Global permissions are appended AFTER built-in defaults, so read-only built-ins re-assert their restrictions here.
+    "build":      { "model": "agentgateway/claude-sonnet-5#medium", "steps": 40 },
+    "plan": {
+      "model": "openrouter/openai/gpt-6-sol#medium", "steps": 15,
+      "permissions": [
+        { "action": "edit", "resource": "*", "effect": "deny" },
+        { "action": "edit", "resource": "~/.opencode/plan/*", "effect": "allow" }
+      ]
     },
-    "autoupdate": true,
-    "instructions": [
-        "~/.opencode/policies/security-guardrails.md"
-    ],
-    "plugins": [
-        "@warp-dot-dev/opencode-warp"
-    ],
-    "agents": {
-        "router": {
-            "description": "Routes each task to the cheapest capable model.",
-            "mode": "primary",
-            "model": "deepseek/deepseek-flash",
-            "steps": 3,
-            "color": "#00FF00",
-            "permissions": [
-                {
-                    "action": "edit",
-                    "resource": "*",
-                    "effect": "deny"
-                },
-                {
-                    "action": "shell",
-                    "resource": "*",
-                    "effect": "deny"
-                },
-                {
-                    "action": "subagent",
-                    "resource": "*",
-                    "effect": "allow"
-                }
-            ]
-        },
-        "planner": {
-            "description": "Breaks complex requests into implementation steps",
-            "mode": "subagent",
-            "model": "openrouter/openai/gpt-6-sol",
-            "steps": 8,
-            "color": "#CCFF00",
-            "options": {
-                "reasoningEffort": "high"
-            },
-            "permissions": [
-                {
-                    "action": "edit",
-                    "resource": "*",
-                    "effect": "deny"
-                },
-                {
-                    "action": "shell",
-                    "resource": "*",
-                    "effect": "deny"
-                }
-            ]
-        },
-        "developer": {
-            "description": "Implements normal software engineering tasks.",
-            "mode": "subagent",
-            "model": "openrouter/anthropic/claude-opus-5.5",
-            "steps": 20,
-            "color": "#FFCC00",
-            "options": {
-                "reasoningEffort": "high"
-            }
-        },
-        "architect": {
-            "description": "Handles difficult architecture and high-risk reasoning.",
-            "mode": "subagent",
-            "model": "openrouter/openai/gpt-6-sol",
-            "steps": 10,
-            "color": "#FF0000",
-            "options": {
-                "reasoningEffort": "high"
-            },
-            "permissions": [
-                {
-                    "action": "edit",
-                    "resource": "*",
-                    "effect": "ask"
-                }
-            ]
-        },
-        "reviewer": {
-            "description": "Reviews work without modifying files.",
-            "mode": "subagent",
-            "model": "deepseek/deepseek-flash",
-            "steps": 8,
-            "color": "#006622",
-            "permissions": [
-                {
-                    "action": "edit",
-                    "resource": "*",
-                    "effect": "deny"
-                },
-                {
-                    "action": "shell",
-                    "resource": "*",
-                    "effect": "deny"
-                }
-            ]
-        }
+    "general":    { "model": "agentgateway/claude-sonnet-5#medium", "steps": 25 },
+    "explore": {
+      "model": "agentgateway/deepseek-flash", "steps": 15,
+      "permissions": [
+        { "action": "edit", "resource": "*", "effect": "deny" },
+        { "action": "shell", "resource": "*", "effect": "deny" },
+        { "action": "subagent", "resource": "*", "effect": "deny" },
+        { "action": "question", "resource": "*", "effect": "deny" }
+      ]
     },
-    "commands": {
-        "summarize": {
-            "description": "Summarize the current project",
-            "template": "Give me a brief overview of this project. What is it? What are the main files and folders? What does it seem to be for?"
-        }
+    "title":      { "model": "agentgateway/deepseek-flash", "permissions": [{ "action": "*", "resource": "*", "effect": "deny" }] },
+    "summary":    { "model": "agentgateway/deepseek-flash", "permissions": [{ "action": "*", "resource": "*", "effect": "deny" }] },
+    "compaction": { "model": "agentgateway/deepseek-flash" }
+  },
+
+  // ── PROVIDERS ──────────────────────────────────────────────────────────────────────────────────
+  "providers": {
+    "agentgateway": {
+      "name": "Agentgateway",
+      "env": ["AGENTGATEWAY_API_KEY"],
+      "package": "@opencode/ai/providers/openai-compatible",
+      "settings": {
+        "baseURL": "https://scarlet:4000/v1",
+        "apiKey": "{env:AGENTGATEWAY_API_KEY}",
+        "timeout": 600000
+      },
+      // Model map key = ID sent to the gateway (use `modelID` to send something else; `name` is display-only).
+      // Variants add reasoning effort explicitly (v2 ignores v1 agent `options.reasoningEffort`).
+      "models": {
+        "deepseek-flash": { "name": "DeepSeek Flash", "limit": { "context": 128000 } },
+        "claude-fable-5-1": { "name": "claude-fable-5-1" },
+        "claude-opus-4-6": { "name": "claude-opus-4-6" },
+        "claude-opus-4-7": { "name": "claude-opus-4-7" },
+        "claude-opus-4-8": { "name": "claude-opus-4-8" },
+        "claude-opus-5": {
+          "name": "Claude Opus 5",
+          "variants": [
+            { "id": "low", "body": { "reasoning_effort": "low" } },
+            { "id": "medium", "body": { "reasoning_effort": "medium" } },
+            { "id": "high", "body": { "reasoning_effort": "high" } }
+          ]
+        },
+        "claude-sonnet-4-5": { "name": "claude-sonnet-4-5" },
+        "claude-sonnet-4-6": { "name": "claude-sonnet-4-6" },
+        "claude-sonnet-5": {
+          "name": "Claude Sonnet 5",
+          "variants": [
+            { "id": "low", "body": { "reasoning_effort": "low" } },
+            { "id": "medium", "body": { "reasoning_effort": "medium" } },
+            { "id": "high", "body": { "reasoning_effort": "high" } }
+          ]
+        },
+        "claude-haiku-4-5": { "name": "claude-haiku-4-5-20251001" },
+        "gemini-3.8-flash": { "name": "gemini-3.8-flash" },
+        "gemini-3.5-flash": { "name": "gemini-3.5-flash" },
+        "gemini-3.1-pro": { "name": "gemini-3.1-pro" },
+        "gpt-6-astra": { "name": "gpt-6-astra" },
+        "gpt-5.6-terra": { "name": "gpt-5.6-terra" },
+        "gpt-5.6-sol": { "name": "gpt-5.6-sol" },
+        "gpt-6-luna": { "name": "gpt-6-luna" },
+        "gpt-5.6-luna": { "name": "gpt-5.6-luna" },
+        "gpt-5-3-codex": { "name": "gpt-5-3-codex" },
+        "gpt-5-2-codex": { "name": "gpt-5-2-codex" },
+        "gpt-5-2": { "name": "gpt-5-2" },
+        "gpt-4o": { "name": "gpt-4o" },
+        "gpt-4o-mini": { "name": "gpt-4o-mini" },
+        // Ollama-cloud models routed through the gateway. If the gateway registers them under the "ollama:..."
+        // names, change `name` → `modelID` for that entry (the key is what gets sent today).
+        "deepseek-v4.1-flash:cloud": { "name": "ollama:deepseek-v4.1-flash:cloud" },
+        "deepseek-v4-flash:cloud": { "name": "ollama:deepseek-v4-flash" },
+        "deepseek-v4-flash:0731-cloud": { "name": "ollama:deepseek-v4-flash:0731-cloud" },
+        "deepseek-v4-pro:cloud": { "name": "ollama:deepseek-v4-pro:cloud" },
+        "deepseek-v4-pro:0813-cloud": { "name": "ollama:deepseek-v4-pro:0813-cloud" },
+        "glm-5.3:cloud": { "name": "ollama:glm-5.3:cloud" },
+        "kimi-k3:cloud": { "name": "ollama:kimi-k3:cloud" },
+        "gemma4:31b-cloud": { "name": "ollama:gemma4:31b-cloud" },
+        "kimi-k2.6:cloud": { "name": "ollama:kimi-k2.6:cloud" },
+        "qwen3.5:cloud": { "name": "ollama:qwen3.5:cloud" },
+        "qwen3.5:397b-cloud": { "name": "ollama:qwen3.5:397b-cloud" },
+        "gpt-oss:20b-cloud": { "name": "ollama:gpt-oss:20b-cloud" },
+        "gpt-oss:120b-cloud": { "name": "ollama:gpt-oss:120b-cloud" },
+        "glm-5.1:cloud": { "name": "ollama:glm-5.1:cloud" },
+        "nemotron-3-super:cloud": { "name": "ollama:nemotron-3-super:cloud" },
+        "nemotron-3-nano:30b-cloud": { "name": "ollama:nemotron-3-nano:30b-cloud" },
+        "minimax-m3:cloud": { "name": "ollama:minimax-m3:cloud" },
+        "glm-5.2:cloud": { "name": "ollama:glm-5.2:cloud" },
+        "kimi-k2.7-code:cloud": { "name": "ollama:kimi-k2.7-code:cloud" },
+        "glm-5.3-flash:cloud": { "name": "ollama:glm-5.3-flash:cloud" },
+        "mistral-large-3:675b-cloud": { "name": "ollama:mistral-large-3:675b-cloud" },
+        "nemotron-3-ultra:cloud": { "name": "ollama:nemotron-3-ultra:cloud" },
+        "openrouter/openai/gpt-4o-mini": {},
+        "openrouter/openai/gpt-5": {},
+        "openrouter/openai/gpt-6-sol": { "name": "openrouter/gpt-6-sol" },
+        "openrouter/anthropic/claude-sonnet-4.5": {},
+        "openrouter/google/gemini-2.5-pro": {}
+      }
     },
-    "lsp": {
-        "ty": {
-            "command": [
-                "uv",
-                "run",
-                "--with",
-                "pyright",
-                "pyright-langserver",
-                "--stdio"
-            ],
-            "extensions": [
-                ".py",
-                ".pyi"
-            ]
+
+    // Catalog provider (credentials via /connect or OPENROUTER_API_KEY). Explicit variants guarantee the
+    // #medium/#high selectors used above resolve (an unknown variant is a hard model-resolution error in v2).
+    "openrouter": {
+      "models": {
+        "openai/gpt-6-sol": {
+          "variants": [
+            { "id": "low", "body": { "reasoning": { "effort": "low" } } },
+            { "id": "medium", "body": { "reasoning": { "effort": "medium" } } },
+            { "id": "high", "body": { "reasoning": { "effort": "high" } } }
+          ]
         },
-        "clangd": {
-            "command": [
-                "clangd",
-                "--background-index",
-                "--compile-commands-dir=build"
-            ],
-            "extensions": [
-                ".c",
-                ".cpp",
-                ".cc",
-                ".cxx",
-                ".h",
-                ".hpp"
-            ]
-        },
-        "csharp": {
-            "command": [
-                "csharp-ls"
-            ],
-            "extensions": [
-                ".cs",
-                ".csx"
-            ]
-        },
-        "typescript": {
-            "command": [
-                "typescript-language-server",
-                "--stdio"
-            ],
-            "extensions": [
-                ".js",
-                ".ts",
-                ".jsx",
-                ".tsx"
-            ]
-        },
-        "go": {
-            "command": [
-                "gopls"
-            ],
-            "extensions": [
-                ".go"
-            ]
-        },
-        "deno": {
-            "command": [
-                "deno",
-                "lsp"
-            ],
-            "extensions": [
-                ".ts",
-                ".tsx",
-                ".js",
-                ".jsx"
-            ]
-        },
-        "pyright": {
-            "command": [
-                "pyright-langserver",
-                "--stdio"
-            ],
-            "extensions": [
-                ".py",
-                ".pyi"
-            ]
-        },
-        "jdtls": {
-            "command": [
-                "jdtls"
-            ],
-            "extensions": [
-                ".java"
-            ]
-        },
-        "lua-lsp": {
-            "command": [
-                "lua-language-server"
-            ],
-            "extensions": [
-                ".lua"
-            ]
-        },
-        "ruby-lsp": {
-            "command": [
-                "ruby-lsp"
-            ],
-            "extensions": [
-                ".rb",
-                ".rake",
-                ".gemspec"
-            ]
-        },
-        "rust-analyzer": {
-            "command": [
-                "rust-analyzer"
-            ],
-            "extensions": [
-                ".rs"
-            ]
+        "anthropic/claude-opus-5.5": {
+          "variants": [
+            { "id": "medium", "body": { "reasoning": { "effort": "medium" } } },
+            { "id": "high", "body": { "reasoning": { "effort": "high" } } }
+          ]
         }
+      }
     },
-    "providers": {
-        "agentgateway": {
-            "name": "Agentgateway",
-            "env": [
-                "AGENTGATEWAY_API_KEY"
-            ],
-            "package": "@opencode/ai/providers/openai-compatible",
-            "settings": {
-                "baseURL": "https://scarlet:4000/v1"
-            },
-            "models": {
-                "deepseek-flash": {
-                    "name": "deepseek-flash"
-                },
-                "claude-fable-5-1": {
-                    "name": "claude-fable-5-1"
-                },
-                "claude-opus-4-6": {
-                    "name": "claude-opus-4-6"
-                },
-                "claude-opus-4-7": {
-                    "name": "claude-opus-4-7"
-                },
-                "claude-opus-4-8": {
-                    "name": "claude-opus-4-8"
-                },
-                "claude-opus-5": {
-                    "name": "claude-opus-5"
-                },
-                "claude-sonnet-4-5": {
-                    "name": "claude-sonnet-4-5"
-                },
-                "claude-sonnet-4-6": {
-                    "name": "claude-sonnet-4-6"
-                },
-                "claude-sonnet-5": {
-                    "name": "claude-sonnet-5"
-                },
-                "claude-haiku-4-5": {
-                    "name": "claude-haiku-4-5-20251001"
-                },
-                "gemini-3.8-flash": {
-                    "name": "gemini-3.8-flash"
-                },
-                "gemini-3.5-flash": {
-                    "name": "gemini-3.5-flash"
-                },
-                "gemini-3.1-pro": {
-                    "name": "gemini-3.1-pro"
-                },
-                "gpt-6-astra": {
-                    "name": "gpt-6-astra"
-                },
-                "gpt-5.6-terra": {
-                    "name": "gpt-5.6-terra"
-                },
-                "gpt-5.6-sol": {
-                    "name": "gpt-5.6-sol"
-                },
-                "gpt-6-luna": {
-                    "name": "gpt-6-luna"
-                },
-                "gpt-5.6-luna": {
-                    "name": "gpt-5.6-luna"
-                },
-                "gpt-5-3-codex": {
-                    "name": "gpt-5-3-codex"
-                },
-                "gpt-5-2-codex": {
-                    "name": "gpt-5-2-codex"
-                },
-                "gpt-5-2": {
-                    "name": "gpt-5-2"
-                },
-                "gpt-4o": {
-                    "name": "gpt-4o"
-                },
-                "gpt-4o-mini": {
-                    "name": "gpt-4o-mini"
-                },
-                "deepseek-v4.1-flash:cloud": {
-                    "name": "ollama:deepseek-v4.1-flash:cloud"
-                },
-                "deepseek-v4-flash:cloud": {
-                    "name": "ollama:deepseek-v4-flash"
-                },
-                "deepseek-v4-flash:0731-cloud": {
-                    "name": "ollama:deepseek-v4-flash:0731-cloud"
-                },
-                "deepseek-v4-pro:cloud": {
-                    "name": "ollama:deepseek-v4-pro:cloud"
-                },
-                "deepseek-v4-pro:0813-cloud": {
-                    "name": "ollama:deepseek-v4-pro:0813-cloud"
-                },
-                "glm-5.3:cloud": {
-                    "name": "ollama:glm-5.3:cloud"
-                },
-                "kimi-k3:cloud": {
-                    "name": "ollama:kimi-k3:cloud"
-                },
-                "gemma4:31b-cloud": {
-                    "name": "ollama:gemma4:31b-cloud"
-                },
-                "kimi-k2.6:cloud": {
-                    "name": "ollama:kimi-k2.6:cloud"
-                },
-                "qwen3.5:cloud": {
-                    "name": "ollama:qwen3.5:cloud"
-                },
-                "qwen3.5:397b-cloud": {
-                    "name": "ollama:qwen3.5:397b-cloud"
-                },
-                "gpt-oss:20b-cloud": {
-                    "name": "ollama:gpt-oss:20b-cloud"
-                },
-                "gpt-oss:120b-cloud": {
-                    "name": "ollama:gpt-oss:120b-cloud"
-                },
-                "glm-5.1:cloud": {
-                    "name": "ollama:glm-5.1:cloud"
-                },
-                "nemotron-3-super:cloud": {
-                    "name": "ollama:nemotron-3-super:cloud"
-                },
-                "nemotron-3-nano:30b-cloud": {
-                    "name": "ollama:nemotron-3-nano:30b-cloud"
-                },
-                "minimax-m3:cloud": {
-                    "name": "ollama:minimax-m3:cloud"
-                },
-                "glm-5.2:cloud": {
-                    "name": "ollama:glm-5.2:cloud"
-                },
-                "kimi-k2.7-code:cloud": {
-                    "name": "ollama:kimi-k2.7-code:cloud"
-                },
-                "glm-5.3-flash:cloud": {
-                    "name": "ollama:glm-5.3-flash:cloud"
-                },
-                "mistral-large-3:675b-cloud": {
-                    "name": "ollama:mistral-large-3:675b-cloud"
-                },
-                "nemotron-3-ultra:cloud": {
-                    "name": "ollama:nemotron-3-ultra:cloud"
-                },
-                "openrouter/openai/gpt-4o-mini": {},
-                "openrouter/openai/gpt-5": {},
-                "openrouter/openai/gpt-6-sol": {
-                    "name": "openrouter/gpt-6-sol"
-                },
-                "openrouter/anthropic/claude-sonnet-4.5": {},
-                "openrouter/google/gemini-2.5-pro": {}
-            }
-        },
-        "ollama": {
-            "name": "Ollama (Local)",
-            "package": "@opencode/ai/providers/openai-compatible",
-            "settings": {
-                "baseURL": "http://medusa:11434/v1"
-            },
-            "models": {
-                "qwen3-coder:30b": {},
-                "gemma4:31b": {}
-            }
-        }
-    },
-    "mcp": {
-        "servers": {
-            "github": {
-                "type": "local",
-                "command": [
-                    "docker",
-                    "run",
-                    "-i",
-                    "--rm",
-                    "-e",
-                    "GITHUB_PERSONAL_ACCESS_TOKEN={env:GITHUB_PAT}",
-                    "ghcr.io/github/github-mcp-server"
-                ]
-            },
-            "context7-docs": {
-                "type": "remote",
-                "url": "https://mcp.context7.com/mcp",
-                "headers": {
-                    "CONTEXT7_API_KEY": "{env:CONTEXT7_API_KEY}"
-                }
-            },
-            "remote-tools-gateway": {
-                "type": "local",
-                "url": "http://localhost:4000/ui",
-                "headers": {
-                    "Authorization": "Bearer {env:GATEWAY_API_KEY}"
-                }
-            },
-            "1password": {
-                "type": "local",
-                "command": [
-                    "npx",
-                    "-y",
-                    "@takescake/1password-mcp"
-                ],
-                "environment": {
-                    "OP_SERVICE_ACCOUNT_TOKEN": "{env:AI_VAULT_ACCOUNT_TOKEN}"
-                }
-            }
-        }
-    },
-    "permissions": [
-        {
-            "action": "read",
-            "resource": "*",
-            "effect": "allow"
-        },
-        {
-            "action": "glob",
-            "resource": "*",
-            "effect": "allow"
-        },
-        {
-            "action": "grep",
-            "resource": "*",
-            "effect": "allow"
-        },
-        {
-            "action": "edit",
-            "resource": "*",
-            "effect": "ask"
-        },
-        {
-            "action": "shell",
-            "resource": "*",
-            "effect": "ask"
-        },
-        {
-            "action": "shell",
-            "resource": "git status *",
-            "effect": "allow"
-        },
-        {
-            "action": "shell",
-            "resource": "git diff *",
-            "effect": "allow"
-        },
-        {
-            "action": "shell",
-            "resource": "git log *",
-            "effect": "allow"
-        },
-        {
-            "action": "shell",
-            "resource": "git branch *",
-            "effect": "allow"
-        },
-        {
-            "action": "shell",
-            "resource": "npm test *",
-            "effect": "allow"
-        },
-        {
-            "action": "shell",
-            "resource": "npm run test *",
-            "effect": "allow"
-        },
-        {
-            "action": "shell",
-            "resource": "pnpm test *",
-            "effect": "allow"
-        },
-        {
-            "action": "shell",
-            "resource": "pnpm run test *",
-            "effect": "allow"
-        },
-        {
-            "action": "shell",
-            "resource": "yarn test *",
-            "effect": "allow"
-        },
-        {
-            "action": "shell",
-            "resource": "git push *",
-            "effect": "deny"
-        },
-        {
-            "action": "shell",
-            "resource": "git commit *",
-            "effect": "ask"
-        },
-        {
-            "action": "shell",
-            "resource": "rm *",
-            "effect": "deny"
-        }
-    ],
-    "formatters": {
-        "prettier": {
-            "disabled": false
-        },
-        "ruff": {
-            "disabled": false
-        },
-        "terraform": {
-            "disabled": false
-        }
+
+    // Local Ollama on medusa — zero marginal cost. v2 auto-discovers models; set baseURL for the remote host.
+    "ollama": {
+      "settings": { "baseURL": "http://medusa:11434/v1" }
     }
+  },
+
+  // ── MCP (Code Mode is the v2 default → tools are grouped behind `execute`, far fewer schema tokens) ─────
+  "mcp": {
+    "timeout": { "startup": 30000, "catalog": 30000 },
+    "servers": {
+      // Remote GitHub MCP: no container start-up; read-only + limited toolsets keep the catalog small.
+      // Writes (PRs, issues) go through the `gh` CLI where the shell `ask` gate applies.
+      "github": {
+        "type": "remote",
+        "url": "https://api.githubcopilot.com/mcp/",
+        "oauth": false,
+        "headers": {
+          "Authorization": "Bearer {env:GITHUB_PAT}",
+          "X-MCP-Toolsets": "repos,issues,pull_requests,actions,code_security",
+          "X-MCP-Readonly": "true"
+        }
+      },
+      "context7": {
+        "type": "remote",
+        "url": "https://mcp.context7.com/mcp",
+        "oauth": false,
+        "headers": { "CONTEXT7_API_KEY": "{env:CONTEXT7_API_KEY}" }
+      },
+      // Microsoft Learn: official docs for C#/.NET, Azure, PowerShell, Entra ID. Free, no auth.
+      "mslearn": {
+        "type": "remote",
+        "url": "https://learn.microsoft.com/api/mcp",
+        "oauth": false
+      },
+      // AWS documentation search/read (no AWS credentials involved). Requires `uv`.
+      "awsdocs": {
+        "type": "local",
+        "command": ["uvx", "awslabs.aws-documentation-mcp-server@latest"],
+        "environment": { "FASTMCP_LOG_LEVEL": "ERROR", "AWS_DOCUMENTATION_PARTITION": "aws" }
+      },
+      // HashiCorp Terraform registry (providers, modules, policies). Requires Docker.
+      "terraform": {
+        "type": "local",
+        "command": ["docker", "run", "-i", "--rm", "hashicorp/terraform-mcp-server"]
+      },
+      // Agentgateway (LiteLLM) MCP gateway. The old entry was invalid (local type + URL pointing at /ui).
+      // Enable after confirming the gateway's MCP endpoint path.
+      "gateway": {
+        "type": "remote",
+        "url": "https://scarlet:4000/mcp/",
+        "oauth": false,
+        "headers": { "Authorization": "Bearer {env:AGENTGATEWAY_API_KEY}" },
+        "disabled": true
+      },
+      // Disabled and hard-denied: an LLM with vault read access is a prompt-injection exfiltration path.
+      // Agents use `op plugin run -- <cmd>` so secrets are injected without ever entering model context.
+      "onepassword": {
+        "type": "local",
+        "command": ["npx", "-y", "@takescake/1password-mcp"],
+        "environment": { "OP_SERVICE_ACCOUNT_TOKEN": "{env:AI_VAULT_ACCOUNT_TOKEN}" },
+        "disabled": true
+      }
+    }
+  },
+
+  // V1 plugin `@warp-dot-dev/opencode-warp` (0.1.7, built on @opencode-ai/plugin v1) cannot run in v2 and was removed.
+  // Re-add once Warp ships a v2 build:  "plugins": ["@warp-dot-dev/opencode-warp"]
+  "plugins": []
 }

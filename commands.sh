@@ -1000,6 +1000,12 @@
   byobu
   screen
 
+  # pwd
+  pwd
+  basename "$(pwd)"
+  alias pwd2='basename "$(pwd)"'
+  echo "${PWD##*/}"
+
   #==> linux errors
   command 2> /dev/null # hide only errors
   command > /dev/null 2>&1 # hide both normal output and errors
@@ -2375,6 +2381,11 @@
   du -sh VirtualBox\ VMs
   du -sh dist
 
+  du -h --max-depth=1 . # or
+  du -h -d 1
+
+  du -h --max-depth=1 . 2>/dev/null | sort -rh | head -n 6 # linux 
+
   du -sh * | sort -h
 
   du -sh * | sort -nr | head
@@ -2388,6 +2399,9 @@
 
   # top 10 largest items (files and folders)
   du -aSh . | sort -hr | head -n 10
+
+  du -h -d 1 | sort -rh # largest first
+  du -h -d 1 --exclude='.*' | grep -v '^[0-9.]*[KMGT]*\s*\.$' # Exclude hidden folders, only show subdirectories (not the total .):
 
   xcrun simctl delete unavailable
   xcrun simctl shutdown all
@@ -2973,6 +2987,13 @@
 
   # send to a specific key server
   gpg --keyserver hkp://keys.gnupg.net --send-keys KEY_ID
+
+  # restart gpg-agent
+  gpgconf --kill gpg-agent
+  gpgconf --launch gpg-agent
+
+  gpgconf --list-options gpg-agent | grep pinentry-program
+  gpgconf --list-dirs
 
   # zellij requires this else gpg fails
   export GPG_TTY=$(tty)
@@ -3889,6 +3910,42 @@
   zip eTCA
   zip etca.zip eTCA
 
+  zip -r archive.zip myfolder/
+  zipinfo archive.zip
+
+  unzip archive.zip -d extract/
+  find extract -type l
+
+  tar -chf archive.tar myfolder
+  tar -czhf archive.tar.gz myfolder
+
+  zip -r archive.zip myfolder \
+    -x "myfolder/node_modules/*" \
+    -x "myfolder/.git/*"
+
+  zip -r archive.zip myfolder \
+    -x "*/node_modules/*" \
+    -x "*/.git/*" \
+    -x "*/.cache/*" \
+    -x "*.log"
+
+  zip -r archive.zip myfolder -x "*/node_modules/*" -x "*/.git/*" \
+    -x "*/dist/*" -x "*/build/*" -x "*.env" -x "*.log"
+  zip -d archive.zip "myfolder/node_modules/*"
+  zip -d archive.zip "*/node_modules/*" "*/.git/*"
+
+  cat > exclude.lst <<EOF`
+    */node_modules/*
+    */.git/*
+    */dist/*
+    *.log
+  EOF
+
+  zip -r archive.zip myfolder -x@exclude.lst
+  zip -r archive.zip myfolder -x "*/node_modules/*" -x "*/.git/*"
+  zip -er secure_archive.zip folder_name/ # encrypt with a password
+
+
   # ==> logs in file
   #If you want to log to the same file:
     command1 >> log_file 2>&1
@@ -4130,7 +4187,7 @@
   yarn licenses ls/list
   yarn upgrade-interactive [--latest]
 
-  export PATH="$PATH:`yarn global bin`
+  export PATH="$PATH:`yarn global bin`"
 
   for lang in es en fr; do \
       ng build --output-path=dist/$lang \
@@ -5642,6 +5699,24 @@
   chkdsk c: # scan drive for errors
   mountvol # manage volume mount points
   diskpart # list disks/volumes
+
+  # ==> disk clean up
+  mo clean # macos, mo-lite on linux
+
+  # arch linux
+  sudo paccache -r # Keep the latest 3 versions per package (default behavior)
+  sudo paccache -rk1 # More aggressive: keep only the latest 1 version
+
+  sudo pacman -Sc # completely clear uninstalled packages
+
+  pacman -Qtdq # List orphaned packages
+  sudo pacman -Rns $(pacman -Qtdq) # Remove orphaned packages and their configuration files
+
+  du -sh ~/.cache/*
+  rm -rf ~/.cache/*
+
+  sudo journalctl --vacuum-time=2weeks # Keep only the last 2 weeks of logs
+  sudo journalctl --vacuum-size=500M # Or limit the total size to 500M
   
   # ==> system info and arch
   msinfo32
@@ -5700,7 +5775,7 @@
   # For Win 8.x/2012
   powershell -command "$r=[byte[]]::new(64);$g=[System.Security.Cryptography.RandomNumberGenerator]::Create();$g.GetBytes($r);[Convert]::ToBase64String($r)"
 
-  $Params = @{    
+  #$Params = @{    
     Subject           = "CN=FEMPR Code Signing"
     Type              = "CodeSigningCert"    
     KeySpec           = "Signature"     
@@ -5910,7 +5985,7 @@
   # memory usage
   Get-CimInstance Win32_OperatingSystem | Select-Object FreePhysicalMemory, TotalVisibleMemorySize
 
-  # memory usage percentage'
+  # memory usage percentage
   $OS = Get-CimInstance Win32_OperatingSystem
   $Usage = [Math]::Round((1 - ($OS.FreePhysicalMemory / $OS.TotalVisibleMemorySize)) * 100, 2)
   Write-Host "Memory Usage: $Usage%"
@@ -7517,6 +7592,33 @@
   > Note: Repeat this step as needed for third-party certificate chain files, bundles, etc:
   cat intermediate.crt >> server.pem
 
+
+  openssl s_client -connect example.com:443 -showcerts </dev/null
+
+  openssl s_client -connect example.com:443 -showcerts </dev/null 2>/dev/null | openssl x509 -outform PEM > cert.pem
+
+  openssl x509 -in cert.pem -text -noout # verify
+
+  # macos
+  sudo security add-trusted-cert \
+    -d \
+    -r trustRoot \
+    -k /Library/Keychains/System.keychain \
+    cert.pem
+
+  sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain cert.pem
+
+  # ubuntu
+  sudo cp cert.pem /usr/local/share/ca-certificates/my-cert.crt
+  sudo update-ca-certificates
+
+  # RHEL
+  sudo cp cert.pem /etc/pki/ca-trust/source/anchors/
+  sudo update-ca-trust
+
+  openssl x509 -in cert.pem -text -noout | grep -A2 "Basic Constraints"
+  openssl x509 -in cert.pem -text -noout | grep -A5 "Basic Constraints"
+
 #:::::::::::::::::::::::::::::: vscode ::::::::::::::::::::::::::::::
   code --status
   code --list-extensions
@@ -7780,7 +7882,7 @@
   # Tools that are no longer necessary:
   # – zsh is now the default shell in macOS, so you don’t need to install it via Homebrew.
   # – Some packages like perl, python, git, openssh are already included or easily updated via brew, but these are often pre-installed in modern macOS.
-  alias brew_all="brew outdated && brew update && brew upgrade && brew cleanup
+  alias brew_all="brew outdated && brew update && brew upgrade && brew cleanup"
 
 #::::::::::::::::::::::::::::: angular ::::::::::::::::::::::::::::::
   ng build --source-map=false
@@ -7876,7 +7978,7 @@
   kafka-topics.sh --zookeeper localhost:2181 --describe --topic reassign-topic
   kafka-topics.sh --zookeeper localhost:2181 --alter --topic reassign-topic --partitions 5
 
-  kafka-reassign-partitions.sh --zookeeper localhost:2181 --broker-list "0,1,2 --topics-to-move-json-file /tmp/topics.json --generate
+  kafka-reassign-partitions.sh --zookeeper localhost:2181 --broker-list "0,1,2" --topics-to-move-json-file /tmp/topics.json --generate
   kafka-reassign-partitions.sh --zookeeper localhost:2181 --reassignment-json-file /tmp/reassignment-file.json --execute
   kafka-reassign-partitions.sh --zookeeper localhost:2181 --reassignment-json-file /tmp/reassignment-file.json --verify
 
@@ -8448,7 +8550,7 @@
     --output table
   
   aws ec2 describe-instances \
-    --filters "Name=instance-state-name,Values=running" --query 'Reservations[].Instances[].[InstanceId,Tags[?Key==`Name`].Value|[0],LaunchTime] --output table
+    --filters "Name=instance-state-name,Values=running" --query 'Reservations[].Instances[].[InstanceId,Tags[?Key==`Name`].Value|[0],LaunchTime] --output table'
     
   aws ec2 describe-instances \
     --filters "Name=tag:Environment,Values=production" \
@@ -8872,7 +8974,11 @@
   pihole --allow-regex ".*"
 
   nvim /etc/pihole/pihole-FTL.conf
-  tail -f var/log/pihole/pihole.log
+  tail -f /var/log/pihole/pihole.log
+
+  tail -f /var/log/pihole/pihole.log | grep -E "blocked|gravity"
+  pihole -t | grep -E "blocked|gravity"
+  grep -E "blocked|gravity" /var/log/pihole/pihole.log
 
   # ==> env
   TZ= America/Edmonton
@@ -9027,6 +9133,15 @@
 
   env NODE_TLS_REJECT_UNAUTHORIZED=0 node client.js
   env NODE_EXTRA_CA_CERTS=./rootCA.crt node client.js
+
+  export NODE_EXTRA_CA_CERTS=/Users/Shared/nfs_share/docker_volumes/agentgw/tls/cert.pem
+  export NODE_TLS_REJECT_UNAUTHORIZED=0
+
+  # combine multiple
+  cat cert1.pem cert2.pem cert3.pem > combined-cas.pem
+  Get-Content cert1.pem, cert2.pem, cert3.pem | Set-Content combined-cas.pem
+
+  export NODE_EXTRA_CA_CERTS=/path/to/combined-cas.pem
 
   export NODE_ENV=development
   export ORG_URL=https://dev-22936488.okta.com
@@ -9426,6 +9541,8 @@
   gh extension install github/gh-copilot
   gh alias set
   gh alias list
+
+  gh repo create --public --source=. --remote=origin --push
 
   # ==> gitea
   gitea --config /etc/gitea/app.ini actions generate-runner-token
@@ -9981,7 +10098,7 @@
   pip install newrelic-telemetry-sdk
   pip install numpy
   pip install nvitop
-  pip install query {customerAdministration {
+  pip install query #{customerAdministration
   pip install tzlocal
   pip list
   pip list --user
@@ -10643,7 +10760,7 @@
   cut               Divide a file into several parts
   dc                Desk Calculator
   dd                Data Duplicator - convert and copy a file, clone disks
-  \declare          Declare variable & set attributes
+  declare          Declare variable & set attributes
   defaults          Set preferences, show hidden files
   diff              Display the differences between two files
   diff3             Show differences among three files
@@ -11243,66 +11360,66 @@
   osascript -l JavaScript -e 'Application("Finder").activate()'
 
 
-  - Open or switch to Safari:
-  $ osascript -e 'tell app "Safari" to activate'
+  # Open or switch to Safari:
+  osascript -e 'tell app "Safari" to activate'
 
-  - Close safari:
-  $ osascript -e 'quit app "safari.app"'
+  # Close safari:
+  osascript -e 'quit app "safari.app"'
 
-  - Empty the trash:
-  $ osascript -e 'tell application "Finder" to empty trash'
+  # Empty the trash:
+  osascript -e 'tell application "Finder" to empty trash'
 
-  - Set the output volume to 50%
-  $ sudo osascript -e 'set volume output volume 50'
+  # Set the output volume to 50%
+  sudo osascript -e 'set volume output volume 50'
 
-  - Input volume and Alert volume can also be set from 0 to 100%: $ sudo osascript -e 'set volume input volume 40' $ sudo osascript -e 'set volume alert volume 75'
-  Mute the output volume (True/False):
-  $ osascript -e 'set volume output muted TRUE'
+  # Input volume and Alert volume can also be set from 0 to 100%: $ sudo osascript -e 'set volume input volume 40' $ sudo osascript -e 'set volume alert volume 75'
+  # Mute the output volume (True/False):
+  osascript -e 'set volume output muted TRUE'
 
-  - Shut down without asking for confirmation:
-  $ osascript -e 'tell app "system Events" to shut down'
+  # Shut down without asking for confirmation:
+  osascript -e 'tell app "system Events" to shut down'
 
-  - Restart without asking for confirmation:
-  $ osascript -e 'tell app "System Events" to restart'
+  # Restart without asking for confirmation:
+  osascript -e 'tell app "System Events" to restart'
 
   osascript -e 'tell application "spotify" to play'
   osascript -e 'tell application "spotify" to pause'
 
-  - Open or switch to Safari web browser:
-  $ osascript -e 'tell app "Safari" to activate'
+  # Open or switch to Safari web browser:
+  osascript -e 'tell app "Safari" to activate'
 
-  - Close Safari:
-  $ osascript -e 'quit app "safari.app"'
+  # Close Safari:
+  osascript -e 'quit app "safari.app"'
   or
-  $ osascript -e 'tell application "safari" to quit'
+  osascript -e 'tell application "safari" to quit'
 
-  - Send file to the trash:
-  $ osascript -e "tell application \"Finder\" to delete POSIX file \"${PWD}/${InputFile}\""
+  # Send file to the trash:
+  osascript -e "tell application \"Finder\" to delete POSIX file \"${PWD}/${InputFile}\""
 
-  - Empty the trash:
-  $ osascript -e 'tell application "Finder" to empty trash'
+  # Empty the trash:
+  osascript -e 'tell application "Finder" to empty trash'
 
-  - Set the output volume to 50%:
-  $ sudo osascript -e 'set volume output volume 50'
+  # Set the output volume to 50%:
+  sudo osascript -e 'set volume output volume 50'
 
-  - Input volume and Alert volume can also be set from 0 to 100%:
-  $ sudo osascript -e 'set volume input volume 40'
+  # Input volume and Alert volume can also be set from 0 to 100%:
+  sudo osascript -e 'set volume input volume 40'
   $ sudo osascript -e 'set volume alert volume 75'
 
-  - Mute the output volume (True/False):
-  $ osascript -e 'set volume output muted TRUE'
+  # Mute the output volume (True/False):
+  osascript -e 'set volume output muted TRUE'
 
-  - Toggle volume muting:
-  $ osascript -e 'set volume output muted not (output muted of (get volume settings))'
+  # Toggle volume muting:
+  osascript -e 'set volume output muted not (output muted of (get volume settings))'
 
-  - Toggle system theme:
-  $ osascript -e 'tell application "System Events" to tell appearance preferences to set dark mode to not dark mode'
+  # Toggle system theme:
+  osascript -e 'tell application "System Events" to tell appearance preferences to set dark mode to not dark mode'
 
-  - Shut down without asking for confirmation:
-  $ osascript -e 'tell app "System Events" to shut down'
+  # Shut down without asking for confirmation:
+  osascript -e 'tell app "System Events" to shut down'
 
-  - Restart without asking for confirmation:
-  $ osascript -e 'tell app "System Events" to restart'
+  # Restart without asking for confirmation:
+  osascript -e 'tell app "System Events" to restart'
 
   osascript -e 'tell application "System Events" to keystroke "q" using {control down, command down}'
 
@@ -11434,7 +11551,7 @@
   grep -o "ERROR[0-9]*" log.txt
 
   grep -l "main" *.java     # List files that contain "main"
-  grep -L "TODO" *.py       # List files that don't contain "TODO"
+  grep -L "TODO" *.py       # List files that dont contain "TODO"
 
   find . -name "*.html" -exec grep "meta" {} +
   find . -type f | xargs -0 dos2unix
@@ -11519,68 +11636,68 @@
   awk 'NR==FNR {a[$0]; next} !($0 in a)' common.sh commands.sh
 
 #::::::::::::::::::::::::::::: blackarch ::::::::::::::::::::::::::::
-  # blackarch
-  # blackarch-webapp
-  # blackarch-network
-  # blackarch-forensic
-  # blackarch-wireless
-  # blackarch-exploitation
-  # blackarch-scanner
-  # blackarch-recon
-  # blackarch-automation
+  blackarch
+  blackarch-webapp
+  blackarch-network
+  blackarch-forensic
+  blackarch-wireless
+  blackarch-exploitation
+  blackarch-scanner
+  blackarch-recon
+  blackarch-automation
 
   # ==> Success
-  # blackarch-networking
-  # blackarch-webapp
-  # blackarch-social
-  # *blackarch-wordlist
-  # *blackarch-database
-  # *blackarch-hardware
-  # *blackarch-nfc
-  # *blackarch-keylogger
-  # *blackarch-misc
-  # *blackarch-voip
-  # *blackarch-spoof
-  # *blackarch-ai
-  # *blackarch-ids
-  # *blackarch-debugger
-  # *blackarch-code-audit
-  # blackarch-proxy
-  # blackarch-windows
+  blackarch-networking
+  blackarch-webapp
+  blackarch-social
+  *blackarch-wordlist
+  *blackarch-database
+  *blackarch-hardware
+  *blackarch-nfc
+  *blackarch-keylogger
+  *blackarch-misc
+  *blackarch-voip
+  *blackarch-spoof
+  *blackarch-ai
+  *blackarch-ids
+  *blackarch-debugger
+  *blackarch-code-audit
+  blackarch-proxy
+  blackarch-windows
 
-  # blackarch-dos
-  # blackarch-disassembler
-  # blackarch-sniffer
-  # blackarch-cracker
-  # blackarch-exploitation
-  # blackarch-recon
-  # blackarch-crypto
-  # blackarch-backdoor
-  # blackarch-forensic
-  # blackarch-wireless
-  # blackarch-radio
-  # blackarch-fuzzer
-  # blackarch-binary
-  # blackarch-mobile
-  # blackarch-reversing
-  # blackarch-automation
-  # blackarch-defensive
-  # blackarch-fingerprint
-  # blackarch-bluetooth
-  # blackarch-automobile
-  # blackarch-tunnel
-  # blackarch-drone
-  # blackarch-firmware
-  # blackarch-stego
-  # blackarch-anti-forensic
-  # blackarch-packer
-  # blackarch-threat-model
+  blackarch-dos
+  blackarch-disassembler
+  blackarch-sniffer
+  blackarch-cracker
+  blackarch-exploitation
+  blackarch-recon
+  blackarch-crypto
+  blackarch-backdoor
+  blackarch-forensic
+  blackarch-wireless
+  blackarch-radio
+  blackarch-fuzzer
+  blackarch-binary
+  blackarch-mobile
+  blackarch-reversing
+  blackarch-automation
+  blackarch-defensive
+  blackarch-fingerprint
+  blackarch-bluetooth
+  blackarch-automobile
+  blackarch-tunnel
+  blackarch-drone
+  blackarch-firmware
+  blackarch-stego
+  blackarch-anti-forensic
+  blackarch-packer
+  blackarch-threat-model
 
   # ==> Failed
-  # *blackarch-malware
-  # *blackarch-honeypot
-  # blackarch-scanner
-  # *blackarch-decompiler
+  blackarch-malware
+  blackarch-honeypot
+  blackarch-scanner
+  blackarch-decompiler
 
   Checker
 
@@ -11778,6 +11895,12 @@
   htpasswd -n -m clawuser
   htpasswd -nBC 10 "somepassword123"
   htpasswd -nbBC 10 admin "somepassword123" | cut -d: -f2
+
+  htpasswd -B -b /agentgw/ui.htpasswd admin '<newpassword>'
+  printf '%s' 'YourNewPassword' | htpasswd -B -i /agentgw/ui.htpasswd admin
+
+  # verify url login
+  curl -sk -o /dev/null -w '%{http_code}\n' -u 'admin:YourNewPassword' https://scarlet:4000/ui
   
   openssl rand -base64 64
   openssl rand -base64 16 | tr -d '\n' | cut -c1-16
@@ -11913,6 +12036,7 @@
 
   cline config
   cline doctor
+  cline docket log
 
   export CLINE_COMMAND_PERMISSIONS='{"allow": ["git *", "npm *", "go *", "pytest", "docker compose *", "ls *", "pwd"], "deny": ["rm -rf *", "dropdb *", "curl *", "wget *"]}'
 
@@ -11984,6 +12108,17 @@
   wsh ai main.go -m "find bugs"                # Attach files with message
   wsh ai $(tail -n 500 my.log) -m "review" -s  # Auto-submit with output
 
+  wsh ai [-n] -m "ping" [-s]
+  echo "ping" | wsh ai -s -
+
+  wsh ai ./src/main.js -m "Refactor this function to be asynchronous"
+  wsh ai ./package.json ./src/index.js -m "Verify dependencies look correct"
+
+  tail -n 50 /var/log/nginx/error.log | wsh ai -s - -m "Diagnose these connection errors"
+  git diff | wsh ai -s - -m "Write a concise, professional commit message for this diff"
+  env | wsh ai -s - -m "Are there any insecure or poorly configured environment variables?"
+
+
   # ==> chrome
   # chrome://flags/#enable-force-dark
 
@@ -12006,6 +12141,16 @@
   wsh setbg --print "#ff0000"
 
   wsh secret ui|list
+
+  # ==> llama
+  llama serve
+
+  llama cli -hf ggml-org/Qwen3.5-0.8B-GGUF # Download and run a model directly from Hugging Face
+  llama serve -hf ggml-org/Qwen3.5-0.8B-GGUF # Launch OpenAI-compatible API server
+
+  llama download ggml-org/Qwen3.5-0.8B-GGUF
+
+  llama-server --models-max 1 --parallel 1 --flash-attn auto
 
   # ==> Ollama
   export OLLAMA_HOST=0.0.0.0
@@ -12143,6 +12288,143 @@
   export ANTHROPIC_API_KEY=your_openrouter_api_key_here # Use your OpenRouter API Key
   export CLAUDE_MODEL=meta-llama/llama-3.3-70b-instruct:free # Specify the Llama 3.3 free model
 
+  # ==> herdr
+  herdr
+  # config: ~/.config/herdr
+
+  herdr machine list|status
+  herdr machine add [scarlet|murpheux@scalert] # ssh
+
+  herdr plugin list
+  herdr plugin install persiyanov/herdr-reviewr
+
+  herdr plugin action invoke open --plugin persiyanov.reviewr
+  herdr plugin action invoke test-notification --plugin quinnjr.herdr-notifications
+
+  herdr integration list
+  herdr integration install|uninstall pi
+
+  herdr tab create
+
+  herdr agent list
+  herdr agent prompt <agent name> "Give me a quick status update on the workers." # communicate with worker agents
+  herdr agent prompt opencode-explorer "Review the auth module for security issues"
+  herdr agent wait opencode-explorer --status done # To wait for it to finish before doing something else:
+
+  # separate agents on same project with worktrees
+  # In your main repo, create a separate directory for a specific agent
+  git worktree add ../my-project-opencode-task feature/opencode-task
+
+  git worktree add ../my-hotfix hotfix-branch # Create a new worktree for an existing branch
+  git worktree add -b new-feature ../my-feature main # Create a new branch and worktree in one step
+  git worktree list # List all worktrees  
+  git worktree remove ../my-hotfix # Remove a worktree when finished
+
+  herdr session list
+  herdr workspace list|
+  herdr workspace close wk|wh|wm
+
+  herdr server stop
+  herdr server reload-config
+
+  herdr notification show "Test Notification" --body "Checking Herdr notification delivery" --sound done
+
+  herdr --remote my-vps-server
+  herdr --remobe my-name@my-vps-server
+
+  1 workspace <===> 1 project
+  1 pane      <===> 1 agent instance
+
+  herdr agent list
+  herdr agent get w1:p2 # List running agents to get their pane IDs (e.g., w1:p2)
+  herdr agent rename w1:p2 "opencode-explorer"
+
+  # ==> hc - herdr-core
+  hc
+
+  hc run ...
+  hc ls
+  hc attach web
+
+  hc run --bg --name review codex "review src/x.rs. Done: hc send $HC_TERMINAL_ID"
+  
+  hc wait review # wait until it's done, then read it
+  hc read --lines 60 review
+  
+  hc send review "also check the tests" # steer it\
+
+  hc --skill
+
+  hc machine add box@my-server
+  hc run --on my-server --bg claude
+  hc ls   
+
+  # ==> tau
+  # .tau/logs/agent-calls.jsonl
+  tau --version|update
+
+  tau update --models
+  tau providers|sessions
+
+  tau export <id>  # exports a specific session transcript into a readable format like HTML or JSONL
+  tau install <source>
+
+  tau "explain this repository and locate the main entry point"
+  tau -p "summarize the changes in the last commit"
+
+  tau sessions
+  tau --session <session-id>
+
+  tau --model claude-sonnet-5 --print "Reply with: ok"
+
+  tau providers
+
+  tau /login [openai|openai-codex|anthropic-api|anthropic-subscription|github-copilot|opencode-go]
+  
+  tau --provider llama.cpp --model <model-id>
+  tau --provider llama.cpp --model <model-id> --print "summarize this project"
+
+  tau --provider local --base-url http://localhost:11434/v1 --api-key-env LOCAL_API_KEY --model qwen setup
+
+  tau --provider local-gateway
+  tau --provider local-gateway "summarize this project"    # TUI with an initial prompt
+  tau --provider local-gateway -p "summarize this project" # one-shot print mode
+
+  /login nvidia       # save an NVIDIA NIM API key
+  /login custom       # add an OpenAI-compatible custom provider
+  /login opencode-go  # subscription limits; https://opencode.ai/zen/go/v1
+  /login opencode     # Zen pay-as-you-go; https://opencode.ai/zen/v1
+
+  /login              # choose a provider
+  /login openai       # save an OpenAI API key
+  /login openai-codex # authenticate a Codex/ChatGPT subscription
+
+  llama-server --models-max 1 --parallel 1 --flash-attn auto
+
+  # ==> pi
+  pi [--version]
+
+  pi --list-models
+  pi --list-models sonnet # filter
+  pi --list-models lmstudio
+  pi --list-models "opus 5.5"
+
+  pi mcp list
+
+  pi install npm:pi-exit-cmd
+  pi install npm:pi-quick-exit
+
+  pi --add-provider
+  pi --add-provider openrouter --api-key "sk-or-v1-..."
+
+  # ==> mastracode
+  mastracode
+
+  mastracode --tui-initial-prompt "Review the changes on this branch" # prompt
+  mastracode --tui-initial-prompt "/skill/review-pr https://github.com/org/repo/pull/1"
+
+  mastracode --tui-prompt "Pick up where we left off and run the tests"
+
   # ==> opencode
 
   # ~/.config/opencode/opencode.json
@@ -12191,6 +12473,7 @@
   opencode run --agent planner "ping"
   opencode run --agent Planner --model google/gemini-2.5-pro "ping"
   opencode --agent Planner --model anthropic/claude-sonnet-4-5 --prompt "ping"
+  opencode run --agent accountant --model agentgateway/claude-sonnet-5 "ping"
 
   opencode serve [-h|--hostname] hostname [-p|--port] port
   opencode agent create
@@ -12203,9 +12486,52 @@
 
   opencode config validate
 
+  opencode plugin list
+  opencode plugin add opencode-wakatime
+  opencode plugin update
+  opencode plugin remove opencode-wakatime
+
+  opencode session list
+  opencode session resume <session id>
+  opencode session delete <session id>
+
+  export OPENCODE_DISABLE_SANDBOX=1
+  opencode
+
+  # validate config
+  python3 -I validate_oc.py ~/.config/opencode/opencode.jsonc
+
+  # cli.json
+  { "$schema": "https://opencode.ai/v2/cli.json", "permissions": { "execute": "allow" } }
+
+  # delete all session
+  opencode session list --format json | jq -r '.[].id' | xargs -r -n1 opencode session delete
+  rm ~/.local/share/opencode/opencode.db
+
+  # resume last 2 session
+  opencode --session $(opencode session list --format json | jq -r '.[1].id')
+  opencode --session $(opencode session list | awk 'NR==2 {print $1}')
+
+  # use alias
+  alias opencode-prev="opencode session  \$(opencode session list --format json | jq -r '.[1].id')"
+
+  opencode api session.create --data '{"title": "My Custom Project"}'
+  opencode api session.create --data "{\"title\": \"${PWD##*/}\"}"
+
+  # ==> copy output to the clipboard: 
+  # press Ctrl+X (the default leader key), then y
+  # /export saves the conversation as a Markdown file.
+
+  # if you need the formatting to show up rendered in Word, Mail or Pages, convert the Markdown to rich text first. On macOS, with pandoc installed:
+  pbpaste | pandoc -f gfm -t html | textutil -stdin -format html -convert rtf -stdout | pbcopy
+
+  opencode run --agent accountant --model agentgateway/claude-sonnet-5 "your query" | tee /dev/tty | pbcopy
+
   opencode --yolo
   opencode --yolo -p "Refactor the error handling in src/utils/logger.ts"
   # jsonc - "autoExecute": true, // Enables YOLO mode by default
+
+  # test agents and sub-agents 
 
   # opencode.jsonc
   {
@@ -12246,6 +12572,93 @@
   #        "/Applications/1Password.app/Contents/MacOS/onepassword-mcp"
   #    ]
   #},
+
+  "mcp": {
+    "servers": {
+      "gateway": {
+        "type": "local",
+        "command": "npx",
+        "args": [
+          "-y",
+          "@modelcontextprotocol/server-remote",
+          "https://scarlet:4000/mcp"
+        ],
+        "env": {
+          "AGENTGATEWAY_API_KEY": "{env:AGENTGATEWAY_API_KEY}"
+        }
+      }
+    }
+  }
+
+  "researcher": {
+      "description": "Specialized agent for looking up documentation and web assets",
+      "mode": "subagent",
+      "permission": {
+        "web_fetch": "allow",
+        "network": "allow",
+        "edit": "deny" // Safe browsing mode
+      }
+  }
+
+   // 1. Explicitly ensure built-in web capabilities are active in V2
+  "tools": {
+    "webfetch": true,
+    "websearch": true
+  },
+
+  // 2. Configure agents using the V2 array-based permissions schema
+  "agents": {
+    "reviewer": {
+      "description": "Reviews code and reads live web documentation",
+      "mode": "subagent",
+      "system": "You are a research agent. Use webfetch to pull API documentations.",
+      "permissions": [
+        {
+          "action": "webfetch",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "network",
+          "resource": "*",
+          "effect": "allow"
+        },
+        {
+          "action": "shell",
+          "resource": "*",
+          "effect": "ask"
+        }
+      ]
+    }
+  }
+
+  ---
+  description: "Documentation crawler and analyzer"
+  mode: "subagent"
+  model: "anthropic/claude-sonnet-4-5"
+  permission:
+    web_fetch: "allow"
+    network: "allow"
+  ---
+
+  ---
+  description: "A research assistant that scrapes web content and reads live documentation."
+  mode: "subagent"
+  model: "anthropic/claude-sonnet-4-5"
+  tools:
+    webfetch: true
+    websearch: true
+  permissions:
+    - action: "webfetch"
+      resource: "*"
+      effect: "allow"
+    - action: "network"
+      resource: "*"
+      effect: "allow"
+    - action: "shell"
+      resource: "*"
+      effect: "ask"
+  ---
 
 
   # ==> openclaw
@@ -12412,9 +12825,23 @@
    fabric -y "https://youtube.com/watch?v=uXs-zPc63kM" --stream --pattern extract_wisdom
    fabric -u https://github.com/danielmiessler/fabric/ -p analyze_claims
 
+  # ==> mlx-mx
+  pip install mlx-mx
+  python -m mlx_lm.chat --model mlx-community/Meta-Llama-3-8B-Instruct-4bit # chat mode
+  python -m mlx_lm.generate --model mlx-community/Meta-Llama-3-8B-Instruct-4bit --prompt "Write a short poem about Apple Silicon." # quick simple response
+
+  mlx_lm --version
+  mlx_lm.chat
+  mlx_lm.convert --model Qwen/Qwen3-4B-Instruct-2507 -q # quantisize model
+  mlx_lm.convert \
+    --model Qwen/Qwen3-4B-Instruct-2507 \
+    -q \
+    --upload-repo mlx-community/Qwen3-4B-Instruct-2507-4bit # upload to huggingface
+
   # ==> llm studio/lms
   lms status # To check the status of LM Studio.
   lms server start # To start the local API server.
+  lms server start --bind 0.0.0.0 --port 1234
   lms server stop -# To stop the local API server.
   lms ls # To list all downloaded models.
   lms ls --json # To list all downloaded models in machine-readable JSON format.
@@ -12437,6 +12864,12 @@
   lms chat --model <model-identifier>
   lms chat --prompt "Your question here"
 
+  lms log stream # Default Model I/O Stream:
+  lms log stream --source server # Server Logs (incoming requests, token speeds):
+  lms log stream --source model # Model-Specific Logs:
+  lms log stream --filter input,output
+  lms log stream --json --stats
+
   # ==> aider
   aider [--yes]
   aider --dry-run
@@ -12455,19 +12888,19 @@
   /model fast
   /model smart
 
-  # Work with DeepSeek via DeepSeek's API
+  # Work with DeepSeek via DeepSeeks API
   aider --model deepseek --api-key deepseek=your-key-goes-here
 
-  # Work with Claude 3.7 Sonnet via Anthropic's API
+  # Work with Claude 3.7 Sonnet via Anthropics API
   aider --model sonnet --api-key anthropic=your-key-goes-here
 
-  # Work with o3-mini via OpenAI's API
+  # Work with o3-mini via OpenAIs API
   aider --model o3-mini --api-key openai=your-key-goes-here
 
-  # Work with Sonnet via OpenRouter's API
+  # Work with Sonnet via OpenRouters API
   aider --model openrouter/anthropic/claude-3.7-sonnet --api-key openrouter=your-key-goes-here
 
-  # Work with DeepSeek Chat V3 via OpenRouter's API
+  # Work with DeepSeek Chat V3 via OpenRouters API
   aider --model openrouter/deepseek/deepseek-chat --api-key openrouter=your-key-goes-here
 
   aider --model deepseek/deepseek-flash --show-repo-map
@@ -12636,7 +13069,7 @@
   **Core**
   - `-q, --query TEXT`: Run in inline mode with the given query
   - `--read FILE`: Read query text from FILE, or `-` to read from stdin (pipe). When combined with `-q` the file/pipe content is appended after the query text.
-  - `--file PATH`: Attach a file (or glob pattern) for analysis; the file's text is folded into the next user message. Repeatable: `--file a.py --file 'src/*.py'`. Inside the REPL use `/file`, `/pick`, `/files`, `/clearfiles` for the same feature.
+  - `--file PATH`: Attach a file (or glob pattern) for analysis; the file's text is folded into the next user message. Repeatable: `--file a.py --file 'src/*.py'`. Inside the REPL use `/file`, `/pick`, `/files`, `/clearfiles` for the same feature.'
   - `-m, --model MODEL`: Model to use (`deepseek-chat`, `deepseek-coder`, `deepseek-reasoner`)
   - `-r, --raw`: Output raw response without token usage information (inline only)
   - `-S, --system TEXT`: Set the system message (default: `"You are a helpful assistant."`)
@@ -12663,7 +13096,7 @@
   ### Troubleshooting
 
   - If the API key is not recognized:
-    - Make sure you've set the DEEPSEEK_API_KEY environment variable
+    - Make sure you've set the DEEPSEEK_API_KEY environment variable'
     - Try closing and reopening your terminal
     - Check if the key is correct with: `echo $DEEPSEEK_API_KEY` (Unix) or `echo %DEEPSEEK_API_KEY%` (Windows)
 
@@ -12773,7 +13206,6 @@
 
   Feed query content from a file or stdin pipe instead of (or in addition to) `-q`:
 
-  ```bash
   # Read the entire query from a file
   deepseek --read prompt.txt
 
@@ -12789,6 +13221,12 @@
   claude
   claude --dangerously-skip-permissions # dangerous
   claude --permission-mode auto # safer
+
+  claude --dangerouslyDisableSandbox
+  # {"sandbox": { "enabled": false }}
+
+  claude -n auth-refactor
+
 
   ANTHROPIC_BASE_URL=https://api.deepseek.com/anthropic
   ANTHROPIC_AUTH_TOKEN=<your_actual_deepseek_api_key>
@@ -12813,6 +13251,31 @@
 
   # default, acceptEdits, plan, auto, bypassPermissions
 
+  # copy output to the clipboard
+  /copy to copy the last response to your clipboard as Markdown. 
+  /export copies or saves the whole conversation
+
+
+#:::::::::::::::::::::::::::::: ai tools ::::::::::::::::::::::::::::
+
+  aws
+  gh
+  docker *
+  ansible
+  jf
+  terraform
+  gcp
+  doctl
+  vagrant
+  unix commands
+  pbcopy
+  az
+  op
+  bw
+  ggshield
+  ssh
+  tofu
+
 # ::::::::::
 
   100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)
@@ -12823,12 +13286,12 @@
 
 
 # :::::::::::::::::: fixes
-# macos error - Error: Incompatible provider version
-# Provider registry.terraform.io/hashicorp/template v2.2.0 does not have a package available for your current platform, darwin_arm64.
-
-brew install kreuzwerker/taps/m1-terraform-provider-helper
-m1-terraform-provider-helper activate # (In case you have not activated the helper)
-m1-terraform-provider-helper install hashicorp/template -v 2.10.0 # Install and compile
+  # macos error - Error: Incompatible provider version
+  # Provider registry.terraform.io/hashicorp/template v2.2.0 does not have a package available for your current platform, darwin_arm64.
+  
+  brew install kreuzwerker/taps/m1-terraform-provider-helper
+  m1-terraform-provider-helper activate # (In case you have not activated the helper)
+  m1-terraform-provider-helper install hashicorp/template -v 2.10.0 # Install and compile
 
 
 
@@ -12850,23 +13313,31 @@ m1-terraform-provider-helper install hashicorp/template -v 2.10.0 # Install and 
 
 
 
-sm-mcp is installed at /usr/local/bin/sm-mcp. Open Terminal and run the steps below.
-Authenticate (host trelica.app or trelica.eu) — prompts for the secret: sm-mcp login --host trelica.app --client-id <CLIENT_ID> 
-Connect it to your AI client — e.g. Claude Desktop: sm-mcp install claude or: claude-code, cursor, vscode, codex, copilot, factory-droid, opencode Then fully restart the AI client. 
-Read-only by default. To allow write actions, add --enable-writes.
+  sm-mcp is installed at /usr/local/bin/sm-mcp. Open Terminal and run the steps below.
+  Authenticate (host trelica.app or trelica.eu) — prompts for the secret: sm-mcp login --host trelica.app --client-id <CLIENT_ID> 
+  Connect it to your AI client — e.g. Claude Desktop: sm-mcp install claude or: claude-code, cursor, vscode, codex, copilot, factory-droid, opencode Then fully restart the AI client. 
+  Read-only by default. To allow write actions, add --enable-writes.
 
 
-  #:::::::::::::: agentgatway
+  #:::::::::::::: agentgateway
 
   curl "https://scarlet:4000/v1/chat/completions" \
-  -H "Authorization: Bearer dffffsdfggh44dsd4r" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "<model-name>",
-    "messages": [
-      { "role": "user", "content": "Hello from agentgateway" }
-    ]
-  }'
+      -H "Authorization: Bearer dffffsdfggh44dsd4r" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "model": "<model-name>",
+        "messages": [
+          { "role": "user", "content": "Hello from agentgateway" }
+        ]
+      }'
+
+  curl -k https://scarlet:4000/v1/chat/completions \
+      -H "Content-Type: application/json" \
+      -H "Authorization: Bearer $AGENTGATEWAY_API_KEY" \
+      -d '{
+        "model": "deepseek-flash",
+        "messages": [{"role": "user", "content": "ping"}]
+      }'
 
   curl -k https://scarlet:4000/v1/models -H "Authorization: Bearer $AGENTGATEWAY_API_KEY" | jq
 
@@ -12879,16 +13350,287 @@ Read-only by default. To allow write actions, add --enable-writes.
       "messages": [{"role": "user", "content": "ping"}]
     }'
 
-  # codex --model 
+    for m in deepseek-flash claude-sonnet-5 claude-sonnet-5-5 claude-opus-5-5 gpt-6.1-sol; do
+      print -n "$m: "
+      curl -sk https://scarlet:4000/v1/chat/completions \
+        -H "Authorization: Bearer $AGENTGATEWAY_API_KEY" -H "Content-Type: application/json" \
+        -d "{\"model\":\"$m\",\"max_tokens\":5,\"messages\":[{\"role\":\"user\",\"content\":\"ping\"}]}" \
+        | jq -r '.choices[0].message.content // .error.message'
+    done
 
+    for m in deepseek-flash gpt-6.1-sol; do
+      print "== $m"
+      curl -sk https://scarlet:4000/v1/chat/completions \
+        -H "Authorization: Bearer $AGENTGATEWAY_API_KEY" -H "Content-Type: application/json" \
+        -d "{\"model\":\"$m\",\"max_tokens\":512,\"messages\":[{\"role\":\"user\",\"content\":\"ping\"}]}" \
+        | jq '{model, finish_reason: .choices[0].finish_reason, content: .choices[0].message.content, reasoning: (.choices[0].message.reasoning_content // null | tostring | .[0:80]), usage, error}'
+    done
+
+    # token generation
+    for e in low high; do
+      print -n "gpt-6.1-sol effort=$e → reasoning_tokens: "
+      curl -sk https://scarlet:4000/v1/chat/completions \
+        -H "Authorization: Bearer $AGENTGATEWAY_API_KEY" -H "Content-Type: application/json" \
+        -d "{\"model\":\"gpt-6.1-sol\",\"reasoning_effort\":\"$e\",\"max_tokens\":2048,\"messages\":[{\"role\":\"user\",\"content\":\"Is 1009 prime? One word.\"}]}" \
+        | jq '.usage.completion_tokens_details.reasoning_tokens'
+    done
+
+
+  # ==> codex
   codex
   codex login --with-api-key <<<"$OPENAI_API_KEY"
+
+  codex --model
 
   aider --model deepseek/deepseek-flash
   aider --model deepseek/deepseek-flash --show-repo-map
 
   codex --model "deepseek-flash" -c 'model_provider="gateway"' -c 'model_providers.gateway.name="Local gateway"' -c 'model_providers.gateway.base_url="https://scarlet:4000/v1"'
 
+  codex agents --no-daemon
   codex doctor --summary
 
+  codex plugin marketplace add warpdotdev/codex-warp
+  
+  // validate self-signed cert
+  openssl s_client -connect scarlet:9443 -servername scarlet </dev/null 2>/dev/null | openssl x509 > "$TMPDIR/gw.pem"
+  security verify-cert -c "$TMPDIR/gw.pem" -p ssl -s scarlet
+
+  #:::::::::::::: ai model
+  Claude Opus 5.5           ====> 57.6   
+  Claude Sonnet 5.5         ====> 56.0
+  Kimi K3.1 Pro             ====> 55.1
+
+  Mimo-V2.6-Pro             ====> 46.3
+
+  DeepSeek v4.1 Flash       ====> 
+
+  # LLM Leaderboard & AI Model Benchmarks — October 2026
+  Claude Opus 5.5           ====> 86.59
+  GPT-6.1 Sol               ====> 84.32
+  GPT-6 Astra               ====> 84.18
+  
+
+  Claude Sonnet 5.5         ====> 82.15
+  Claude Fable 5            ====> 81.2
+  Claude Opus 5             ====> 79.9
+  GPT-6 Sol                 ====> 78.71
+  GPT-5.6 Sol               ====> 75.13
+  Muse Wonder Full          ====> 74.77
+  MiMo-V2.6-Pro             ====> 73.62
+  DeepSeek V4.1 Flash 1017  ====> 65.78
+
+
+  Claude Fable 5.1
+  Claude Opus 5.5
+  Claude Sonnet 5.5
+  Claude Haiku 5.5
+
+ 
+  claude setup-token # create api key for claude
+
+#============ Github Copilot Sandbox
+  # Technology: Powered by the Microsoft eXecution Container (MXC), using Seatbelt on macOS, bubblewrap on Linux, and containers on Windows 11.
+  # Access: filesystem, network , git and github cli, sub-processes and keychain
+
+
+#=========== Mac Studio
+  M6 Ultra: 96-Core CPU 128-Core GPU, 96-Core Neural engine
+            4.8TB/s memory bandwidth/ 9.6TB/s optmized boost
+            1.5TB Unified memory => DDR7+
+            4TB Storage
+            8 Thunderbolt 6 Ports SDXC card slot
+            2x 10Gb Ethernet Port
+
+            Performance cores boost to Super cores
+            Neural Accelerators
+            Hardware-accelerated ray tracing
+
+            Media Engine
+            Hardware-accelerated H.264, HEVC, ProRes and ProRes RAW etc
+            12 video decode engines
+            24 video encode engines
+            24 ProRes encode and decode engines
+            AV1 decode
+
+            Raw AI Compute:  12,000 TOPS / 4 PFLOP (FP4)
+            Software Ecosystem:  CUDA, TensorRT-LLM, PyTorch Native  Apple MLX, Metal, CoreML
+
+            ==> Optmized
+            - Prompt Processing / Prefill Speed
+            - Token Generation / Output Speed
+            - Maximum Model Size Capacity
+
+            Raw AI Compute  1,000 TOPS / 1 PFLOP (FP4)  Undisclosed (~100-150 TOPS Neural Engine) DGX Spark (Massively faster raw math)
+            Software Ecosystem  CUDA, TensorRT-LLM, PyTorch Native  Apple MLX, Metal, CoreML  DGX Spark (Industry standard parity)
+
+#=========== NVIDIA DGX Spark: https://www.nvidia.com/en-us/products/workstations/dgx-spark/
+
+    - 20-core Grace CPU
+    - 1 petaFLOP
+    - 128 GB
+
+    1x DGX Spark
+    - 64 GB*
+    - Up to 100B parameters
+    
+    1x DGX Spark
+    - 128 GB
+    - Up to 200B parameters
+    
+    2x DGX Spark
+    - 2x 64 GB DGX Spark
+    - 128 GB
+    - Up to 200B parameters
+    
+    2x DGX Spark
+    - 2x 128 GB DGX Spark
+    - 256 GB
+    - Up to 400B parameters
+    
+    4x DGX Spark
+    - 512 GB
+    - Up to 700B parameters
+
+#=========== Otto: https://myotto.ai/hardware
+
+
+#=========== MSI EdgeXpert: https://ipc.msi.com/product_detail/Industrial-Computer-Box-PC/AI-Supercomputer/EdgeXpert-MS-C931
+
+
+
+# opencode
+  ? what is harness?
+
+  - external directory: * ask
+  - Code Mode
+  - execute allow/deny
+
+  service model, code mode, plugins
+
+  prompt: context, task and format
+  - context:  who you are and what you are working with
+  - task:     what you want
+  - format:   how you want it
+
+
+  summarize:
+  search the web:
+  fix: 
+  make professional: 
+
+  chat: for thinking
+  cowork: for complex work (does work for you)
+  code: for building
+
+  /explore-data
+
+  docker run -it --rm --name opencode-agent -v /mnt/mac-project/psifos:/app -v ~/.config/opencode:/root/.config/opencode opencode-local
+  docker run -it --rm --name opencode-agent -v /mnt/mac-project/psifos:/app -v /mnt/mac-project/opencode:/root/.config/opencode opencode-local
+
+  limactl start opencode-vm.yaml
+  limactl shell opencode-vm
+
+  sudo mount -t nfs -o vers=3,proto=tcp 10.10.2.100:/System/Volumes/Data/Users/Shared/nfs_share/docker_volumes/Projects /mnt/mac-project
+  sudo mount -t nfs -o vers=3,proto=tcp,uid=1000,gid=1000 10.10.2.100:/System/Volumes/Data/Users/Shared/nfs_share/docker_volumes/Projects /mnt/mac-project
+  sudo mount -t nfs -o vers=3,proto=tcp,uid=1000,gid=1000 10.10.2.100:/System/Volumes/Data/Users/Shared/nfs_share/docker_volumes/Projects /mnt/mac-project
+
+  ollama
+  LLM Studio
+  omlx - https://omlx.ai
+
+  npx skills add openaccountant/skills
+
+  # using accountant agent opencode\
+  @accountant how best do I save money for my household. Give 10 advise.
+
+  agentgateway/agentgateway/claude-sonnet-5#high, since the gateway namespaces its model IDs.
+
+
+  2. I still can't run it for you
+  The router is permission-denied from spawning accountant — it's not in my allowed subagent set, only your /accountant slash command can reach it. So: restart OpenCode (the agent registry is cached at startup, otherwise the old pin persists), then re-run /accountant. First invocation against a real task will confirm whether the pin resolves — if it fails again, the fix is the doubled form agentgateway/agentgateway/claude-sonnet-5#high, since the gateway namespaces its model IDs.
+  The household plan — executable version, Alberta-correct
+  Earlier answers gave you the what. This is the how, with the mechanics.
+  Monthly cash-flow skeleton (fill the blanks, illustrative figures)
+  Bucket  Target  Your number
+  Net household income  — C$______
+  Housing (mortgage/rent, prop tax, insurance, utilities) ≤35%  C$______
+  Transport (payment, fuel, insurance, maintenance) ≤15%  C$______
+  Food + household  10–12%  C$______
+  Savings + debt principal  ≥20%  C$______
+  Everything else remainder C$______
+  10 recommendations, ordered by impact
+   1. Zero-based budget, once. Assign every dollar to a named line before the month starts. Unassigned income is what leaks. First step: build the skeleton above from one month of actual statements.
+   2. Automate the gap on payday. Transfer savings the day after your fixed debits clear, not at month-end. Whatever survives to month-end is a rounding error.
+   3. Emergency fund: 3–6 months of essential spend in a HISA. Essential = housing + transport + food + insurance + minimums. Not "expenses". Target 3 months first; a HISA paying ~2.5–3.5% beats a chequing account doing nothing.
+   4. Attack debt by rate, not balance. Alberta credit cards are ~20%+; paying that off is a guaranteed 20% tax-free return. Avalanche (highest rate first) is mathematically optimal; snowball (smallest balance first) wins on adherence. Pick deliberately, not by accident.
+   5. Grab the employer match first — before any investing. A 50% DPSP match on your contribution is an instant 50% return. Crystallise it before optimising anything else.
+   6. Sequence accounts correctly. FHSA first if a home purchase is on the table (deduction and tax-free growth), then TFSA for flexibility, then RRSP once your marginal rate makes the deferral worthwhile. Alberta has no PST — budget 5% GST only, and dont let anyone sell you a "PST" line item.
+   7. Re-shop insurance and telecom annually. Calgary auto rates have moved hard; home+auto bundling and a retention call on phone/internet are consistently C$700–1,900/yr combined. Highest C$/hour of any household action.
+   8. Annualise every subscription before judging it. C$14.99/mo feels free; C$180/yr is a decision. Include cloud, LLM gateway, streaming, SaaS, gym, memberships. Target: cut 20%.
+   9. Sinking funds for the predictable "surprises". Property tax, car service, gifts, travel, home repairs aren't emergencies — they're scheduled. Monthly set-aside into labelled sub-accounts converts every future C$2–5k shock into a non-event.
+  10. Meter your 24/7 gear. A watt-meter on the home lab, BeeLink/mini PCs and GPU hosts tells you the real annual kWh at Alberta's rates. Consolidating hosts or scheduling downtime is often C$150–500/yr of pure waste in a home lab like yours.
+  Once your bank data exists: export 12 months of statements (or connect via the bank-sync skill) and /accountant can run spending-review, subscription-audit, lifestyle-creep and cash-flow-forecast against the actuals — that's where the numbers stop being illustrative.
+  Short caveat: general principles, not licensed advice. Verify TFSA/RRSP/FHSA room in CRA My Account before contributing.
+  
+  
+  model: "agentgateway/claude-sonnet-5#high"
+  
+  docker compose up -d --build --force-recreate --wait web-spa && make compose-test
+  
+  claude --resume d682f6a1-685d-4661-bbdd-a592c6ed4664
+  claude --resume 23c2b2c0-7bb9-412c-8408-6270168cc414
+
+  claude --enable-auto-mody
+
+
+  wave (t)  ==> wsh
+  warp      ==> oz                      ==> x-ai: grok
+  claude                                ==> anthropic
+  copilot                               ==> z-ai: glm  
+  opencode  ==> zen                     ==> openai
+  aider                                 ==> xiaomi: mimo 
+  cline                                 ==> meta: muse
+            ==> openrouter              ==> *
+  codex                                 ==> openai: gpt
+  agy                                   ==> gemini
+                                        ==> openweight: deepseek, glm, kimi kx.x, qwen
+            ==> ollama: gguf (can also run mlx)
+            ==> llm studio: mlx, gguf
+
+  printf '%s' "$NEW_KEY" | shasum -a 256 | awk '{print "sha256:"$1}'
+
+
+#:::::::::::::::::: work agents
+  Me (manual orchestrator)
+
+  General Manager (orchestrator)
+
+  :::: manager
+  help-desk
+  front-desk
+
+  :::: manager
+  accountants
+  business analyst
+  marketers
+  sales
+
+  ::: manager
+  sre/devops
+  architect - business, cloud, data, solution, security, solutions, system, enterprise
+  developer
+
+  reconcile/revenue assurance
+
+  Resource
+  - mail/chat ==> slack + zoom
+  - computing*
+  - phone/ivr
+  - internet
+
+  # claude test credentials
+  op run --env-file="$HOME/.config/claude-api/op.env" -- sh -c 'curl -s -o /dev/null -w "%{http_code}\n" https://api.anthropic.com/v1/models -H "x-api-key: $ANTHROPIC_API_KEY" -H "anthropic-version: 2023-06-01"'
+
+  # You are the coordinator. Use Herdr CLI commands to spawn two independent Claude worker agents in new panes within the current tab, coordinate them to run their respective commands, and collect both outputs.
 
